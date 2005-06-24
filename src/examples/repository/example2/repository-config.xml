@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<repository>
+  <name>Example 2</name>
+
+  <paths src="paths"/>
+
+  <storage class="org.wyona.yarep.core.impl.orm.ORMStorage">
+    <jdbc>
+      <dburl>jdbc:hsqldb:hsql://127.0.0.1:9002</dburl>
+      <user>sa</user>
+      <password/>
+    </jdbc>
+  </storage>
+</repository>

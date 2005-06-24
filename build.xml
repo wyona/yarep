@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+
+<project name="yarep" default="usage">
+
+  <target name="usage" description="How to see all the targets">
+    <echo>USAGE: ant -projecthelp</echo>
+    <echo>NOTE: Read the README.txt</echo>
+  </target>
+
+  <target name="init" description="Init all parameters and other settings">
+    <property file="local.build.properties"/>
+    <property file="build.properties"/>
+
+    <property name="classes.dir" value="${build.dir}/classes"/>
+
+    <path id="classpath.core">
+      <fileset dir="lib">
+        <include name="*.jar"/>
+      </fileset>
+    </path>
+
+    <path id="classpath.examples">
+      <fileset dir="lib">
+        <include name="*.jar"/>
+      </fileset>
+      <pathelement path="${classes.dir}"/>
+    </path>
+
+    <path id="classpath.run">
+      <fileset dir="lib">
+        <include name="*.jar"/>
+      </fileset>
+      <pathelement path="${classes.dir}"/>
+      <pathelement path="lib"/> <!-- log4j.properties -->
+      <pathelement path="build/repository"/> <!-- repository configs -->
+    </path>
+  </target>
+
+  <target name="compile-core" description="Compile Java classes" depends="init">
+    <echo>${classes.dir}</echo>
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="src/yarep" destdir="${classes.dir}"
+           classpathref="classpath.core"
+           debug="true"
+    />
+  </target>
+
+  <target name="compile-examples" description="Compile Java classes of examples" depends="init,compile-core">
+    <echo>${classes.dir}</echo>
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="src/examples" destdir="${classes.dir}"
+           classpathref="classpath.examples"
+           debug="true"
+    />
+    <copy file="src/examples/java/yarep.properties" todir="${classes.dir}"/>
+  </target>
+
+  <target name="build-examples" description="Build examples" depends="init,compile-examples">
+    <copy todir="${build.dir}/repository">
+      <fileset dir="src/examples/repository"/>
+    </copy>
+
+    <mkdir dir="build/lib"/>
+  </target>
+
+  <target name="jar" description="Create a jar file" depends="init">
+    <jar
+      destfile="build/lib/yarep-LCR${subversion.lcr}.jar"
+      basedir="build/classes"
+      excludes="org/wyona/yarep/examples/**,yarep.properties"
+    >
+    <!--
+      <manifest>
+        <attribute name="main-class" value="org.wyona.yarep.examples.HelloWorld"/>
+      </manifest>
+    -->
+    </jar>
+  </target>
+
+  <target name="clean" description="Clean Build" depends="init">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="run-examples" description="Run Example" depends="init">
+    <java classname="org.wyona.yarep.examples.HelloWorld">
+      <classpath refid="classpath.run"/>
+    </java>
+  </target>
+
+  <target name="javadoc" description="Generate Javadoc" depends="init">
+    <javadoc
+      packagenames="org.*"
+      sourcepath="src/yarep/java"
+      destdir="build/javadoc"
+    >
+    </javadoc>
+  </target>
+
+</project>
