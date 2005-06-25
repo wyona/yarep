@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -100,6 +101,15 @@ public class Repository {
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getReader(uid, path);
+    }
+
+    /**
+     *
+     */
+    public InputStream getInputStream(Path path) {
+        UID uid = getUID(path);
+        log.debug(uid.toString());
+        return storage.getInputStream(uid, path);
     }
 
     /**

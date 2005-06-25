@@ -6,6 +6,7 @@ import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -51,5 +52,12 @@ public class FileSystemStorage implements Storage {
      */
     public Reader getReader(UID uid, Path path) {
         return new FileSystemRepositoryReader(uid, path, contentDir);
+    }
+
+    /**
+     *
+     */
+    public InputStream getInputStream(UID uid, Path path) {
+        return new FileSystemRepositoryInputStream(uid, path, contentDir);
     }
 }

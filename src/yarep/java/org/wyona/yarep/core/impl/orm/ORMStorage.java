@@ -5,6 +5,7 @@ import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -36,6 +37,14 @@ public class ORMStorage implements Storage {
      *
      */
     public Reader getReader(UID uid, Path path) {
+        log.warn("Not implemented yet!");
+        return null;
+    }
+
+    /**
+     *
+     */
+    public InputStream getInputStream(UID uid, Path path) {
         log.warn("Not implemented yet!");
         return null;
     }
