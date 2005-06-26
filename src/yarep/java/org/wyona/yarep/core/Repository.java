@@ -107,8 +107,8 @@ public class Repository {
     /**
      *
      */
-    public Reader getReader(Path path) {
-        // TODO: if (!exists(path)) throw new NoSuchNodeException(path);
+    public Reader getReader(Path path) throws NoSuchNodeException {
+        if (!exists(path)) throw new NoSuchNodeException(path);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getReader(uid, path);
@@ -122,6 +122,14 @@ public class Repository {
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getInputStream(uid, path);
+    }
+
+    /**
+     *
+     */
+    public boolean exists(Path path) {
+        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        return uidFile.exists();
     }
 
     /**

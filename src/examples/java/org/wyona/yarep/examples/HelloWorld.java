@@ -38,8 +38,8 @@ public class HelloWorld {
         }
 
         // Read content from repository
-        Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
         try {
+            Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
             BufferedReader br = new BufferedReader(readerA);
             String line = br.readLine();
             StringWriter strWriter = new StringWriter();
