@@ -56,7 +56,10 @@ public class Repository {
 	    name = config.getChild("name", false).getValue();
 
             Configuration pathConfig = config.getChild("paths", false);
-            pathsDir = FileUtil.file(configFile.getParent(), pathConfig.getAttribute("src"));
+            pathsDir = new File(pathConfig.getAttribute("src"));
+            if (!pathsDir.isAbsolute()) {
+                pathsDir = FileUtil.file(configFile.getParent(), pathConfig.getAttribute("src"));
+            }
             log.debug(pathsDir.toString());
 
             Configuration storageConfig = config.getChild("storage", false);
