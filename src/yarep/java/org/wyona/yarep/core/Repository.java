@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -97,7 +98,17 @@ public class Repository {
     /**
      *
      */
+    public OutputStream getOutputStream(Path path) {
+        UID uid = getUID(path);
+        log.debug(uid.toString());
+        return storage.getOutputStream(uid, path);
+    }
+
+    /**
+     *
+     */
     public Reader getReader(Path path) {
+        // TODO: if (!exists(path)) throw new NoSuchNodeException(path);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getReader(uid, path);
@@ -107,6 +118,7 @@ public class Repository {
      *
      */
     public InputStream getInputStream(Path path) {
+        // TODO: if (!exists(path)) throw new NoSuchNodeException(path);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getInputStream(uid, path);

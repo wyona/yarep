@@ -4,6 +4,7 @@ import org.apache.avalon.framework.configuration.Configuration;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -21,6 +22,11 @@ public interface Storage {
      *
      */
     public Writer getWriter(UID uid, Path path);
+
+    /**
+     *
+     */
+    public OutputStream getOutputStream(UID uid, Path path);
 
     /**
      *
