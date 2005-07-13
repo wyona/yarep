@@ -130,9 +130,28 @@ public class Repository {
     /**
      *
      */
-    public boolean exists(Path path) {
+    public boolean isResource(Path path) {
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         return uidFile.exists();
+    }
+
+    /**
+     * One might want to discuss what is a collection. A resource for instance could
+     * also be a collection, but a collection with some default content.
+     * In the case of JCR there are only nodes and properties!
+     */
+    public boolean isCollection(Path path) {
+        File file = new File(pathsDir + path.toString());
+        return (file.exists() && !isResource(path));
+        //return true;
+    }
+
+    /**
+     *
+     */
+    public boolean exists(Path path) {
+        File file = new File(pathsDir + path.toString());
+        return file.exists();
     }
 
     /**
