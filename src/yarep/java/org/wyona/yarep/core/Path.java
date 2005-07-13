@@ -23,6 +23,14 @@ public class Path {
     /**
      *
      */
+    public String getName() {
+        // Quick and dirty
+        return new java.io.File(path).getName();
+    }
+
+    /**
+     *
+     */
     public String toString() {
         return path;
     }
