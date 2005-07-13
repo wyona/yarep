@@ -155,6 +155,24 @@ public class Repository {
     }
 
     /**
+     *
+     */
+    public Path[] getChildren(Path path) {
+        File file = new File(pathsDir + path.toString());
+        String[] filenames = file.list();
+        Path[] children = new Path[filenames.length];
+        for (int i = 0;i < children.length; i++) {
+            if (path.toString().endsWith(File.separator)) {
+                children[i] = new Path(path + filenames[i]);
+            } else {
+                children[i] = new Path(path + File.separator + filenames[i]);
+            }
+            log.debug("Child: " + children[i]);
+        }
+        return children;
+    }
+
+    /**
      * Get UID
      */
     public synchronized UID getUID(Path path) {

@@ -28,6 +28,7 @@ public class HelloWorld {
         Repository repoB = new RepositoryFactory().newRepository(new File("example2/repository-config.xml"));
 
         // Write content to repository
+        System.out.println("\nWrite content to repository ...");
         Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
         Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
         try {
@@ -38,6 +39,7 @@ public class HelloWorld {
         }
 
         // Read content from repository
+        System.out.println("\nRead content from repository ...");
         try {
             Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
             BufferedReader br = new BufferedReader(readerA);
@@ -51,6 +53,17 @@ public class HelloWorld {
             System.out.println(strWriter.toString());
             strWriter.close();
             readerA.close();
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+
+        // List children
+        System.out.println("\nList children ...");
+        try {
+            Path[] children = repoA.getChildren(new Path("/hello"));
+            for (int i = 0; i < children.length; i++) {
+                System.out.println(children[i]);
+            }
         } catch (Exception e) {
             System.err.println(e);
         }
