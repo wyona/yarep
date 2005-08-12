@@ -68,4 +68,12 @@ public class FileSystemStorage implements Storage {
     public InputStream getInputStream(UID uid, Path path) {
         return new FileSystemRepositoryInputStream(uid, path, contentDir);
     }
+
+    /**
+     *
+     */
+    public long getLastModified(UID uid, Path path) {
+        File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
+        return file.lastModified(); 
+    }
 }

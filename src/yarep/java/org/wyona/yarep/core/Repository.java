@@ -130,6 +130,14 @@ public class Repository {
     /**
      *
      */
+    public long getLastModified(Path path) {
+        UID uid = getUID(path);
+        return storage.getLastModified(uid, path);
+    }
+
+    /**
+     *
+     */
     public boolean isResource(Path path) {
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         return uidFile.exists();

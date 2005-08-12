@@ -37,4 +37,9 @@ public interface Storage {
      *
      */
     public InputStream getInputStream(UID uid, Path path);
+
+    /**
+     *
+     */
+    public long getLastModified(UID uid, Path path);
 }

@@ -57,4 +57,12 @@ public class ORMStorage implements Storage {
         log.warn("Not implemented yet!");
         return null;
     }
+
+    /**
+     *
+     */
+    public long getLastModified(UID uid, Path path) {
+        log.warn("Not implemented yet!");
+        return 0;
+    }
 }
