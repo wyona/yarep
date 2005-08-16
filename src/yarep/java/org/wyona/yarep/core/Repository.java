@@ -197,7 +197,7 @@ public class Repository {
                 return new UID(existingUID);
             } catch (Exception e) {
                 log.error(e);
-                return null;
+                throw new RuntimeException(e);
             }
         }
 
