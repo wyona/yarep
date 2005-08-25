@@ -20,12 +20,18 @@ public class HelloWorld {
      */
     public static void main(String[] args) {
 
-        RepositoryFactory repFactory = new RepositoryFactory();
-        System.out.println(repFactory);
+        RepositoryFactory repoFactory;
+        try {
+            repoFactory = new RepositoryFactory();
+            System.out.println(repoFactory);
+        } catch (Exception e) {
+            System.err.println(e);
+            return;
+        }
 
-        Repository repoA = new RepositoryFactory().newRepository("example1");
-        Repository repoC = new RepositoryFactory().newRepository("hugo");
-        Repository repoB = new RepositoryFactory().newRepository(new File("example2/repository-config.xml"));
+        Repository repoA = repoFactory.newRepository("example1");
+        Repository repoC = repoFactory.newRepository("hugo");
+        Repository repoB = repoFactory.newRepository(new File("example2/repository-config.xml"));
 
         // Write content to repository
         System.out.println("\nWrite content to repository ...");

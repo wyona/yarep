@@ -23,7 +23,7 @@ public class RepositoryFactory {
     /**
      *
      */
-    public RepositoryFactory() {
+    public RepositoryFactory() throws Exception {
         URL propertiesURL = RepositoryFactory.class.getClassLoader().getResource(DEFAULT_CONFIGURATION_FILE);
         Properties props = new Properties();
         try {
@@ -31,11 +31,16 @@ public class RepositoryFactory {
             File propsFile = new File(new URI(propertiesURL.toString()));
             log.info(propsFile);
 
-            String[] repositoryConfigs = props.getProperty("configurations").split(",");
-            repositories = new Repository[repositoryConfigs.length];
-            for (int i = 0;i < repositoryConfigs.length; i++) {
-                String idFile[] = repositoryConfigs[i].split(":");
-                Repository rt = new Repository(idFile[0], FileUtil.file(propsFile.getParent(), idFile[1]));
+	    String separator = ",";
+            String[] tokens = props.getProperty("configurations").split(separator);
+            if (tokens.length % 2 != 0) {
+                throw new Exception("Wrong number of config parameters: " + DEFAULT_CONFIGURATION_FILE);
+            }
+            repositories = new Repository[tokens.length / 2];
+            for (int i = 0;i < tokens.length / 2; i++) {
+                String repoID = tokens[2 * i];
+                String configFilename = tokens[2 * i + 1];
+                Repository rt = new Repository(repoID, FileUtil.file(propsFile.getParent(), configFilename));
                 log.info(rt.toString());
                 repositories[i] = rt;
             }
