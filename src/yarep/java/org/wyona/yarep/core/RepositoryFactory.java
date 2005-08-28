@@ -29,7 +29,6 @@ public class RepositoryFactory {
         try {
             props.load(propertiesURL.openStream());
             File propsFile = new File(propertiesURL.getFile());
-            //File propsFile = new File(new URI(propertiesURL.toString()));
 
 	    String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
@@ -92,9 +91,9 @@ public class RepositoryFactory {
             URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
             try {
                 File configFile = new File(configURL.getFile());
-                //File configFile = new File(new URI(configURL.toString()));
                 log.debug("Config file: " + configFile);
                 // TODO: what about the repository ID?
+                // NOTE: I think a repository ID should be required and checked if one has already been registered within yarep.properties (RepositoryFactory)
                 return new Repository("null", configFile);
             } catch (Exception e) {
                 log.error(e);
