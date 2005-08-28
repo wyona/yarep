@@ -91,7 +91,8 @@ public class RepositoryFactory {
         if (!config.isAbsolute()) {
             URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
             try {
-                File configFile = new File(new URI(configURL.toString()));
+                File configFile = new File(configURL.getFile());
+                //File configFile = new File(new URI(configURL.toString()));
                 log.debug("Config file: " + configFile);
                 // TODO: what about the repository ID?
                 return new Repository("null", configFile);
