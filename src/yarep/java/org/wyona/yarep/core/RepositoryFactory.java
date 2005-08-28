@@ -28,8 +28,8 @@ public class RepositoryFactory {
         Properties props = new Properties();
         try {
             props.load(propertiesURL.openStream());
-            File propsFile = new File(new URI(propertiesURL.toString()));
-            log.info(propsFile);
+            File propsFile = new File(propertiesURL.getFile());
+            //File propsFile = new File(new URI(propertiesURL.toString()));
 
 	    String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
@@ -40,7 +40,16 @@ public class RepositoryFactory {
             for (int i = 0;i < tokens.length / 2; i++) {
                 String repoID = tokens[2 * i];
                 String configFilename = tokens[2 * i + 1];
-                Repository rt = new Repository(repoID, FileUtil.file(propsFile.getParent(), configFilename));
+                log.debug("PARENT: " + propsFile.getParent());
+                log.debug("Filename: " + configFilename);
+                File configFile;
+                if (new File(configFilename).isAbsolute()) {
+                    configFile = new File(configFilename);
+                } else {
+                    configFile = FileUtil.file(propsFile.getParent(), configFilename);
+                }
+                log.debug("File: " + configFile.getAbsolutePath());
+                Repository rt = new Repository(repoID, configFile);
                 log.info(rt.toString());
                 repositories[i] = rt;
             }
