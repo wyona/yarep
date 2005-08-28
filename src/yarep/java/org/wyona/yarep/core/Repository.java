@@ -173,7 +173,8 @@ public class Repository {
             if (path.toString().endsWith(File.separator)) {
                 children[i] = new Path(path + filenames[i]);
             } else {
-                children[i] = new Path(path + File.separator + filenames[i]);
+                // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System File System path
+                children[i] = new Path(path + "/" + filenames[i]);
             }
             log.debug("Child: " + children[i]);
         }
