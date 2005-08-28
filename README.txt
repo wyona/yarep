@@ -25,6 +25,13 @@
      Run the examples by executing "ant run-examples".
 
 
+     Configuration of repositories:
+     ------------------------------
+
+     The repositories can be specified within yarep.properties (e.g. build/classes/yarep.properties).
+     Each repository is specified by a repository ID and a repository configuration file.
+
+
      Using YAREP within another application:
      ---------------------------------------
 
