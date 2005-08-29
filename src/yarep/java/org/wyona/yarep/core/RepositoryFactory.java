@@ -45,7 +45,7 @@ public class RepositoryFactory {
                 if (new File(configFilename).isAbsolute()) {
                     configFile = new File(configFilename);
                 } else {
-                    configFile = FileUtil.file(propsFile.getParent(), configFilename);
+                    configFile = FileUtil.file(propsFile.getParent(), new File(configFilename).toString());
                 }
                 log.debug("File: " + configFile.getAbsolutePath());
                 Repository rt = new Repository(repoID, configFile);
