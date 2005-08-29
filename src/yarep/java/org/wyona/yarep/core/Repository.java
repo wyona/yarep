@@ -58,7 +58,7 @@ public class Repository {
             Configuration pathConfig = config.getChild("paths", false);
             pathsDir = new File(pathConfig.getAttribute("src"));
             if (!pathsDir.isAbsolute()) {
-                pathsDir = FileUtil.file(configFile.getParent(), pathConfig.getAttribute("src"));
+                pathsDir = FileUtil.file(configFile.getParent(), pathsDir.toString());
             }
             log.debug(pathsDir.toString());
 
