@@ -63,9 +63,11 @@
     <mkdir dir="build/lib"/>
   </target>
 
-  <target name="jar" description="Create a jar file" depends="init">
+  <target name="jar" description="Create a jar file" depends="init,compile-core">
+    <mkdir dir="build/lib"/>
+
     <jar
-      destfile="build/lib/yarep-LCR${subversion.lcr}.jar"
+      destfile="build/lib/yarep-${yarep.version}-lcr${subversion.lcr}.jar"
       basedir="build/classes"
       excludes="org/wyona/yarep/examples/**,yarep.properties"
     >
