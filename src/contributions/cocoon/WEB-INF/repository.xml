@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<repository>
+  <name>Wiki</name>
+
+  <paths src="../yarep/paths"/>
+
+  <storage class="org.wyona.yarep.core.impl.fs.FileSystemStorage">
+    <content src="../yarep/content"/>
+  </storage>
+</repository>

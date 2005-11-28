@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<xconf xpath="/cocoon/source-factories" unless="/cocoon/source-factories/component-instance[@name = 'yarep']">
+
+  <component-instance
+    name="yarep"
+    logger="lenya.source.yarep"
+    class="org.apache.cocoon.components.source.impl.YarepSourceFactory"/>
+
+</xconf>
