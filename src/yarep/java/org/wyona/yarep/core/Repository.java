@@ -183,6 +183,8 @@ public class Repository {
 
     /**
      * Get UID
+     *
+     * http://www.webdav.org/specs/draft-leach-uuids-guids-01.txt
      */
     public synchronized UID getUID(Path path) {
         log.debug(pathsDir.toString());
