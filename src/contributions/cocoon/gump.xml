@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<project name="cocoon-block-yarep" status="unstable" dir="src/blocks/yarep">
+<!--
+    <package>org.apache.cocoon</package>
+-->
+
+    <description>A "yarep:" protocol for Cocoon</description>
+
+<!--
+    <ant target="jcr-block">
+      <property name="block-name" value="jcr"/>
+      <property name="version" value="@@DATE@@"/>
+    </ant>
+-->
+
+    <depend project="cocoon" inherit="all"/>
+
+<!--
+    <library name="jcr"/>
+    <library name="jackrabbit"/>
+    <library name="lucene"/>
+
+    <work nested="tools/anttasks"/>
+    <home nested="build/cocoon-@@DATE@@"/>
+-->
+
+    <jar name="blocks/yarep-block.jar"/>
+
+    <nag from="Gump &lt;general@gump.apache.org&gt;" to="dev@cocoon.apache.org"/>
+</project>
