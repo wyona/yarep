@@ -90,7 +90,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      *
      */
     public String getURI() {
-        log.warn("Not really implemented yet! Path: " + path);
+        log.warn("getURI() not really implemented yet! Path: " + path);
         return "file:" + path.toString();
     }
 
@@ -98,7 +98,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      *
      */
     public SourceValidity getValidity() {
-        log.warn("Not implemented yet!");
+        log.warn("getValidity() not implemented yet!");
         return null;
     }
 
