@@ -17,31 +17,11 @@
       <map:serialize type="xhtml"/>
     </map:match>
 
-    <map:match pattern="invoices/">
-      <map:generate type="xpathtraversable" src="yarep:/invoices">
-<!--
-      <map:generate type="xpathdirectory" src="content/invoices">
--->
-        <map:parameter name="xpath" value="/invoice"/>
-<!--
-        <map:parameter name="nsmapping" value="erp=http://www.wyona.org/erp/1.0"/>
--->
+    <map:match pattern="collection/">
+      <map:generate type="xpathtraversable" src="yarep:/">
+        <map:parameter name="xpath" value="/"/>
         <map:parameter name="depth" value="2"/>
-        <map:parameter name="xmlFiles" value="\.xml"/>
-      </map:generate>
-      <map:serialize type="xml"/>
-    </map:match>
-
-    <map:match pattern="weekly-plans/">
-      <map:generate type="traversable" src="yarep:/weekly-plans">
-<!--
-      <map:generate type="xpathdirectory" src="content/weekly-plans">
--->
-<!--
-        <map:parameter name="xpath" value="/weekly-plan"/>
-        <map:parameter name="depth" value="2"/>
-        <map:parameter name="xmlFiles" value="\.xml"/>
--->
+        <map:parameter name="xmlFiles" value="\.xhtml"/>
       </map:generate>
       <map:serialize type="xml"/>
     </map:match>
