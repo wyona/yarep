@@ -91,7 +91,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      */
     public String getURI() {
         log.warn("getURI() not really implemented yet! Path: " + path);
-        return "file:" + path.toString();
+        return SCHEME + ":" + path.toString();
     }
 
     /**
