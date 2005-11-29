@@ -52,7 +52,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      *
      */
     public long getContentLength() {
-        log.warn("Not implemented yet!");
+        log.warn("getContentLength() not implemented yet!");
         return System.currentTimeMillis();
     }
 
@@ -75,7 +75,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      *
      */
     public String getMimeType() {
-        log.warn("Not implemented yet!");
+        log.warn("getMimeType() not implemented yet!");
         return null;
     }
 
