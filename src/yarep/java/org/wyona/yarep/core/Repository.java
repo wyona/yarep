@@ -120,8 +120,8 @@ public class Repository {
     /**
      *
      */
-    public InputStream getInputStream(Path path) {
-        // TODO: if (!exists(path)) throw new NoSuchNodeException(path);
+    public InputStream getInputStream(Path path) throws NoSuchNodeException {
+        if (!exists(path)) throw new NoSuchNodeException(path);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getInputStream(uid, path);
