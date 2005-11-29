@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<jars>
+  <file>
+    <title>Yarep</title>
+    <description>
+      Yarep
+    </description>
+    <used-by>Yarep block</used-by>
+    <lib>optional/yarep-0.0.1-dev-lcr4981.jar</lib>
+    <homepage>http://svn.wyona.com/repos/public/yarep/trunk</homepage>
+  </file>
+</jars>
