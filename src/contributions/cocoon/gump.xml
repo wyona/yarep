@@ -2,7 +2,7 @@
 
 <module name="cocoon-2.1">
 
-<project name="cocoon-block-yarep" status="unstable" dir="src/blocks/yarep">
+<project name="cocoon-block-yarep" status="unstable" dir="/home/USERNAME/src/wyona/public/yarep/trunk/src/contributions/cocoon/src/blocks/yarep">
     <package>org.apache.cocoon</package>
 
     <description>A "yarep:" protocol for Cocoon</description>
