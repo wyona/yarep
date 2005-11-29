@@ -136,11 +136,12 @@ public class Repository {
     }
 
     /**
-     * TODO: The VFileSystem implementation is "violating" this condition!
+     * NOTE: Depends in the future on specific map implementation
      */
     public boolean isResource(Path path) {
+        File file = new File(pathsDir + path.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
-        return uidFile.exists();
+        return uidFile.exists() || file.isFile();
     }
 
     /**
@@ -167,12 +168,14 @@ public class Repository {
      */
     public Path[] getChildren(Path path) {
         File file = new File(pathsDir + path.toString());
-	// TODO: In the case of the VFileSystem the condition of isResource(Path) does not work!
         String[] filenames = file.list();
+
+	// NOTE: This situation should only occur if isResource(Path) didn't work properly!
         if (filenames == null) {
             log.warn("No children: " + path + " (" + file + ")");
             return new Path[0];
         }
+
         log.debug("Number of children: " + filenames.length + " (" + file + ")");
         Path[] children = new Path[filenames.length];
         for (int i = 0;i < children.length; i++) {
