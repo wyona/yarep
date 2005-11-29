@@ -3,9 +3,9 @@
 <repository>
   <name>Wiki</name>
 
-  <paths src="../yarep/paths"/>
+  <paths src="../samples/blocks/yarep/repository/paths"/>
 
   <storage class="org.wyona.yarep.core.impl.fs.FileSystemStorage">
-    <content src="../yarep/content"/>
+    <content src="../samples/blocks/yarep/repository/content"/>
   </storage>
 </repository>
