@@ -32,20 +32,25 @@ public class HelloWorld {
         Repository repoA = repoFactory.newRepository("example1");
         Repository repoC = repoFactory.newRepository("hugo");
         Repository repoB = repoFactory.newRepository(new File("example2/repository-config.xml"));
+        Repository repoD = repoFactory.newRepository(new File("vfs-example/repository.xml"));
 
         // Write content to repository
         System.out.println("\nWrite content to repository ...");
         Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
         Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
+        Writer writerD = repoD.getWriter(new Path("/hello/vfs-example.txt"));
         try {
             writerA.write("Hello World!\n...");
             writerA.close();
+
+            writerD.write("Hello VFS example!\n...");
+            writerD.close();
         } catch (Exception e) {
             System.err.println(e);
         }
 
         // Read content from repository
-        System.out.println("\nRead content from repository ...");
+        System.out.println("\nRead content from repository A ...");
         try {
             Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
             BufferedReader br = new BufferedReader(readerA);
@@ -59,12 +64,16 @@ public class HelloWorld {
             System.out.println(strWriter.toString());
             strWriter.close();
             readerA.close();
+
+            System.out.println("\nRead content from repository D ...");
+            Reader readerD = repoD.getReader(new Path("/hello/vfs-example.txt"));
+            readerD.close();
         } catch (Exception e) {
             System.err.println(e);
         }
 
         // List children
-        System.out.println("\nList children ...");
+        System.out.println("\nList children of path /hello from repository A ...");
         try {
             Path[] children = repoA.getChildren(new Path("/hello"));
             for (int i = 0; i < children.length; i++) {
