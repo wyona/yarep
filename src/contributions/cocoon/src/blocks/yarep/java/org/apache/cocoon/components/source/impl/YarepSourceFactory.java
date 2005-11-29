@@ -22,10 +22,10 @@ import org.apache.excalibur.source.SourceException;
 import org.apache.excalibur.source.SourceFactory;
 import org.apache.excalibur.source.SourceResolver;
 //import org.apache.lenya.cms.publication.DocumentIdentityMap;
-import org.apache.lenya.cms.publication.PageEnvelope;
-import org.apache.lenya.cms.publication.PageEnvelopeException;
-import org.apache.lenya.cms.publication.PageEnvelopeFactory;
-import org.apache.lenya.cms.publication.Publication;
+//import org.apache.lenya.cms.publication.PageEnvelope;
+//import org.apache.lenya.cms.publication.PageEnvelopeException;
+//import org.apache.lenya.cms.publication.PageEnvelopeFactory;
+//import org.apache.lenya.cms.publication.Publication;
 /*
 import org.apache.lenya.transaction.IdentityMap;
 import org.apache.lenya.transaction.UnitOfWork;
