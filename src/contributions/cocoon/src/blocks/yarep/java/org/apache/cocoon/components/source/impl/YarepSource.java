@@ -36,9 +36,30 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      */
     public YarepSource(String src) throws MalformedURLException, Exception {
         if (!SourceUtil.getScheme(src.toString()).equals(SCHEME)) throw new MalformedURLException();
+
         this.path = new Path(SourceUtil.getSpecificPart(src.toString()));
 
-        repo = new RepositoryFactory().newRepository("wiki");
+	log.error("path = " + path);
+	log.error("src = " + src);
+
+        // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository
+	String[] splittedPath = path.toString().split("/");
+        if (splittedPath != null) {
+	    log.error("Length: " + splittedPath.length);
+            if (splittedPath.length < 3) {
+	        log.error("Length is 0 or 2. Use ROOT repository.");
+            } else {
+	        log.error("Possible repository ID: " + splittedPath[1]);
+                if (new RepositoryFactory().exists(splittedPath[1])) {
+                    repo = new RepositoryFactory().newRepository(splittedPath[1]);
+                    path = path; // TODO: repo needs to be removed
+                }
+            }
+        } else {
+            log.error("Path could not be split. Use ROOT repository.");
+        }
+
+        repo = new RepositoryFactory().firstRepository();
     }
 
     /**
