@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <repository>
-  <name>Wiki</name>
+  <name>My test repository 1</name>
 
   <paths src="../samples/blocks/yarep/repository/paths"/>
 
