@@ -60,7 +60,7 @@ public class RepositoryFactory {
     }
 
     /**
-     *
+     * List all registered repositories
      */
     public String toString() {
         String s = "Show all repositories listed within yarep.properties:";
@@ -84,23 +84,50 @@ public class RepositoryFactory {
     }
 
     /**
+     * Get first repository from yarep.properties
+     *
+     */
+    public Repository firstRepository() {
+        if (repositories.length > 0) return repositories[0];
+        log.error("No repositories set within yarep.properties");
+        return null;
+    }
+
+    /**
      * Get repository from specified config, whereas config is being resolved relative to classpath
      */
-    public Repository newRepository(File config) {
+    public Repository newRepository(String rid, File config) {
+        if (exists(rid)) {
+            log.warn("Repository ID already exists: " + rid);
+            return null;
+        }
+
         if (!config.isAbsolute()) {
             URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
             try {
                 File configFile = new File(configURL.getFile());
                 log.debug("Config file: " + configFile);
-                // TODO: what about the repository ID?
-                // NOTE: I think a repository ID should be required and checked if one has already been registered within yarep.properties (RepositoryFactory)
-                return new Repository("null", configFile);
+                // TODO: Register rid
+                return new Repository(rid, configFile);
             } catch (Exception e) {
                 log.error(e);
                 return null;
             }
         }
-        // TODO: what about the repository ID?
-        return new Repository("null", config);
+        // TODO: Register rid
+        return new Repository(rid, config);
+    }
+
+    /**
+     * Check if repository exists (yarep.properties)
+     *
+     * @param rid Repository ID
+     */
+    public boolean exists(String rid) {
+        for (int i = 0;i < repositories.length; i++) {
+            if (repositories[i].getID().equals(rid)) return true;
+        }
+        log.warn("No such repository: " + rid);
+        return false;
     }
 }
