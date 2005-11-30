@@ -221,6 +221,10 @@ public class Repository {
                 log.warn("Directory will be created: " + parent);
                 parent.mkdirs();
             }
+            // TODO: ...
+            if (parent.isFile()) {
+                log.warn("Parent is a file and not a directory: " + parent);
+            }
             FileWriter fw = new FileWriter(uidFile);
             fw.write(uid);
             fw.close();
