@@ -29,10 +29,14 @@ public class HelloWorld {
             return;
         }
 
+        System.out.println(repoFactory);
+
         Repository repoA = repoFactory.newRepository("example1");
         Repository repoC = repoFactory.newRepository("hugo");
-        Repository repoB = repoFactory.newRepository(new File("example2/repository-config.xml"));
-        Repository repoD = repoFactory.newRepository(new File("vfs-example/repository.xml"));
+        Repository repoB = repoFactory.newRepository("vanya", new File("example2/repository-config.xml"));
+        Repository repoD = repoFactory.newRepository("vfs-example", new File("vfs-example/repository.xml"));
+
+        System.out.println(repoFactory);
 
         // Write content to repository
         System.out.println("\nWrite content to repository ...");
