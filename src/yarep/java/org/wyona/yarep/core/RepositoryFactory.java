@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URL;
 import java.net.URI;
 import java.util.Properties;
+import java.util.Vector;
 
 import org.apache.log4j.Category;
 
@@ -17,14 +18,16 @@ public class RepositoryFactory {
     private static Category log = Category.getInstance(RepositoryFactory.class);
 
     public static final String DEFAULT_CONFIGURATION_FILE = "yarep.properties";
+    public static String CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
 
-    private Repository[] repositories;
+    private Vector repositories;
 
     /**
-     *
+     * TODO: Make CONFIGURATION_FILE configurable
      */
     public RepositoryFactory() throws Exception {
-        URL propertiesURL = RepositoryFactory.class.getClassLoader().getResource(DEFAULT_CONFIGURATION_FILE);
+        CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
+        URL propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
         Properties props = new Properties();
         try {
             props.load(propertiesURL.openStream());
@@ -33,9 +36,10 @@ public class RepositoryFactory {
 	    String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
             if (tokens.length % 2 != 0) {
-                throw new Exception("Wrong number of config parameters: " + DEFAULT_CONFIGURATION_FILE);
+                throw new Exception("Wrong number of config parameters: " + CONFIGURATION_FILE);
             }
-            repositories = new Repository[tokens.length / 2];
+
+            repositories = new Vector(tokens.length / 2);
             for (int i = 0;i < tokens.length / 2; i++) {
                 String repoID = tokens[2 * i];
                 String configFilename = tokens[2 * i + 1];
@@ -49,8 +53,8 @@ public class RepositoryFactory {
                 }
                 log.debug("File: " + configFile.getAbsolutePath());
                 Repository rt = new Repository(repoID, configFile);
-                log.info(rt.toString());
-                repositories[i] = rt;
+                log.debug(rt.toString());
+                repositories.addElement(rt);
             }
 
             // see src/java/org/wyona/meguni/parser/Parser.java
@@ -63,9 +67,9 @@ public class RepositoryFactory {
      * List all registered repositories
      */
     public String toString() {
-        String s = "Show all repositories listed within yarep.properties:";
-        for (int i = 0;i < repositories.length; i++) {
-            s = s + "\n" + repositories[i];
+        String s = "Show all repositories listed within " + CONFIGURATION_FILE + ":";
+        for (int i = 0;i < repositories.size(); i++) {
+            s = s + "\n" + (Repository) repositories.elementAt(i);
         }
         return s;
     }
@@ -76,8 +80,8 @@ public class RepositoryFactory {
      * @param rid Repository ID
      */
     public Repository newRepository(String rid) {
-        for (int i = 0;i < repositories.length; i++) {
-            if (repositories[i].getID().equals(rid)) return repositories[i];
+        for (int i = 0;i < repositories.size(); i++) {
+            if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return (Repository) repositories.elementAt(i);
         }
         log.error("No such repository: " + rid);
         return null;
@@ -88,7 +92,7 @@ public class RepositoryFactory {
      *
      */
     public Repository firstRepository() {
-        if (repositories.length > 0) return repositories[0];
+        if (repositories.size() > 0) return (Repository) repositories.elementAt(0);
         log.error("No repositories set within yarep.properties");
         return null;
     }
@@ -98,7 +102,7 @@ public class RepositoryFactory {
      */
     public Repository newRepository(String rid, File config) {
         if (exists(rid)) {
-            log.warn("Repository ID already exists: " + rid);
+            log.warn("Repository ID already exists: " + rid + " Repository will not be added to list of Repository Factory!");
             return null;
         }
 
@@ -107,7 +111,7 @@ public class RepositoryFactory {
             try {
                 File configFile = new File(configURL.getFile());
                 log.debug("Config file: " + configFile);
-                // TODO: Register rid
+                repositories.addElement(new Repository(rid, configFile));
                 return new Repository(rid, configFile);
             } catch (Exception e) {
                 log.error(e);
@@ -119,13 +123,13 @@ public class RepositoryFactory {
     }
 
     /**
-     * Check if repository exists (yarep.properties)
+     * Check if repository exists
      *
      * @param rid Repository ID
      */
     public boolean exists(String rid) {
-        for (int i = 0;i < repositories.length; i++) {
-            if (repositories[i].getID().equals(rid)) return true;
+        for (int i = 0;i < repositories.size(); i++) {
+            if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return true;
         }
         log.warn("No such repository: " + rid);
         return false;
