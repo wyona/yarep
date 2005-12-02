@@ -23,7 +23,6 @@ public class HelloWorld {
         RepositoryFactory repoFactory;
         try {
             repoFactory = new RepositoryFactory();
-            System.out.println(repoFactory);
         } catch (Exception e) {
             System.err.println(e);
             return;
@@ -33,6 +32,8 @@ public class HelloWorld {
 
         Repository repoA = repoFactory.newRepository("example1");
         Repository repoC = repoFactory.newRepository("hugo");
+
+        // Add more repositories to repository factory
         Repository repoB = repoFactory.newRepository("vanya", new File("example2/repository-config.xml"));
         Repository repoD = repoFactory.newRepository("vfs-example", new File("vfs-example/repository.xml"));
 
