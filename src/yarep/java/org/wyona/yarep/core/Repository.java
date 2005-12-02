@@ -193,6 +193,8 @@ public class Repository {
     /**
      * Get UID
      *
+     * http://www.ietf.org/rfc/rfc4122.txt
+     * http://incubator.apache.org/jackrabbit/apidocs/org/apache/jackrabbit/uuid/UUID.html
      * http://www.webdav.org/specs/draft-leach-uuids-guids-01.txt
      */
     public synchronized UID getUID(Path path) {
