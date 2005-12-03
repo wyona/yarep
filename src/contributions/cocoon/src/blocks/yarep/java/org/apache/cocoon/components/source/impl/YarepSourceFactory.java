@@ -31,6 +31,8 @@ import org.apache.lenya.transaction.IdentityMap;
 import org.apache.lenya.transaction.UnitOfWork;
 */
 
+import org.wyona.yarep.core.RepositoryFactory;
+
 /**
  * A factory for the "yarep" scheme (virtual protocol), which is used to resolve any src="yarep:..."
  * attributes in sitemaps. This implementation constructs the path to the source document from the
@@ -40,6 +42,7 @@ public class YarepSourceFactory extends AbstractLogEnabled implements SourceFact
         Contextualizable, Serviceable, Configurable {
 
     protected static final String SCHEME = "yarep";
+    protected RepositoryFactory repoFactory;
 
     /** fallback if no configuration is available */
     protected static final String DEFAULT_DELEGATION_SCHEME = "context:";
@@ -71,6 +74,13 @@ public class YarepSourceFactory extends AbstractLogEnabled implements SourceFact
     public void configure(Configuration configuration) throws ConfigurationException {
         this.delegationScheme = configuration.getAttribute("scheme", DEFAULT_DELEGATION_SCHEME);
         //this.delegationPrefix = configuration.getAttribute("prefix", DEFAULT_DELEGATION_PREFIX);
+
+        try {
+            repoFactory = new RepositoryFactory();
+            getLogger().info("Initialize Repository Factory: " + repoFactory.toString());
+        } catch(Exception e) {
+            getLogger().error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -107,9 +117,9 @@ public class YarepSourceFactory extends AbstractLogEnabled implements SourceFact
             getLogger().debug("Creating repository source for URI [" + src + "]");
 
             try {
-                return new YarepSource(src);
+                return new YarepSource(src, repoFactory);
             } catch (Exception e) {
-                getLogger().error(e.getMessage());
+                getLogger().error(e.getMessage(), e);
                 throw new IOException(e.getMessage());
             }
 

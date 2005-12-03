@@ -27,11 +27,14 @@
     </map:match>
 
     <map:match pattern="another-repository">
+      <map:generate src="yarep:/another/test.xhtml"/>
+<!--
       <map:generate type="xpathtraversable" src="yarep:/another/test.xhtml">
         <map:parameter name="xpath" value="/"/>
         <map:parameter name="depth" value="2"/>
         <map:parameter name="xmlFiles" value="\.xhtml"/>
       </map:generate>
+-->
       <map:serialize type="xml"/>
     </map:match>
 

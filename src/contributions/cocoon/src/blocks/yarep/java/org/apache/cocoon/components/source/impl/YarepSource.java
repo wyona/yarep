@@ -31,35 +31,43 @@ public class YarepSource implements ModifiableSource, TraversableSource {
 
     private Repository repo;
 
+    private RepositoryFactory repoFactory;
+
     /**
      *
      */
-    public YarepSource(String src) throws MalformedURLException, Exception {
+    public YarepSource(String src, RepositoryFactory repoFactory) throws MalformedURLException, Exception {
+        this.repoFactory = repoFactory;
+
         if (!SourceUtil.getScheme(src.toString()).equals(SCHEME)) throw new MalformedURLException();
 
         this.path = new Path(SourceUtil.getSpecificPart(src.toString()));
 
-	log.error("path = " + path);
-	log.error("src = " + src);
+	log.debug("path = " + path);
+	log.debug("src = " + src);
 
         // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository
 	String[] splittedPath = path.toString().split("/");
         if (splittedPath != null) {
-	    log.error("Length: " + splittedPath.length);
             if (splittedPath.length < 3) {
-	        log.error("Length is 0 or 2. Use ROOT repository.");
+	        log.debug("Length is 0 or 2. Use ROOT repository.");
             } else {
-	        log.error("Possible repository ID: " + splittedPath[1]);
-                if (new RepositoryFactory().exists(splittedPath[1])) {
-                    repo = new RepositoryFactory().newRepository(splittedPath[1]);
-                    path = path; // TODO: repo needs to be removed
+	        log.debug("Possible repository ID: " + splittedPath[1]);
+                if (repoFactory.exists(splittedPath[1])) {
+                    repo = repoFactory.newRepository(splittedPath[1]);
+                    path = new Path(path.toString().substring(repo.getID().length() + 1));
+                    log.debug("New Repository: " + repo);
+                    log.debug("New Path: " + path);
+                    return;
                 }
             }
         } else {
-            log.error("Path could not be split. Use ROOT repository.");
+            log.debug("Path could not be split. Use ROOT repository.");
         }
 
-        repo = new RepositoryFactory().firstRepository();
+        repo = repoFactory.firstRepository();
+        log.debug("Repository: " + repo);
+        log.debug("Path: " + path);
     }
 
     /**
@@ -190,7 +198,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
         java.util.Vector collection = new java.util.Vector();
         try {
             for (int i = 0; i < children.length; i++) {
-                collection.add(new YarepSource("yarep:" + children[i].toString()));
+                collection.add(new YarepSource("yarep:" + children[i].toString(), repoFactory));
             }
         } catch (MalformedURLException e) {
             log.error(e);

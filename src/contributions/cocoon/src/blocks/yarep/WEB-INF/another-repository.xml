@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 
 <repository>
-  <name>My test repository</name>
+  <name>Another repository</name>
 
-  <paths src="../samples/blocks/yarep/repository/paths"/>
+  <paths src="../samples/blocks/yarep/repository/paths/another"/>
 
   <storage class="org.wyona.yarep.core.impl.fs.FileSystemStorage">
     <content src="../samples/blocks/yarep/repository/content"/>
