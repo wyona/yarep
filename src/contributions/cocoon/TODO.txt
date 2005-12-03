@@ -2,4 +2,4 @@
     TODO
     ====
 
-    - The repository configuration should only be read during startup
+    - Implement methods like getURI, getValidity, getMimeType, ...
