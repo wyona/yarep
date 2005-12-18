@@ -216,7 +216,9 @@ public class Repository {
         }
 
         // TODO: Shouldn't the uid be written only if the writer is being closed successfully!
-	String uid = "" + System.currentTimeMillis();
+	//String uid = "" + System.currentTimeMillis();
+	String uuid = org.apache.commons.id.uuid.UUID.randomUUID().toString();
+	//String uid = java.util.UUID.randomUUID().toString(); // Java 1.5.x
         try {
             File parent = new File(uidFile.getParent());
             if (!parent.exists()) {
@@ -228,11 +230,11 @@ public class Repository {
                 log.warn("Parent is a file and not a directory: " + parent);
             }
             FileWriter fw = new FileWriter(uidFile);
-            fw.write(uid);
+            fw.write(uuid);
             fw.close();
         } catch (Exception e) {
             log.error(e);
         }
-        return new UID(uid);
+        return new UID(uuid);
     }
 }
