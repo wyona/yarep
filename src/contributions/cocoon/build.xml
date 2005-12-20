@@ -12,7 +12,11 @@
 </target>
 
 <target name="deploy" depends="init" description="Patch gump.xml and lib/jars.xml and copy yarep library and sources">
-  <copydir src="src/blocks/yarep" dest="${cocoon.source.dir}/src/blocks/yarep"/>
+  <copy todir="${cocoon.source.dir}/src/blocks/yarep">
+    <fileset dir="src/blocks/yarep"/>
+  </copy>
+
+  <copy file="../../../build/lib/yarep-0.0.1-dev-lcr8918.jar" todir="${cocoon.source.dir}/lib/optional"/>
 
   <property name="gump-file" value="gump.xml"/>
   <echo>Patch ${gump-file}</echo>
