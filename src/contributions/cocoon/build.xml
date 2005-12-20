@@ -21,7 +21,7 @@
           includes="xpatch/gump/*.xconf"
           addComments="true"/>
 
-  <property name="jars-file" value="lib/jars-test.xml"/>
+  <property name="jars-file" value="lib/jars.xml"/>
   <echo>Patch ${jars-file}</echo>
   <xpatch file="${cocoon.source.dir}/${jars-file}"
           srcdir="."
