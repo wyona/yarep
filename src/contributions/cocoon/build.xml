@@ -7,16 +7,20 @@
 
   <property file="local.build.properties"/>
   <property file="build.properties"/>
+  <property file="../../../local.build.properties"/>
+  <property file="../../../build.properties"/>
 
   <taskdef name="xpatch" classname="XConfToolTask" classpath="${cocoon.source.dir}/tools/anttasks"/>
 </target>
 
 <target name="deploy" depends="init" description="Patch gump.xml and lib/jars.xml and copy yarep library and sources">
+  <echo>Copy Yarep Cocoon block sources</echo>
   <copy todir="${cocoon.source.dir}/src/blocks/yarep">
     <fileset dir="src/blocks/yarep"/>
   </copy>
 
-  <copy file="../../../build/lib/yarep-0.0.1-dev-lcr8918.jar" todir="${cocoon.source.dir}/lib/optional"/>
+  <echo>Copy Yarep library with version number ${subversion.lcr}</echo>
+  <copy file="../../../build/lib/yarep-0.0.1-dev-lcr${subversion.lcr}.jar" todir="${cocoon.source.dir}/lib/optional"/>
 
   <property name="gump-file" value="gump.xml"/>
   <echo>Patch ${gump-file}</echo>
