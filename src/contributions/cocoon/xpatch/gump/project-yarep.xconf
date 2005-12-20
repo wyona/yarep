@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<xconf xpath="/module" unless="/module/project[@name = 'cocoon-block-yarep']">
+  <project name="cocoon-block-yarep" status="unstable" dir="src/blocks/yarep">
+  <!--
+  <project name="cocoon-block-yarep" status="unstable" dir="/home/USERNAME/src/wyona/public/yarep/trunk/src/contributions/cocoon/src/blocks/yarep">
+  -->
+    <package>org.apache.cocoon</package>
+
+    <description>A "yarep:" protocol for Cocoon</description>
+
+    <ant target="yarep-block">
+      <property name="block-name" value="yarep"/>
+      <property name="version" value="@@DATE@@"/>
+    </ant>
+
+    <depend project="cocoon" inherit="all"/>
+
+    <library name="yarep"/>
+
+    <work nested="tools/anttasks"/>
+    <home nested="build/cocoon-@@DATE@@"/>
+
+    <jar name="blocks/yarep-block.jar"/>
+
+    <nag from="Gump &lt;general@gump.apache.org&gt;" to="dev@cocoon.apache.org"/>
+  </project>
+</xconf>
