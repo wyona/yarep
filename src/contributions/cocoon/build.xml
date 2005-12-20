@@ -11,8 +11,10 @@
   <taskdef name="xpatch" classname="XConfToolTask" classpath="${cocoon.source.dir}/tools/anttasks"/>
 </target>
 
-<target name="deploy" depends="init" description="Patch gump.xml and lib/jars.xml and copy yarep library">
-  <property name="gump-file" value="gump-test.xml"/>
+<target name="deploy" depends="init" description="Patch gump.xml and lib/jars.xml and copy yarep library and sources">
+  <copydir src="src/blocks/yarep" dest="${cocoon.source.dir}/src/blocks/yarep"/>
+
+  <property name="gump-file" value="gump.xml"/>
   <echo>Patch ${gump-file}</echo>
   <xpatch file="${cocoon.source.dir}/${gump-file}"
           srcdir="."
