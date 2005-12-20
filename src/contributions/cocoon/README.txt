@@ -11,8 +11,10 @@ Getting Started:
 ----------------
   Build Yarep library resp. jar file first (see ../../../README.txt)
 
+  Copy build.properties to local.build.properties and configure the Cocoon source directory within local.build.properties
+
   IMPORTANT:
-    Make sure to set the Yarep version ID of the library (build.xml and xpatch/jars/file-yarep.xconf)
+    Make sure to set the Yarep version of the library within xpatch/jars/file-yarep.xconf
     (will be done automatically in a future version)
 
   Run ant ("ant")
