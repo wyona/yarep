@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<project default="deploy" name="yarep-cocoon-block">
+
+<target name="init">
+  <echo>Init ...</echo>
+
+  <property file="local.build.properties"/>
+  <property file="build.properties"/>
+
+  <taskdef name="xpatch" classname="XConfToolTask" classpath="${cocoon.source.dir}/tools/anttasks"/>
+</target>
+
+<target name="deploy" depends="init">
+  <property name="gump-file" value="gump-test.xml"/>
+  <echo>Patch ${gump-file}</echo>
+  <xpatch file="${cocoon.source.dir}/${gump-file}"
+          srcdir="."
+          includes="xpatch/gump/*.xconf"
+          addComments="true"/>
+
+  <property name="jars-file" value="lib/jars-test.xml"/>
+  <echo>Patch ${jars-file}</echo>
+  <xpatch file="${cocoon.source.dir}/${jars-file}"
+          srcdir="."
+          includes="xpatch/jars/*.xconf"
+          addComments="true"/>
+</target>
+</project>
