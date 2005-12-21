@@ -5,7 +5,7 @@
     <title>Yarep</title>
     <description>Yarep</description>
     <used-by>Yarep block</used-by>
-    <lib>optional/yarep-0.0.1-dev-lcr4981.jar</lib>
+    <lib>optional/yarep-0.0.1-dev-lcr@SUBVERSION.LCR@.jar</lib>
     <homepage>http://svn.wyona.com/repos/public/yarep/trunk</homepage>
   </file>
 </xconf>
