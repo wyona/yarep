@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<xconf xpath="/jars" unless="/jars/file[@name = 'lib-commons-discovery']">
+  <file name="lib-commons-discovery">
+    <title>Apache Commons Discovery</title>
+    <description>Discovery</description>
+    <used-by>Apache Commons Id</used-by>
+    <lib>optional/apache-jakarta-commons-discovery-0.2.jar</lib>
+    <homepage>http://jakarta.apache.org/commons/discovery/</homepage>
+  </file>
+</xconf>

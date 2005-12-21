@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<xconf xpath="/jars" unless="/jars/file[@name = 'lib-commons-id']">
+  <file name="lib-commons-id">
+    <title>Apache Commons Id</title>
+    <description>Handling of UUID, etc.</description>
+    <used-by>Yarep Library</used-by>
+    <lib>optional/apache-jakarta-commons-id-0.1-dev-lcr357257.jar</lib>
+    <homepage>http://svn.apache.org/viewcvs.cgi/jakarta/commons/sandbox/id/trunk/</homepage>
+  </file>
+</xconf>
