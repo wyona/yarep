@@ -16,7 +16,9 @@
 
     <depend project="cocoon" inherit="all"/>
 
-    <library name="yarep"/>
+    <library name="yarep-"/>
+    <library name="apache-jakarta-commons-id-"/>
+    <library name="apache-jakarta-commons-discovery-"/>
 
     <work nested="tools/anttasks"/>
     <home nested="build/cocoon-@@DATE@@"/>
