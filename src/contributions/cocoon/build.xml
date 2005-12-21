@@ -22,6 +22,9 @@
   <echo>Copy Yarep library with version number ${subversion.lcr}</echo>
   <copy file="../../../build/lib/yarep-0.0.1-dev-lcr${subversion.lcr}.jar" todir="${cocoon.source.dir}/lib/optional"/>
 
+  <copy file="../../../lib/apache-jakarta-commons-discovery-0.2.jar" todir="${cocoon.source.dir}/lib/optional"/>
+  <copy file="../../../lib/apache-jakarta-commons-id-0.1-dev-lcr357257.jar" todir="${cocoon.source.dir}/lib/optional"/>
+
   <property name="gump-file" value="gump.xml"/>
   <echo>Patch ${gump-file}</echo>
   <xpatch file="${cocoon.source.dir}/${gump-file}"
