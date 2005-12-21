@@ -38,5 +38,9 @@
           srcdir="."
           includes="xpatch/jars/*.xconf"
           addComments="true"/>
+
+  <replace file="${cocoon.source.dir}/${jars-file}" value="${subversion.lcr}">
+    <replacetoken>@SUBVERSION.LCR@</replacetoken>
+  </replace>
 </target>
 </project>
