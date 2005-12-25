@@ -38,6 +38,24 @@
       <map:serialize type="xml"/>
     </map:match>
 
+    <map:match pattern="repo-ROOT/**">
+      <map:generate type="xpathtraversable" src="yarep:/{1}">
+        <!--<map:parameter name="xpath" value="/"/>-->
+        <map:parameter name="depth" value="2"/>
+        <!--<map:parameter name="xmlFiles" value="\.xhtml"/>-->
+      </map:generate>
+      <map:serialize type="xml"/>
+    </map:match>
+
+    <map:match pattern="repo-*/**">
+      <map:generate type="xpathtraversable" src="yarep:/{1}/{2}">
+        <!--<map:parameter name="xpath" value="/"/>-->
+        <map:parameter name="depth" value="2"/>
+        <!--<map:parameter name="xmlFiles" value="\.xhtml"/>-->
+      </map:generate>
+      <map:serialize type="xml"/>
+    </map:match>
+
     <map:match pattern="**">
       <map:generate src="index.xhtml"/>
       <map:serialize type="xhtml"/>
