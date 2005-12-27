@@ -36,6 +36,8 @@ public class FileSystemStorage implements Storage {
                 contentDir = FileUtil.file(repoConfigFile.getParent(), contentDir.toString());
             }
             log.debug(contentDir.toString());
+            //TODO: Throw an exception
+            if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
         } catch (Exception e) {
             log.error(e);
         }
