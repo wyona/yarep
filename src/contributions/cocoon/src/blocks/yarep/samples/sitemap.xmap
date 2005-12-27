@@ -6,6 +6,7 @@
     <map:generators default="file">
       <map:generator logger="sitemap.generator.traversable" name="traversable" src="org.apache.cocoon.generation.TraversableGenerator"/>
       <map:generator logger="sitemap.generator.xpathtraversable" name="xpathtraversable" src="org.apache.cocoon.generation.XPathTraversableGenerator"/>
+      <map:generator logger="sitemap.generator.yarep" name="yarep" src="org.apache.cocoon.generation.RepositoryFactoryGenerator"/>
     </map:generators>
  </map:components>
 
@@ -53,6 +54,11 @@
         <map:parameter name="depth" value="2"/>
         <!--<map:parameter name="xmlFiles" value="\.xhtml"/>-->
       </map:generate>
+      <map:serialize type="xml"/>
+    </map:match>
+
+    <map:match pattern="repofactory.html">
+      <map:generate type="yarep"/>
       <map:serialize type="xml"/>
     </map:match>
 

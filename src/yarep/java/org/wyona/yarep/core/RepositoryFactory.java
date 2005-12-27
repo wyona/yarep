@@ -64,6 +64,17 @@ public class RepositoryFactory {
     }
 
     /**
+     * Get repository IDs
+     */
+    public String[] getRepositoryIDs() {
+        String[] ids = new String[repositories.size()];
+        for (int i = 0;i < repositories.size(); i++) {
+            ids[i] = ((Repository) repositories.elementAt(i)).getID();
+        }
+        return ids;
+    }
+
+    /**
      * List all registered repositories
      */
     public String toString() {
