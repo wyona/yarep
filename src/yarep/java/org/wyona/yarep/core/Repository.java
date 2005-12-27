@@ -61,6 +61,8 @@ public class Repository {
                 pathsDir = FileUtil.file(configFile.getParent(), pathsDir.toString());
             }
             log.debug(pathsDir.toString());
+            // TODO: Throw Exception
+            if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
 
             Configuration storageConfig = config.getChild("storage", false);
 
