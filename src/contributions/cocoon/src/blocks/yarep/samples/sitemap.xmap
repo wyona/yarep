@@ -57,8 +57,9 @@
       <map:serialize type="xml"/>
     </map:match>
 
-    <map:match pattern="repofactory.html">
+    <map:match pattern="repositories.html">
       <map:generate type="yarep"/>
+      <map:transform src="xslt/repositories.xsl"/>
       <map:serialize type="xml"/>
     </map:match>
 
