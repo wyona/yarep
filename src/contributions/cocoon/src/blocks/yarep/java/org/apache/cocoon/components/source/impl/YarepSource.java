@@ -40,34 +40,37 @@ public class YarepSource implements ModifiableSource, TraversableSource {
         this.repoFactory = repoFactory;
 
         if (!SourceUtil.getScheme(src.toString()).equals(SCHEME)) throw new MalformedURLException();
+	log.error("Original src = " + src);
 
         this.path = new Path(SourceUtil.getSpecificPart(src.toString()));
-
-	log.debug("path = " + path);
-	log.debug("src = " + src);
+	log.error("Original path = " + path);
 
         // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository
 	String[] splittedPath = path.toString().split("/");
         if (splittedPath != null) {
-            if (splittedPath.length < 3) {
-	        log.debug("Length is 0 or 2. Use ROOT repository.");
+            if (splittedPath.length < 2) {
+	        log.error("Length = " + splittedPath.length + ". Use ROOT repository.");
             } else {
-	        log.debug("Possible repository ID: " + splittedPath[1]);
+	        log.error("Possible repository ID: " + splittedPath[1]);
                 if (repoFactory.exists(splittedPath[1])) {
                     repo = repoFactory.newRepository(splittedPath[1]);
                     path = new Path(path.toString().substring(repo.getID().length() + 1));
-                    log.debug("New Repository: " + repo);
-                    log.debug("New Path: " + path);
+
+                    log.error("New Repository: " + repo.getID() + " - " + repo.getName());
+                    log.error("New Path: " + path);
                     return;
                 }
             }
         } else {
-            log.debug("Path could not be split. Use ROOT repository.");
+            log.error("Path could not be split. Use ROOT repository.");
         }
 
+        // First repository shall be ROOT repository
         repo = repoFactory.firstRepository();
-        log.debug("Repository: " + repo);
-        log.debug("Path: " + path);
+
+        log.error("ROOT Repository: " + repo.getID() + " - " + repo.getName());
+        log.error("Path (still original): " + path);
+        return;
     }
 
     /**
@@ -198,7 +201,11 @@ public class YarepSource implements ModifiableSource, TraversableSource {
         java.util.Vector collection = new java.util.Vector();
         try {
             for (int i = 0; i < children.length; i++) {
-                collection.add(new YarepSource("yarep:" + children[i].toString(), repoFactory));
+                if (false) { // TODO: Even in the case of the ROOT repo one should add the repo prefix, right?
+                    collection.add(new YarepSource("yarep:" + children[i].toString(), repoFactory));
+                } else {
+                    collection.add(new YarepSource("yarep:/" + repo.getID() + children[i].toString(), repoFactory));
+                }
             }
         } catch (MalformedURLException e) {
             log.error(e);

@@ -19,7 +19,8 @@ import java.io.File;
 public class RepositoryFactoryGenerator extends ComposerGenerator {
 
     // The URI of the namespace of this generator
-    private String URI = ""; //"http://www.wyona.org/yarep/1.0";
+    private String URI = "";
+    //private String URI = "http://www.wyona.org/yarep/1.0";
 
     /**
      * Generate XML data.
@@ -38,6 +39,7 @@ public class RepositoryFactoryGenerator extends ComposerGenerator {
             AttributesImpl attr = new AttributesImpl();
             attr.addAttribute("", "file", "file", "CDATA", new File(rf.getPropertiesURL().getFile()).getAbsolutePath());
             super.contentHandler.startElement(URI, "repositories", "repositories", attr);
+            //super.contentHandler.startElement(URI, "repositories", "yarep:repositories", attr);
             attr.clear();
             for (int i = 0; i < repoIDs.length; i++) {
                 attr.addAttribute("", "id", "id", "CDATA", "" + repoIDs[i]);
@@ -49,6 +51,7 @@ public class RepositoryFactoryGenerator extends ComposerGenerator {
                 super.contentHandler.endElement(URI, "repository", "repository");
             }
             super.contentHandler.endElement(URI, "repositories", "repositories");
+            //super.contentHandler.endElement(URI, "repositories", "yarep:repositories");
 
             this.contentHandler.endDocument();
 
