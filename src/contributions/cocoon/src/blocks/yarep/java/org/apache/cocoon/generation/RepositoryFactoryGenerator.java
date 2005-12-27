@@ -11,6 +11,8 @@ import org.xml.sax.helpers.AttributesImpl;
 
 import org.wyona.yarep.core.RepositoryFactory;
 
+import java.io.File;
+
 /**
  * @author Michael Wechner
  */
@@ -29,16 +31,28 @@ public class RepositoryFactoryGenerator extends ComposerGenerator {
             RepositoryFactory rf = new RepositoryFactory();
             String[] repoIDs = rf.getRepositoryIDs();
 
-            // Return XML
+            // Start document
             this.contentHandler.startDocument();
+
+            // Start root element
             AttributesImpl attr = new AttributesImpl();
-            attr.addAttribute("", "properties", "properties", "CDATA", "" + rf.CONFIGURATION_FILE);
+            attr.addAttribute("", "file", "file", "CDATA", new File(rf.getPropertiesURL().getFile()).getAbsolutePath());
             super.contentHandler.startElement(URI, "repositories", "repositories", attr);
             attr.clear();
-            String data = rf.toString();
-            super.contentHandler.characters(data.toCharArray(), 0, data.length());
+            for (int i = 0; i < repoIDs.length; i++) {
+                attr.addAttribute("", "id", "id", "CDATA", "" + repoIDs[i]);
+                attr.addAttribute("", "file", "file", "CDATA", "" + rf.newRepository(repoIDs[i]).getConfigFile().getAbsolutePath());
+                super.contentHandler.startElement(URI, "repository", "repository", attr);
+                attr.clear();
+                String data = rf.newRepository(repoIDs[i]).getName();
+                super.contentHandler.characters(data.toCharArray(), 0, data.length());
+                super.contentHandler.endElement(URI, "repository", "repository");
+            }
             super.contentHandler.endElement(URI, "repositories", "repositories");
+
             this.contentHandler.endDocument();
+
+
 /*
             byte[] sresponse = new byte[1024];
             InputSource input = new InputSource(new ByteArrayInputStream(sresponse));

@@ -22,12 +22,14 @@ public class RepositoryFactory {
 
     private Vector repositories;
 
+    private URL propertiesURL;
+
     /**
      * TODO: Make CONFIGURATION_FILE configurable
      */
     public RepositoryFactory() throws Exception {
         CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
-        URL propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
+        propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
         Properties props = new Properties();
         try {
             props.load(propertiesURL.openStream());
@@ -61,6 +63,13 @@ public class RepositoryFactory {
         } catch (Exception e) {
             log.error(e.toString());
         }
+    }
+
+    /**
+     * Get properties URL
+     */
+    public URL getPropertiesURL() {
+        return propertiesURL;
     }
 
     /**

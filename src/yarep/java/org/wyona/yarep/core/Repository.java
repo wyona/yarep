@@ -83,10 +83,24 @@ public class Repository {
     }
 
     /**
-     *
+     * Get repository ID
      */
     public String getID() {
         return id;
+    }
+
+    /**
+     * Get repository name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Get repository configuration file
+     */
+    public File getConfigFile() {
+        return configFile;
     }
 
     /**
@@ -133,6 +147,28 @@ public class Repository {
     public long getLastModified(Path path) {
         UID uid = getUID(path);
         return storage.getLastModified(uid, path);
+    }
+
+    /**
+     * Not implemented yet
+     * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getValidity()
+     * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/SourceValidity.html
+     */
+    public void getValidity(Path path) {
+    }
+
+    /**
+     * Not implemented yet
+     * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getContentLength()
+     */
+    public void getContentLength(Path path) {
+    }
+
+    /**
+     * Not implemented yet
+     * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getURI()
+     */
+    public void getURI(Path path) {
     }
 
     /**
