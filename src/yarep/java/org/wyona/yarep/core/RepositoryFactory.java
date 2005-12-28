@@ -62,6 +62,7 @@ public class RepositoryFactory {
             // see src/java/org/wyona/meguni/parser/Parser.java
         } catch (Exception e) {
             log.error(e.toString());
+            throw e;
         }
     }
 
