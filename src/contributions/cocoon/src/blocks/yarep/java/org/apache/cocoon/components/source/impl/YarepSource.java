@@ -87,7 +87,7 @@ public class YarepSource implements ModifiableSource, TraversableSource {
      */
     public long getContentLength() {
         log.warn("getContentLength() not implemented yet!");
-        return System.currentTimeMillis();
+        return -1;
     }
 
     /**
