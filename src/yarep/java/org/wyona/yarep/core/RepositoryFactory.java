@@ -29,11 +29,18 @@ public class RepositoryFactory {
      */
     public RepositoryFactory() throws Exception {
         CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
+
         propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
+        if (propertiesURL == null) {
+            log.warn("No such resource: " + CONFIGURATION_FILE);
+            repositories = new Vector(0);
+            return;
+        }
+
         Properties props = new Properties();
+        File propsFile = new File(propertiesURL.getFile());
         try {
             props.load(propertiesURL.openStream());
-            File propsFile = new File(propertiesURL.getFile());
 
 	    String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
@@ -61,7 +68,7 @@ public class RepositoryFactory {
 
             // see src/java/org/wyona/meguni/parser/Parser.java
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error(e.toString(), e);
             throw e;
         }
     }
@@ -88,7 +95,7 @@ public class RepositoryFactory {
      * List all registered repositories
      */
     public String toString() {
-        String s = "Show all repositories listed within " + CONFIGURATION_FILE + ":";
+        String s = "Show all repositories listed within " + CONFIGURATION_FILE + " respectively set during runtime:";
         for (int i = 0;i < repositories.size(); i++) {
             s = s + "\n" + (Repository) repositories.elementAt(i);
         }
@@ -114,7 +121,7 @@ public class RepositoryFactory {
      */
     public Repository firstRepository() {
         if (repositories.size() > 0) return (Repository) repositories.elementAt(0);
-        log.error("No repositories set within yarep.properties");
+        log.error("No repositories (set within yarep.properties)!");
         return null;
     }
 
