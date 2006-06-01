@@ -19,8 +19,8 @@
     <fileset dir="src/blocks/yarep"/>
   </copy>
 
-  <echo>Copy Yarep library with version number ${subversion.lcr}</echo>
-  <copy file="../../../build/lib/yarep-0.0.1-dev-lcr${subversion.lcr}.jar" todir="${cocoon.source.dir}/lib/optional"/>
+  <echo>Copy Yarep library with version number ${subversion.revision}</echo>
+  <copy file="../../../build/lib/yarep-0.0.1-dev-r${subversion.revision}.jar" todir="${cocoon.source.dir}/lib/optional"/>
 
   <copy file="../../../lib/apache-jakarta-commons-discovery-0.2.jar" todir="${cocoon.source.dir}/lib/optional"/>
   <copy file="../../../lib/apache-jakarta-commons-id-0.1-dev-lcr357257.jar" todir="${cocoon.source.dir}/lib/optional"/>
@@ -39,7 +39,7 @@
           includes="xpatch/jars/*.xconf"
           addComments="true"/>
 
-  <replace file="${cocoon.source.dir}/${jars-file}" value="${subversion.lcr}">
+  <replace file="${cocoon.source.dir}/${jars-file}" value="${subversion.revision}">
     <replacetoken>@SUBVERSION.LCR@</replacetoken>
   </replace>
 </target>

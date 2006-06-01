@@ -67,7 +67,7 @@
     <mkdir dir="build/lib"/>
 
     <jar
-      destfile="build/lib/yarep-${yarep.version}-lcr${subversion.lcr}.jar"
+      destfile="build/lib/yarep-${yarep.version}-r${subversion.revision}.jar"
       basedir="build/classes"
       excludes="org/wyona/yarep/examples/**,yarep.properties"
     >
