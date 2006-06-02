@@ -37,7 +37,7 @@ public final class FileUtil {
      * @param absoluteFile DOCUMENT ME!
      * @param relativeFile DOCUMENT ME!
      * 
-     * @return DOCUMENT ME!
+     * @return concatenated filename
      */
     public static String concat(String absoluteFile, String relativeFile) {
         File file = new File(absoluteFile);
