@@ -38,6 +38,7 @@ public class RepositoryFactory {
         }
 
         Properties props = new Properties();
+        log.debug("Properties URL: " + propertiesURL);
         File propsFile = new File(propertiesURL.getFile());
         try {
             props.load(propertiesURL.openStream());
@@ -52,15 +53,16 @@ public class RepositoryFactory {
             for (int i = 0;i < tokens.length / 2; i++) {
                 String repoID = tokens[2 * i];
                 String configFilename = tokens[2 * i + 1];
-                log.debug("PARENT: " + propsFile.getParent());
+                log.debug("Property File: " + propsFile.getAbsolutePath());
+                log.debug("PARENT: " + propsFile.getParentFile());
                 log.debug("Filename: " + configFilename);
                 File configFile;
                 if (new File(configFilename).isAbsolute()) {
                     configFile = new File(configFilename);
                 } else {
-                    configFile = FileUtil.file(propsFile.getParent(), new File(configFilename).toString());
+                    configFile = FileUtil.file(propsFile.getParentFile().getAbsolutePath(), new File(configFilename).toString());
                 }
-                log.debug("File: " + configFile.getAbsolutePath());
+                log.debug("Configuration File: " + configFile.getAbsolutePath());
                 Repository rt = new Repository(repoID, configFile);
                 log.debug(rt.toString());
                 repositories.addElement(rt);
