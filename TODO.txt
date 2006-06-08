@@ -5,3 +5,6 @@
     - Replace UID by UUID
     - Implement Maps (Sitetree, Topic Maps, ...)
     - Implement resolving of UUID
+    - Move implementation out of core
+    - Implement versionable interfaces
+    - Finish VFS example resp. add sample node
