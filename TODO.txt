@@ -4,6 +4,7 @@
 
     - Replace UID by UUID
     - Implement Maps (Sitetree, Topic Maps, ...)
+    - Implement configurable path implementation (see VFS ...)
     - Implement resolving of UUID
     - Move implementation out of core
     - Implement versionable interfaces
