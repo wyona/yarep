@@ -3,7 +3,7 @@
 <repository>
   <name>VFS Example</name>
 
-  <paths src="paths"/>
+  <paths src="content"/>
 
   <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
     <content src="content"/>

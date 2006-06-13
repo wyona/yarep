@@ -25,7 +25,7 @@ public class VFileSystemRepositoryWriter extends Writer {
     public VFileSystemRepositoryWriter(UID uid, Path path, File contentDir) {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
-            log.debug(file.toString());
+            log.error("Filesystem path: " + file.toString());
             File parent = new File(file.getParent());
             if (!parent.exists()) {
                log.warn("Directory will be created: " + parent);

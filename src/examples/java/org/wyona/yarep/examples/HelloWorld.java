@@ -40,22 +40,29 @@ public class HelloWorld {
         System.out.println(repoFactory);
 
         // Write content to repository
-        System.out.println("\nWrite content to repository ...");
+        System.out.println("\nWrite content to repository " + repoA.getName() + "...");
         Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
+        System.out.println("\nWrite content to repository " + repoB.getName() + "...");
         Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
+// TODO: See TODO.txt re VFS implementation
+/*
+        System.out.println("\nWrite content to repository " + repoD.getName() + "...");
         Writer writerD = repoD.getWriter(new Path("/hello/vfs-example.txt"));
+*/
         try {
             writerA.write("Hello World!\n...");
             writerA.close();
 
+/*
             writerD.write("Hello VFS example!\n...");
             writerD.close();
+*/
         } catch (Exception e) {
             System.err.println(e);
         }
 
         // Read content from repository
-        System.out.println("\nRead content from repository A ...");
+        System.out.println("\nRead content from repository " + repoA.getName() + " ...");
         try {
             Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
             BufferedReader br = new BufferedReader(readerA);
@@ -68,17 +75,20 @@ public class HelloWorld {
             }
             System.out.println(strWriter.toString());
             strWriter.close();
+            br.close();
             readerA.close();
 
-            System.out.println("\nRead content from repository D ...");
+            System.out.println("\nRead content from repository " + repoD.getName() + " ...");
             Reader readerD = repoD.getReader(new Path("/hello/vfs-example.txt"));
+            br = new BufferedReader(readerD);
+            System.out.println("Very first line: " + br.readLine());
             readerD.close();
         } catch (Exception e) {
             System.err.println(e);
         }
 
         // List children
-        System.out.println("\nList children of path /hello from repository A ...");
+        System.out.println("\nList children of path /hello from repository " + repoA.getName() + " ...");
         try {
             Path[] children = repoA.getChildren(new Path("/hello"));
             for (int i = 0; i < children.length; i++) {

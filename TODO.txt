@@ -8,4 +8,5 @@
     - Implement resolving of UUID
     - Move implementation out of core
     - Implement versionable interfaces
+    - Fix VFS implementation: Can only read yet, but not write, because the UUID map needs to be factorized resp. configurable within the repo config
     - Finish VFS example resp. add sample node
