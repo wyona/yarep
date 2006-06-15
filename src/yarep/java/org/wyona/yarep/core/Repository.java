@@ -198,6 +198,7 @@ public class Repository {
      */
     public boolean exists(Path path) {
         File file = new File(pathsDir + path.toString());
+        log.debug("Path (" + getName() + "): " + file);
         return file.exists();
     }
 
