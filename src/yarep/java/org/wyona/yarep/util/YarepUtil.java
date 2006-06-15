@@ -16,7 +16,7 @@ public class YarepUtil {
     /**
      *
      */
-    public static Repository getRepositoryId(Path path, RepositoryFactory repoFactory) {
+    public RepoPath getRepositoryPath(Path path, RepositoryFactory repoFactory) {
         Repository repo = null;
 
         // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository
@@ -32,7 +32,7 @@ public class YarepUtil {
                     log.debug("Repo ID length: " + repo.getID().length());
                     path = new Path(path.toString().substring(repo.getID().length() + 1));
                     log.debug("New Path: " + path);
-                    return repo;
+                    return new RepoPath(repo, path);
                 } else {
                     log.debug("No such repository \"" + splittedPath[1] + "\". Use ROOT repository.");
                 }
@@ -46,6 +46,6 @@ public class YarepUtil {
         log.debug("ROOT Repository: " + repo.getID() + " - " + repo.getName());
 
         log.debug("Path (still original): " + path);
-        return repo;
+        return new RepoPath(repo, path);
     }
 }

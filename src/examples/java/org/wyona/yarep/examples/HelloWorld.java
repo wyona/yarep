@@ -41,11 +41,11 @@ public class HelloWorld {
 
         // Test YarepUtil ...
         Path path = new Path("/example2/hello.txt");
-        Repository repo = org.wyona.yarep.util.YarepUtil.getRepositoryId(path, repoFactory);
-        System.out.println("YarepUtil: " + repo.getName() + " " + path);
+        org.wyona.yarep.util.RepoPath rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
+        System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
         path = new Path("/pele/hello/");
-        repo = org.wyona.yarep.util.YarepUtil.getRepositoryId(path, repoFactory);
-        System.out.println("YarepUtil: " + repo.getName() + " " + path);
+        rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
+        System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
 
         // Write content to repository
         System.out.println("\nWrite content to repository " + repoA.getName() + "...");
