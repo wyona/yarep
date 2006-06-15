@@ -5,6 +5,8 @@
     - Replace UID by UUID
     - Implement Maps (Sitetree, Topic Maps, ...)
     - Implement configurable path implementation (see VFS ...)
+    - Introduce namespace for repository config
+    - Introduce version/DTD/Schema for repository config
     - Implement resolving of UUID
     - Move implementation out of core
     - Implement versionable interfaces
