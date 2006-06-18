@@ -23,6 +23,7 @@ public class HelloWorld {
         RepositoryFactory repoFactory;
         try {
             repoFactory = new RepositoryFactory();
+            //repoFactory = new RepositoryFactory("my-yarep.properties");
         } catch (Exception e) {
             System.err.println(e);
             return;

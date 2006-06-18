@@ -25,10 +25,17 @@ public class RepositoryFactory {
     private URL propertiesURL;
 
     /**
-     * TODO: Make CONFIGURATION_FILE configurable
+     *
      */
     public RepositoryFactory() throws Exception {
-        CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
+        this(DEFAULT_CONFIGURATION_FILE);
+    }
+
+    /**
+     * TODO: Make CONFIGURATION_FILE loadable from absolute path
+     */
+    public RepositoryFactory(String configurationFile) throws Exception {
+        CONFIGURATION_FILE = configurationFile;
 
         propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
         if (propertiesURL == null) {
@@ -74,6 +81,7 @@ public class RepositoryFactory {
             throw e;
         }
     }
+
 
     /**
      * Get properties URL
