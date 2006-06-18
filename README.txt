@@ -7,8 +7,7 @@
      Prerequisites:
      --------------
 
-     1) JDK 1.4.X or higher
-     2) Ant 1.6.X or higher
+     - JDK 1.4.X or higher
 
 
      Building YAREP:
@@ -16,13 +15,14 @@
 
      Before running the examples, you need to build YAREP 
      and the examples by executing "ant build-examples" in
-     in the current directory.
+     resp. "./build.sh build-examples" in the current directory.
 
 
      Running the examples:
      ---------------------
 
-     Run the examples by executing "ant run-examples".
+     Run the examples by executing "ant run-examples" resp.
+     "./build.sh run-examples"
 
 
      Configuration of repositories:
@@ -36,5 +36,5 @@
      ---------------------------------------
 
      A JAR file, build/lib/yarep-LCRxxx.jar can be created by
-     executing "ant jar". Take a look at the examples how YAREP
+     executing "ant jar" resp. "./build.sh jar". Take a look at the examples how YAREP
      can be used within another application.
