@@ -31,6 +31,7 @@ public class Repository {
 
     protected File pathsDir;
 
+    protected Map map;
     protected Storage storage;
 
     /**
@@ -56,6 +57,18 @@ public class Repository {
 	    name = config.getChild("name", false).getValue();
 
             Configuration pathConfig = config.getChild("paths", false);
+
+            String pathsClassname = pathConfig.getAttribute("class", null);
+            if (pathsClassname != null) {
+                log.debug(pathsClassname);
+                Class pathsClass = Class.forName(pathsClassname);
+                map = (Map) pathsClass.newInstance();
+                map.readConfig(pathConfig, configFile);
+                log.debug(map.getClass().getName());
+            } else {
+                log.error("DEBUG: No class attribute ...");
+            }
+
             pathsDir = new File(pathConfig.getAttribute("src"));
             if (!pathsDir.isAbsolute()) {
                 pathsDir = FileUtil.file(configFile.getParent(), pathsDir.toString());
