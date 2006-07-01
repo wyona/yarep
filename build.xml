@@ -24,7 +24,7 @@
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-id"
                   version="0.1-dev-lcr357257"/>
       <dependency groupId="wyona-org-commons" artifactId="wyona-org-commons"
-                  version="0.0.1-dev-r14827"/>
+                  version="0.0.1-dev-r14847"/>
 
       <!-- Runtime libs -->
       <!-- IMPORT: xerces 2.7.1 is dependent on xml-apis 1.3.02 -->
@@ -53,6 +53,7 @@
         <include name="*.jar"/>
       </fileset>
       <pathelement path="${classes.dir}"/>
+      <pathelement path="${maven2.cp}"/>
     </path>
 
     <path id="classpath.run">
