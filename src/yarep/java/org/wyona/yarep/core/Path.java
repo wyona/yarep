@@ -3,35 +3,12 @@ package org.wyona.yarep.core;
 /**
  *
  */
-public class Path {
-
-    private String path;
-
-    /**
-     *
-     */
-    public Path() {
-    }
+public class Path extends org.wyona.commons.io.Path {
 
     /**
      *
      */
     public Path(String path) {
-        this.path = path;
-    }
-
-    /**
-     *
-     */
-    public String getName() {
-        // Quick and dirty
-        return new java.io.File(path).getName();
-    }
-
-    /**
-     *
-     */
-    public String toString() {
-        return path;
+        super(path);
     }
 }
