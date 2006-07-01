@@ -1,6 +1,6 @@
 package org.wyona.yarep.core.impl.vfs;
 
-import org.wyona.util.FileUtil;
+import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;

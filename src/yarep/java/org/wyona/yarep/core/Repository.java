@@ -15,7 +15,7 @@ import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 
 import org.apache.log4j.Category;
 
-import org.wyona.util.FileUtil;
+import org.wyona.commons.io.FileUtil;
 
 /**
  *
