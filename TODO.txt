@@ -12,3 +12,5 @@
     - Implement versionable interfaces
     - Fix VFS implementation: Can only read yet, but not write, because the UUID map needs to be factorized resp. configurable within the repo config
     - Finish VFS example resp. add sample node
+    - FileSystem implementation could return path if .yarep-uid does not exist ... (I think rather NOT ...)
+    - Improve Exception Handling
