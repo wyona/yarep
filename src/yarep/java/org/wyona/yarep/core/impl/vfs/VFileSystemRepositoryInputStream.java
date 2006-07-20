@@ -26,9 +26,22 @@ public class VFileSystemRepositoryInputStream extends InputStream {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
             log.debug(file.toString());
-            in = new FileInputStream(file);
+
+            if (file.exists()) {
+                if (file.isFile()) {
+                    in = new FileInputStream(file);
+                } else {
+                    log.warn("Is not a file (is probably a directory): " + file);
+                    // TODO: Return a list of subdirectories and files
+                    in = null;
+                }
+            } else {
+                log.warn("No such file or directory: " + file);
+                in = null;
+            }
         } catch (Exception e) {
             log.error(e);
+            in = null;
         }
     }
 
