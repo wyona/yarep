@@ -114,7 +114,7 @@
     <delete dir="${build.dir}"/>
   </target>
 
-  <target name="run-examples" description="Run Example" depends="init">
+  <target name="run-examples" description="Run Example" depends="init, build-examples">
     <java classname="org.wyona.yarep.examples.HelloWorld">
       <classpath refid="classpath.run"/>
     </java>
