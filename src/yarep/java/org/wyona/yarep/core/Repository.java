@@ -29,8 +29,6 @@ public class Repository {
 
     protected String name;
 
-    protected File pathsDir;
-
     protected Map map;
     protected Storage storage;
 
@@ -63,19 +61,10 @@ public class Repository {
                 log.debug(pathsClassname);
                 Class pathsClass = Class.forName(pathsClassname);
                 map = (Map) pathsClass.newInstance();
-                map.readConfig(pathConfig, configFile);
-                log.debug(map.getClass().getName());
             } else {
-                log.error("DEBUG: No class attribute ...");
+                map = new org.wyona.yarep.impl.DefaultMapImpl();
             }
-
-            pathsDir = new File(pathConfig.getAttribute("src"));
-            if (!pathsDir.isAbsolute()) {
-                pathsDir = FileUtil.file(configFile.getParent(), pathsDir.toString());
-            }
-            log.debug(pathsDir.toString());
-            // TODO: Throw Exception
-            if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
+            map.readConfig(pathConfig, configFile);
 
             Configuration storageConfig = config.getChild("storage", false);
 
@@ -187,12 +176,10 @@ public class Repository {
     }
 
     /**
-     * NOTE: Depends in the future on specific map implementation
+     *
      */
     public boolean isResource(Path path) {
-        File file = new File(pathsDir + path.toString());
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
-        return uidFile.exists() || file.isFile();
+        return map.isResource(path);
     }
 
     /**
@@ -201,45 +188,21 @@ public class Repository {
      * In the case of JCR there are only nodes and properties!
      */
     public boolean isCollection(Path path) {
-        File file = new File(pathsDir + path.toString());
-        return (file.exists() && !isResource(path));
-        //return true;
+        return map.isCollection(path);
     }
 
     /**
      *
      */
     public boolean exists(Path path) {
-        File file = new File(pathsDir + path.toString());
-        log.debug("Path (" + getName() + "): " + file);
-        return file.exists();
+       return map.exists(path);
     }
 
     /**
      *
      */
     public Path[] getChildren(Path path) {
-        File file = new File(pathsDir + path.toString());
-        String[] filenames = file.list();
-
-	// NOTE: This situation should only occur if isResource(Path) didn't work properly!
-        if (filenames == null) {
-            log.warn("No children: " + path + " (" + file + ")");
-            return new Path[0];
-        }
-
-        log.debug("Number of children: " + filenames.length + " (" + file + ")");
-        Path[] children = new Path[filenames.length];
-        for (int i = 0;i < children.length; i++) {
-            if (path.toString().endsWith(File.separator)) {
-                children[i] = new Path(path + filenames[i]);
-            } else {
-                // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System File System path
-                children[i] = new Path(path + "/" + filenames[i]);
-            }
-            log.debug("Child: " + children[i]);
-        }
-        return children;
+        return map.getChildren(path);
     }
 
     /**
@@ -250,43 +213,6 @@ public class Repository {
      * http://www.webdav.org/specs/draft-leach-uuids-guids-01.txt
      */
     public synchronized UID getUID(Path path) {
-        log.debug(pathsDir.toString());
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
-        log.debug(uidFile.toString());
-        if (uidFile.exists()) {
-            try {
-                FileReader fr = new FileReader(uidFile);
-                BufferedReader br = new BufferedReader(fr);
-                String existingUID = br.readLine();
-                br.close();
-                fr.close();
-                return new UID(existingUID);
-            } catch (Exception e) {
-                log.error(e);
-                throw new RuntimeException(e);
-            }
-        }
-
-        // TODO: Shouldn't the uid be written only if the writer is being closed successfully!
-	//String uid = "" + System.currentTimeMillis();
-	String uuid = org.apache.commons.id.uuid.UUID.randomUUID().toString();
-	//String uid = java.util.UUID.randomUUID().toString(); // Java 1.5.x
-        try {
-            File parent = new File(uidFile.getParent());
-            if (!parent.exists()) {
-                log.warn("Directory will be created: " + parent);
-                parent.mkdirs();
-            }
-            // TODO: ...
-            if (parent.isFile()) {
-                log.warn("Parent is a file and not a directory: " + parent);
-            }
-            FileWriter fw = new FileWriter(uidFile);
-            fw.write(uuid);
-            fw.close();
-        } catch (Exception e) {
-            log.error(e);
-        }
-        return new UID(uuid);
+        return map.getUID(path);
     }
 }
