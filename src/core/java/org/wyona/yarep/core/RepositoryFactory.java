@@ -121,7 +121,7 @@ public class RepositoryFactory {
         for (int i = 0;i < repositories.size(); i++) {
             if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return (Repository) repositories.elementAt(i);
         }
-        log.error("No such repository: " + rid);
+        log.warn("No such repository: " + rid + " (" + getPropertiesURL() + ")");
         return null;
     }
 
@@ -169,7 +169,7 @@ public class RepositoryFactory {
         for (int i = 0;i < repositories.size(); i++) {
             if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return true;
         }
-        log.warn("No such repository: " + rid);
+        log.debug("No such repository: " + rid + " (" + getPropertiesURL() + ")");
         return false;
     }
 }
