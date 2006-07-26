@@ -70,7 +70,7 @@
   <target name="compile-core" description="Compile Java classes" depends="init">
     <echo>${classes.dir}</echo>
     <mkdir dir="${classes.dir}"/>
-    <javac srcdir="src/yarep" destdir="${classes.dir}"
+    <javac srcdir="src/core" destdir="${classes.dir}"
            classpathref="classpath.core"
            debug="true"
     />
@@ -79,16 +79,16 @@
   <target name="compile-examples" description="Compile Java classes of examples" depends="init,compile-core">
     <echo>${classes.dir}</echo>
     <mkdir dir="${classes.dir}"/>
-    <javac srcdir="src/examples" destdir="${classes.dir}"
+    <javac srcdir="src/test" destdir="${classes.dir}"
            classpathref="classpath.examples"
            debug="true"
     />
-    <copy file="src/examples/java/yarep.properties" todir="${classes.dir}"/>
+    <copy file="src/test/java/yarep.properties" todir="${classes.dir}"/>
   </target>
 
   <target name="build-examples" description="Build examples" depends="init,compile-examples">
     <copy todir="${build.dir}/repository">
-      <fileset dir="src/examples/repository"/>
+      <fileset dir="src/test/repository"/>
     </copy>
 
     <mkdir dir="build/lib"/>
