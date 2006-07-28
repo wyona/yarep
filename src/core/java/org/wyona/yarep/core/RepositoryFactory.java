@@ -53,6 +53,8 @@ public class RepositoryFactory {
 	    String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
             if (tokens.length % 2 != 0) {
+                // NOTE: An exception is being trown and hence the repo factory instance will be null anyway
+                //repositories = new Vector(0);
                 throw new Exception("Wrong number of config parameters: " + CONFIGURATION_FILE);
             }
 
@@ -122,6 +124,9 @@ public class RepositoryFactory {
             if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return (Repository) repositories.elementAt(i);
         }
         log.warn("No such repository: " + rid + " (" + getPropertiesURL() + ")");
+        if (repositories.size() == 0) {
+            log.error("No repositories (" + getPropertiesURL() + ")! Maybe properties file is misconfigured!");
+        }
         return null;
     }
 
@@ -131,7 +136,7 @@ public class RepositoryFactory {
      */
     public Repository firstRepository() {
         if (repositories.size() > 0) return (Repository) repositories.elementAt(0);
-        log.error("No repositories (set within yarep.properties)!");
+        log.error("No repositories (" + getPropertiesURL() + ")! Maybe properties file is misconfigured!");
         return null;
     }
 
