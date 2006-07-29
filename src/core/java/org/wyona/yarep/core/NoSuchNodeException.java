@@ -17,7 +17,14 @@ public class NoSuchNodeException extends IOException {
     /**
      *
      */
-    public NoSuchNodeException(Path path) {
-	super("No such node: " + path);
+    public NoSuchNodeException(String s) {
+	super(s);
+    }
+
+    /**
+     *
+     */
+    public NoSuchNodeException(Path path, Repository repo) {
+	super("No such node: " + path + " (Repository: " + repo + ")");
     }
 }

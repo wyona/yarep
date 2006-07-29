@@ -1,5 +1,6 @@
 package org.wyona.yarep.core.impl.vfs;
 
+import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.UID;
 
@@ -22,7 +23,7 @@ public class VFileSystemRepositoryInputStream extends InputStream {
     /**
      *
      */
-    public VFileSystemRepositoryInputStream(UID uid, Path path, File contentDir) {
+    public VFileSystemRepositoryInputStream(UID uid, Path path, File contentDir) throws NoSuchNodeException {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
             log.debug(file.toString());
@@ -34,14 +35,17 @@ public class VFileSystemRepositoryInputStream extends InputStream {
                     log.warn("Is not a file (is probably a directory): " + file);
                     // TODO: Return a list of subdirectories and files
                     in = null;
+                    throw new NoSuchNodeException("Is not a file (is probably a directory): " + file);
                 }
             } else {
                 log.warn("No such file or directory: " + file);
                 in = null;
+                throw new NoSuchNodeException("No such file or directory: " + file);
             }
         } catch (Exception e) {
             log.error(e);
             in = null;
+            throw new NoSuchNodeException(e.getMessage());
         }
     }
 

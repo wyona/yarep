@@ -1,6 +1,7 @@
 package org.wyona.yarep.core.impl.vfs;
 
 import org.wyona.commons.io.FileUtil;
+import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
@@ -60,14 +61,14 @@ public class VFileSystemStorage implements Storage {
     /**
      *
      */
-    public Reader getReader(UID uid, Path path) {
+    public Reader getReader(UID uid, Path path) throws NoSuchNodeException {
         return new VFileSystemRepositoryReader(uid, path, contentDir);
     }
 
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path) {
+    public InputStream getInputStream(UID uid, Path path) throws NoSuchNodeException {
         return new VFileSystemRepositoryInputStream(uid, path, contentDir);
     }
 

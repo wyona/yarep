@@ -31,12 +31,12 @@ public interface Storage {
     /**
      *
      */
-    public Reader getReader(UID uid, Path path);
+    public Reader getReader(UID uid, Path path) throws NoSuchNodeException;
 
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path);
+    public InputStream getInputStream(UID uid, Path path) throws NoSuchNodeException;
 
     /**
      *

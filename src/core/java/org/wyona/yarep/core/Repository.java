@@ -129,7 +129,7 @@ public class Repository {
      *
      */
     public Reader getReader(Path path) throws NoSuchNodeException {
-        if (!exists(path)) throw new NoSuchNodeException(path);
+        if (!exists(path)) throw new NoSuchNodeException(path, this);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getReader(uid, path);
@@ -139,7 +139,7 @@ public class Repository {
      *
      */
     public InputStream getInputStream(Path path) throws NoSuchNodeException {
-        if (!exists(path)) throw new NoSuchNodeException(path);
+        if (!exists(path)) throw new NoSuchNodeException(path, this);
         UID uid = getUID(path);
         log.debug(uid.toString());
         return storage.getInputStream(uid, path);

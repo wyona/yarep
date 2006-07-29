@@ -1,5 +1,6 @@
 package org.wyona.yarep.core.impl.fs;
 
+import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.UID;
 
@@ -22,14 +23,14 @@ public class FileSystemRepositoryReader extends Reader {
     /**
      *
      */
-    public FileSystemRepositoryReader(UID uid, Path path, File contentDir) {
+    public FileSystemRepositoryReader(UID uid, Path path, File contentDir) throws NoSuchNodeException {
         try {
             File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
-            //File file = new File(contentDir.getAbsolutePath() + path.toString());
             log.debug(file.toString());
             reader = new FileReader(file);
         } catch (Exception e) {
             log.error(e);
+            throw new NoSuchNodeException(e.getMessage());
         }
     }
 
