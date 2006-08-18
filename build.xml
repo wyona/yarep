@@ -123,7 +123,7 @@
   <target name="javadoc" description="Generate Javadoc" depends="init">
     <javadoc
       packagenames="org.*"
-      sourcepath="src/yarep/java"
+      sourcepath="src/core/java"
       destdir="build/javadoc"
     >
     </javadoc>
