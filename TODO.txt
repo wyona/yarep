@@ -2,6 +2,8 @@
     TODO
     ====
 
+    - isResource() really working? (isCollection seems to work ...)
+    - implement Path.getParent()
     - Replace UID by UUID
     - Implement Maps (Sitetree, Topic Maps, ...)
     - Implement configurable path implementation (see VFS ...)
