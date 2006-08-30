@@ -99,9 +99,17 @@ public class HelloWorld {
         // List children
         System.out.println("\nList children of path /hello from repository " + repoA.getName() + " ...");
         try {
-            Path[] children = repoA.getChildren(new Path("/hello"));
+            Path helloPath = new Path("/hello");
+
+            Path[] children = repoA.getChildren(helloPath);
             for (int i = 0; i < children.length; i++) {
                 System.out.println(children[i]);
+            }
+
+            if (repoA.delete(helloPath)) {
+                System.out.println("Node '" + helloPath + "' has been deleted.");
+            } else {
+                System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
         } catch (Exception e) {
             System.err.println(e);

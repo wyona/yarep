@@ -42,4 +42,9 @@ public interface Storage {
      *
      */
     public long getLastModified(UID uid, Path path);
+
+    /**
+     *
+     */
+    public boolean delete(UID uid, Path path);
 }

@@ -158,9 +158,7 @@ public class Repository {
      */
     public boolean delete(Path path) {
         UID uid = getUID(path);
-        log.error("TODO: No implemented yet!");
-        //return storage.delete(uid, path);
-        return false;
+        return storage.delete(uid, path);
     }
 
     /**

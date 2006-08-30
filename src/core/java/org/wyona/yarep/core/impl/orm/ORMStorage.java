@@ -65,4 +65,12 @@ public class ORMStorage implements Storage {
         log.warn("Not implemented yet!");
         return 0;
     }
+
+    /**
+     *
+     */
+    public boolean delete(UID uid, Path path) {
+        log.error("TODO: Not implemented yet!");
+        return false;
+    }
 }

@@ -79,4 +79,12 @@ public class FileSystemStorage implements Storage {
         File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
         return file.lastModified(); 
     }
+
+    /**
+     *
+     */
+    public boolean delete(UID uid, Path path) {
+        log.error("TODO: Not implemented yet!");
+        return false; 
+    }
 }
