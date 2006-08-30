@@ -111,6 +111,13 @@ public class HelloWorld {
             } else {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
+
+            Path worldPath = new Path("/hello/world.txt");
+            if (repoA.delete(worldPath)) {
+                System.out.println("Node '" + worldPath + "' has been deleted.");
+            } else {
+                System.err.println("Node '" + worldPath + "' could not be deleted!");
+            }
         } catch (Exception e) {
             System.err.println(e);
         }

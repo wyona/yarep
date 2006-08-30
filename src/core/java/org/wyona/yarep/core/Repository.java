@@ -157,6 +157,10 @@ public class Repository {
      * @return true if node has been deleted, otherwise false
      */
     public boolean delete(Path path) {
+        if(map.isCollection(path)) {
+            log.warn("Node is a collection and hence cannot be deleted: " + path);
+            return false;
+        }
         UID uid = getUID(path);
         return storage.delete(uid, path);
     }

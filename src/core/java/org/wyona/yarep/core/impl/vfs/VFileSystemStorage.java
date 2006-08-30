@@ -84,7 +84,8 @@ public class VFileSystemStorage implements Storage {
      *
      */
     public boolean delete(UID uid, Path path) {
-        log.error("TODO: Not implemented yet!");
-        return false;
+        File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
+        log.debug("Try to delete: " + file);
+        return file.delete();
     }
 }
