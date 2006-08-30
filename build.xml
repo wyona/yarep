@@ -110,6 +110,19 @@
     </jar>
   </target>
 
+  <target name="install-jar" description="Place jar into local maven repository" depends="init,jar">
+    <copy file="pom.xml" todir="build/lib"/>
+    <replace file="build/lib/pom.xml" value="${yarep.version}-r${subversion.revision}">
+      <replacetoken>@VERSION@</replacetoken>
+    </replace>
+
+    <artifact:pom id="maven.project" file="build/lib/pom.xml"/>
+  
+    <artifact:install file="build/lib/yarep-${yarep.version}-r${subversion.revision}.jar">
+      <pom refid="maven.project"/>
+    </artifact:install>
+  </target>
+
   <target name="clean" description="Clean Build" depends="init">
     <delete dir="${build.dir}"/>
   </target>
