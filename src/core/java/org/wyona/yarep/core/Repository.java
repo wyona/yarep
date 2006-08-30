@@ -154,11 +154,22 @@ public class Repository {
     }
 
     /**
+     * @return true if node has been deleted, otherwise false
+     */
+    public boolean delete(Path path) {
+        UID uid = getUID(path);
+        log.error("TODO: No implemented yet!");
+        //return storage.delete(uid, path);
+        return false;
+    }
+
+    /**
      * Not implemented yet
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getValidity()
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/SourceValidity.html
      */
     public void getValidity(Path path) {
+        log.error("TODO: No implemented yet!");
     }
 
     /**
@@ -166,6 +177,7 @@ public class Repository {
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getContentLength()
      */
     public void getContentLength(Path path) {
+        log.error("TODO: No implemented yet!");
     }
 
     /**
@@ -173,6 +185,7 @@ public class Repository {
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getURI()
      */
     public void getURI(Path path) {
+        log.error("TODO: No implemented yet!");
     }
 
     /**
