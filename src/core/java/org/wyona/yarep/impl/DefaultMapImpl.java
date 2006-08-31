@@ -63,10 +63,12 @@ public class DefaultMapImpl implements Map {
      *
      */
     public boolean delete(Path path) {
+/*
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         if (uidFile.isFile()) uidFile.delete();
+*/
         File file = new File(pathsDir + path.toString());
-        return file.delete();
+        return org.wyona.commons.io.FileUtil.deleteDirectory(file);
     }
 
     /**
