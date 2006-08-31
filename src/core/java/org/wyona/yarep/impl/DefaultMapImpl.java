@@ -115,6 +115,17 @@ public class DefaultMapImpl implements Map {
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Get UID
+     */
+    public synchronized UID createUID(Path path) {
+        log.debug(pathsDir.toString());
+        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        log.debug(uidFile.toString());
+
         // TODO: Shouldn't the uid be written only if the writer is being closed successfully!
 	//String uid = "" + System.currentTimeMillis();
 	String uuid = org.apache.commons.id.uuid.UUID.randomUUID().toString();

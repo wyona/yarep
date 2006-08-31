@@ -112,6 +112,7 @@ public class Repository {
      */
     public Writer getWriter(Path path) {
         UID uid = getUID(path);
+        if (uid == null) uid = map.createUID(path);
         log.debug(uid.toString());
         return storage.getWriter(uid, path);
     }
@@ -121,6 +122,7 @@ public class Repository {
      */
     public OutputStream getOutputStream(Path path) {
         UID uid = getUID(path);
+        if (uid == null) uid = map.createUID(path);
         log.debug(uid.toString());
         return storage.getOutputStream(uid, path);
     }
@@ -131,6 +133,10 @@ public class Repository {
     public Reader getReader(Path path) throws NoSuchNodeException {
         if (!exists(path)) throw new NoSuchNodeException(path, this);
         UID uid = getUID(path);
+        if (uid == null) {
+            log.error("No UID: " + path);
+            return null;
+        }
         log.debug(uid.toString());
         return storage.getReader(uid, path);
     }
@@ -141,6 +147,10 @@ public class Repository {
     public InputStream getInputStream(Path path) throws NoSuchNodeException {
         if (!exists(path)) throw new NoSuchNodeException(path, this);
         UID uid = getUID(path);
+        if (uid == null) {
+            log.error("No UID: " + path);
+            return null;
+        }
         log.debug(uid.toString());
         return storage.getInputStream(uid, path);
     }
@@ -150,6 +160,10 @@ public class Repository {
      */
     public long getLastModified(Path path) {
         UID uid = getUID(path);
+        if (uid == null) {
+            log.error("No UID: " + path);
+            return -1;
+        }
         return storage.getLastModified(uid, path);
     }
 
@@ -162,6 +176,10 @@ public class Repository {
             return false;
         }
         UID uid = getUID(path);
+        if (uid == null) {
+            log.error("No UID: " + path);
+            return false;
+        }
         return storage.delete(uid, path);
     }
 

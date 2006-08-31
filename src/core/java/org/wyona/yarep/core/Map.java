@@ -38,4 +38,9 @@ public interface Map {
      *
      */
     public UID getUID(Path path);
+
+    /**
+     *
+     */
+    public UID createUID(Path path);
 }

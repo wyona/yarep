@@ -100,4 +100,12 @@ public class VFileSystemMapImpl implements Map {
         // TODO: Check if leading slash should be removed ...
         return new UID(path.toString());
     }
+
+    /**
+     * Create UID
+     */
+    public synchronized UID createUID(Path path) {
+        // TODO: Check if leading slash should be removed ...
+        return new UID(path.toString());
+    }
 }
