@@ -61,6 +61,14 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
+    public boolean delete(Path path) {
+        File file = new File(pathsDir + path.toString());
+        return file.delete();
+    }
+
+    /**
+     *
+     */
     public boolean isCollection(Path path) {
         File file = new File(pathsDir + path.toString());
         return file.isDirectory();

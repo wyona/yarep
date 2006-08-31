@@ -180,7 +180,7 @@ public class Repository {
             log.error("No UID: " + path);
             return false;
         }
-        return storage.delete(uid, path);
+        return map.delete(path) && storage.delete(uid, path);
     }
 
     /**

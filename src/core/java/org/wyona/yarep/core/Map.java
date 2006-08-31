@@ -32,6 +32,11 @@ public interface Map {
     /**
      *
      */
+    public boolean delete(Path path);
+
+    /**
+     *
+     */
     public Path[] getChildren(Path path);
 
     /**
