@@ -235,6 +235,7 @@ public class Repository {
      *
      */
     public Path[] getChildren(Path path) {
+        // TODO: Order by last modified resp. alphabetical resp. ...
         return map.getChildren(path);
     }
 
