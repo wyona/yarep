@@ -32,6 +32,8 @@ public class Repository {
     protected Map map;
     protected Storage storage;
 
+    private boolean fallback = false;
+
     /**
      *
      */
@@ -74,6 +76,9 @@ public class Repository {
             storage = (Storage) storageClass.newInstance();
             storage.readConfig(storageConfig, configFile);
             log.debug(storage.getClass().getName());
+
+            // TODO: Get fallback from config
+            fallback = true;
         } catch (Exception e) {
             log.error(e.toString());
         }
@@ -131,8 +136,17 @@ public class Repository {
      *
      */
     public Reader getReader(Path path) throws NoSuchNodeException {
-        if (!exists(path)) throw new NoSuchNodeException(path, this);
-        UID uid = getUID(path);
+        UID uid = null;
+        if (!exists(path)) {
+            if (fallback) {
+                log.warn("No UID! Fallback to : " + path);
+                uid = new UID(path.toString());
+            } else {
+                throw new NoSuchNodeException(path, this);
+            }
+        } else {
+            uid = getUID(path);
+        }
         if (uid == null) {
             log.error("No UID: " + path);
             return null;

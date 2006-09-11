@@ -92,6 +92,12 @@ public class HelloWorld {
             br = new BufferedReader(readerD);
             System.out.println("Very first line: " + br.readLine());
             readerD.close();
+
+            System.out.println("\nRead content from node without a UID:");
+            readerA = repoA.getReader(new Path("/no/uid/example.txt"));
+            br = new BufferedReader(readerA);
+            System.out.println("Very first line: " + br.readLine());
+            readerA.close();
         } catch (Exception e) {
             System.err.println(e);
         }
