@@ -136,6 +136,7 @@ public class Repository {
      *
      */
     public Reader getReader(Path path) throws NoSuchNodeException {
+        // TODO: Share this piece of code with getInputStream
         UID uid = null;
         if (!exists(path)) {
             if (fallback) {
@@ -152,6 +153,7 @@ public class Repository {
             return null;
         }
         log.debug(uid.toString());
+
         return storage.getReader(uid, path);
     }
 
@@ -159,8 +161,18 @@ public class Repository {
      *
      */
     public InputStream getInputStream(Path path) throws NoSuchNodeException {
-        if (!exists(path)) throw new NoSuchNodeException(path, this);
-        UID uid = getUID(path);
+        // TODO: Share this piece of code with getReader
+        UID uid = null;
+        if (!exists(path)) {
+            if (fallback) {
+                log.warn("No UID! Fallback to : " + path);
+                uid = new UID(path.toString());
+            } else {
+                throw new NoSuchNodeException(path, this);
+            }
+        } else {
+            uid = getUID(path);
+        }
         if (uid == null) {
             log.error("No UID: " + path);
             return null;
