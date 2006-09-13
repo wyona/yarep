@@ -3,7 +3,7 @@
 <repository>
   <name>Example 1</name>
 
-  <paths src="../paths"/>
+  <paths src="../paths" fallback="true"/>
 
   <storage class="org.wyona.yarep.core.impl.fs.FileSystemStorage">
     <content src="../content"/>

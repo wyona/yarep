@@ -58,6 +58,7 @@ public class Repository {
 
             Configuration pathConfig = config.getChild("paths", false);
 
+            fallback = pathConfig.getAttributeAsBoolean("fallback", false);
             String pathsClassname = pathConfig.getAttribute("class", null);
             if (pathsClassname != null) {
                 log.debug(pathsClassname);
@@ -76,9 +77,6 @@ public class Repository {
             storage = (Storage) storageClass.newInstance();
             storage.readConfig(storageConfig, configFile);
             log.debug(storage.getClass().getName());
-
-            // TODO: Get fallback from config
-            fallback = true;
         } catch (Exception e) {
             log.error(e.toString());
         }

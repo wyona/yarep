@@ -3,7 +3,7 @@
 <repository>
   <name>Example 2</name>
 
-  <paths src="paths"/>
+  <paths src="paths" fallback="false"/>
 
   <storage class="org.wyona.yarep.core.impl.orm.ORMStorage">
     <jdbc>
