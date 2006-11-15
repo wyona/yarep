@@ -27,7 +27,7 @@ public class ORMStorage implements Storage {
     }
 
     /**
-     *
+     *@deprecated
      */
     public Writer getWriter(UID uid, Path path) {
         log.warn("Not implemented yet!");
@@ -43,7 +43,7 @@ public class ORMStorage implements Storage {
     }
 
     /**
-     *
+     *@deprecated
      */
     public Reader getReader(UID uid, Path path) {
         log.warn("Not implemented yet!");

@@ -7,6 +7,7 @@ import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -27,7 +28,7 @@ public class FileSystemStorage implements Storage {
     /**
      *
      */
-    public void readConfig(Configuration storageConfig, File repoConfigFile) {
+    public void readConfig(Configuration storageConfig, File repoConfigFile) throws Exception {
         Configuration contentConfig = storageConfig.getChild("content", false);
         try {
             contentDir = new File(contentConfig.getAttribute("src"));
@@ -41,11 +42,12 @@ public class FileSystemStorage implements Storage {
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
         } catch (Exception e) {
             log.error(e);
+            throw e;
         }
     }
 
     /**
-     *
+     *@deprecated
      */
     public Writer getWriter(UID uid, Path path) {
         return new FileSystemRepositoryWriter(uid, path, contentDir);
@@ -54,12 +56,12 @@ public class FileSystemStorage implements Storage {
     /**
      *
      */
-    public OutputStream getOutputStream(UID uid, Path path) {
+    public OutputStream getOutputStream(UID uid, Path path) throws IOException {
         return new FileSystemRepositoryOutputStream(uid, path, contentDir);
     }
 
     /**
-     *
+     *@deprecated
      */
     public Reader getReader(UID uid, Path path) throws NoSuchNodeException {
         return new FileSystemRepositoryReader(uid, path, contentDir);
@@ -68,7 +70,7 @@ public class FileSystemStorage implements Storage {
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path) throws NoSuchNodeException {
+    public InputStream getInputStream(UID uid, Path path) throws IOException {
         return new FileSystemRepositoryInputStream(uid, path, contentDir);
     }
 

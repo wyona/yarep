@@ -4,8 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -113,17 +117,14 @@ public class Repository {
     /**
      *
      */
-    public Writer getWriter(Path path) {
-        UID uid = getUID(path);
-        if (uid == null) uid = map.createUID(path);
-        log.debug(uid.toString());
-        return storage.getWriter(uid, path);
+    public Writer getWriter(Path path) throws IOException {
+        return new OutputStreamWriter(getOutputStream(path), "UTF-8");
     }
 
     /**
      *
      */
-    public OutputStream getOutputStream(Path path) {
+    public OutputStream getOutputStream(Path path) throws IOException  {
         UID uid = getUID(path);
         if (uid == null) uid = map.createUID(path);
         log.debug(uid.toString());
@@ -133,33 +134,14 @@ public class Repository {
     /**
      *
      */
-    public Reader getReader(Path path) throws NoSuchNodeException {
-        // TODO: Share this piece of code with getInputStream
-        UID uid = null;
-        if (!exists(path)) {
-            if (fallback) {
-                log.warn("No UID! Fallback to : " + path);
-                uid = new UID(path.toString());
-            } else {
-                throw new NoSuchNodeException(path, this);
-            }
-        } else {
-            uid = getUID(path);
-        }
-        if (uid == null) {
-            log.error("No UID: " + path);
-            return null;
-        }
-        log.debug(uid.toString());
-
-        return storage.getReader(uid, path);
+    public Reader getReader(Path path) throws IOException {
+        return new InputStreamReader(getInputStream(path), "UTF-8");
     }
 
     /**
      *
      */
-    public InputStream getInputStream(Path path) throws NoSuchNodeException {
-        // TODO: Share this piece of code with getReader
+    public InputStream getInputStream(Path path) throws IOException {
         UID uid = null;
         if (!exists(path)) {
             if (fallback) {

@@ -48,17 +48,17 @@ public class HelloWorld {
         rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
         System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
 
-        // Write content to repository
-        System.out.println("\nWrite content to repository " + repoA.getName() + "...");
-        Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
-        System.out.println("\nWrite content to repository " + repoB.getName() + "...");
-        Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
+        try {
+            // Write content to repository
+            System.out.println("\nWrite content to repository " + repoA.getName() + "...");
+            Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
+            System.out.println("\nWrite content to repository " + repoB.getName() + "...");
+            Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
 // TODO: See TODO.txt re VFS implementation
 /*
-        System.out.println("\nWrite content to repository " + repoD.getName() + "...");
-        Writer writerD = repoD.getWriter(new Path("/hello/vfs-example.txt"));
+            System.out.println("\nWrite content to repository " + repoD.getName() + "...");
+            Writer writerD = repoD.getWriter(new Path("/hello/vfs-example.txt"));
 */
-        try {
             writerA.write("Hello World!\n...");
             writerA.close();
 

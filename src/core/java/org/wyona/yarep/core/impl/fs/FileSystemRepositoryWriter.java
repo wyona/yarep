@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- *
+ *@deprecated
  */
 public class FileSystemRepositoryWriter extends Writer {
 

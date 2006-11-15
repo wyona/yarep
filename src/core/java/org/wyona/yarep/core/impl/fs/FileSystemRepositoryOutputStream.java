@@ -22,14 +22,22 @@ public class FileSystemRepositoryOutputStream extends OutputStream {
     /**
      *
      */
-    public FileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) {
+    public FileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) throws IOException {
         try {
             File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
             //File file = new File(contentDir.getAbsolutePath() + path.toString());
+            
+            File parent = new File(file.getParent());
+            if (!parent.exists()) {
+               log.warn("Directory will be created: " + parent);
+               parent.mkdirs();
+            }
+
             log.debug(file.toString());
             out = new FileOutputStream(file);
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error(e);
+            throw e;
         }
     }
 

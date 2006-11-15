@@ -12,7 +12,7 @@ import java.io.Reader;
 import org.apache.log4j.Category;
 
 /**
- *
+ *@deprecated
  */
 public class FileSystemRepositoryReader extends Reader {
 
