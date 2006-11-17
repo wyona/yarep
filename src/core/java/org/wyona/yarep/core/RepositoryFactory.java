@@ -154,8 +154,9 @@ public class RepositoryFactory {
             try {
                 File configFile = new File(configURL.getFile());
                 log.debug("Config file: " + configFile);
-                repositories.addElement(new Repository(rid, configFile));
-                return new Repository(rid, configFile);
+                Repository repository = new Repository(rid, configFile);
+                repositories.addElement(repository);
+                return repository;
             } catch (Exception e) {
                 log.error(e);
                 return null;
