@@ -118,7 +118,12 @@ public class Repository {
      *
      */
     public Writer getWriter(Path path) throws IOException {
-        return new OutputStreamWriter(getOutputStream(path), "UTF-8");
+        OutputStream out = getOutputStream(path);
+        if (out != null) {
+            return new OutputStreamWriter(getOutputStream(path), "UTF-8");
+        } else {
+            return null;
+        }
     }
 
     /**
