@@ -126,7 +126,18 @@ public class Repository {
      */
     public OutputStream getOutputStream(Path path) throws IOException  {
         UID uid = getUID(path);
+        // TODO: Implement fallback!
         if (uid == null) uid = map.createUID(path);
+	/*
+        if (uid == null) {
+            if (fallback) {
+                log.warn("No path to get UID from! Fallback to : " + path);
+                uid = new UID(path.toString());
+            } else {
+                uid = map.createUID(path);
+            }
+        }
+	*/
         log.debug(uid.toString());
         return storage.getOutputStream(uid, path);
     }
