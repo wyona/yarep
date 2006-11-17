@@ -48,21 +48,22 @@ public class HelloWorld {
         rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
         System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
 
+        Path worldPath = new Path("/hello/world.txt");
+
+        // Write content to repository
         try {
-            // Write content to repository
-            System.out.println("\nWrite content to repository " + repoA.getName() + "...");
-            Writer writerA = repoA.getWriter(new Path("/hello/world.txt"));
-            System.out.println("\nWrite content to repository " + repoB.getName() + "...");
-            Writer writerB = repoB.getWriter(new Path("/hello/world.txt"));
+            System.out.println("\nWrite content to repository " + repoA.getName() + " (repoA) ...");
+            Writer writerA = repoA.getWriter(worldPath);
+            writerA.write("Hello World!\n...");
+            writerA.close();
+
+            System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
+            Writer writerB = repoB.getWriter(worldPath);
+
 // TODO: See TODO.txt re VFS implementation
 /*
             System.out.println("\nWrite content to repository " + repoD.getName() + "...");
             Writer writerD = repoD.getWriter(new Path("/hello/vfs-example.txt"));
-*/
-            writerA.write("Hello World!\n...");
-            writerA.close();
-
-/*
             writerD.write("Hello VFS example!\n...");
             writerD.close();
 */
@@ -71,15 +72,15 @@ public class HelloWorld {
         }
 
         // Read content from repository
-        System.out.println("\nRead content from repository " + repoA.getName() + " ...");
+        System.out.println("\nRead content from repository " + repoA.getName() + " (repoA) ...");
         try {
-            Reader readerA = repoA.getReader(new Path("/hello/world.txt"));
+            Reader readerA = repoA.getReader(worldPath);
             BufferedReader br = new BufferedReader(readerA);
             String line = br.readLine();
             StringWriter strWriter = new StringWriter();
             while (line != null) {
-                strWriter.write(line);
-                System.out.println(line);
+                strWriter.write(line + "\n");
+                //System.out.println(line);
                 line = br.readLine();
             }
             System.out.println(strWriter.toString());
@@ -87,7 +88,7 @@ public class HelloWorld {
             br.close();
             readerA.close();
 
-            System.out.println("\nRead content from repository " + repoD.getName() + " ...");
+            System.out.println("\nRead content from repository " + repoD.getName() + " (repoD) ...");
             Reader readerD = repoD.getReader(new Path("/hello/vfs-example.txt"));
             br = new BufferedReader(readerD);
             System.out.println("Very first line: " + br.readLine());
@@ -118,7 +119,6 @@ public class HelloWorld {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
 
-            Path worldPath = new Path("/hello/world.txt");
             if (repoA.delete(worldPath)) {
                 System.out.println("Node '" + worldPath + "' has been deleted.");
             } else {
