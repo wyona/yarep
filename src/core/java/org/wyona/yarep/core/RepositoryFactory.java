@@ -143,7 +143,7 @@ public class RepositoryFactory {
     /**
      * Get repository from specified config, whereas config is being resolved relative to classpath
      */
-    public Repository newRepository(String rid, File config) {
+    public Repository newRepository(String rid, File config) throws Exception {
         if (exists(rid)) {
             log.warn("Repository ID already exists: " + rid + " Repository will not be added to list of Repository Factory!");
             return null;

@@ -41,7 +41,7 @@ public class Repository {
     /**
      *
      */
-    public Repository(String id, File configFile) {
+    public Repository(String id, File configFile) throws Exception {
         this.id = id;
         this.configFile = configFile;
 
@@ -51,7 +51,7 @@ public class Repository {
     /**
      * Read respectively load repository configuration
      */
-    private void readConfiguration() {
+    private void readConfiguration() throws Exception {
         DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
         Configuration config;
 
@@ -83,6 +83,7 @@ public class Repository {
             log.debug(storage.getClass().getName());
         } catch (Exception e) {
             log.error(e.toString());
+            throw e;
         }
     }
 
