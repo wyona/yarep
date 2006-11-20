@@ -17,7 +17,7 @@ public interface Storage {
     /**
      *
      */
-    public void readConfig(Configuration storageConfig, File repoConfigFile) throws Exception;
+    public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException;
 
     /**
      *@deprecated
@@ -27,25 +27,25 @@ public interface Storage {
     /**
      *
      */
-    public OutputStream getOutputStream(UID uid, Path path) throws IOException;
+    public OutputStream getOutputStream(UID uid, Path path) throws RepositoryException;
 
     /**
      *@deprecated
      */
-    public Reader getReader(UID uid, Path path) throws NoSuchNodeException;
+    public Reader getReader(UID uid, Path path) throws RepositoryException;
 
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path) throws IOException;
+    public InputStream getInputStream(UID uid, Path path) throws RepositoryException;
 
     /**
      *
      */
-    public long getLastModified(UID uid, Path path);
+    public long getLastModified(UID uid, Path path) throws RepositoryException;
 
     /**
      *
      */
-    public boolean delete(UID uid, Path path);
+    public boolean delete(UID uid, Path path) throws RepositoryException;
 }

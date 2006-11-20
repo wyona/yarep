@@ -1,6 +1,7 @@
 package org.wyona.yarep.core.impl.orm;
 
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
@@ -23,7 +24,7 @@ public class ORMStorage implements Storage {
     /**
      *
      */
-    public void readConfig(Configuration storageConfig, File repoConfigFile) {
+    public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
     }
 
     /**
@@ -37,7 +38,7 @@ public class ORMStorage implements Storage {
     /**
      *
      */
-    public OutputStream getOutputStream(UID uid, Path path) {
+    public OutputStream getOutputStream(UID uid, Path path) throws RepositoryException {
         log.warn("Not implemented yet!");
         return null;
     }
@@ -53,7 +54,7 @@ public class ORMStorage implements Storage {
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path) {
+    public InputStream getInputStream(UID uid, Path path) throws RepositoryException {
         log.warn("Not implemented yet!");
         return null;
     }
@@ -61,7 +62,7 @@ public class ORMStorage implements Storage {
     /**
      *
      */
-    public long getLastModified(UID uid, Path path) {
+    public long getLastModified(UID uid, Path path) throws RepositoryException {
         log.warn("Not implemented yet!");
         return 0;
     }
@@ -69,7 +70,7 @@ public class ORMStorage implements Storage {
     /**
      *
      */
-    public boolean delete(UID uid, Path path) {
+    public boolean delete(UID uid, Path path) throws RepositoryException {
         log.error("TODO: Not implemented yet!");
         return false;
     }

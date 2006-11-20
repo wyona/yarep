@@ -5,6 +5,7 @@ import org.apache.avalon.framework.configuration.Configuration;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
-    public void readConfig(Configuration mapConfig, File repoConfigFile) {
+    public void readConfig(Configuration mapConfig, File repoConfigFile) throws RepositoryException {
         try {
             pathsDir = new File(mapConfig.getAttribute("src"));
             if (!pathsDir.isAbsolute()) {
@@ -37,13 +38,15 @@ public class VFileSystemMapImpl implements Map {
             if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
         } catch(Exception e) {
             log.error(e);
+            throw new RepositoryException("Could not read map configuration: " 
+                    + repoConfigFile.getAbsolutePath() + e.getMessage(), e);
         }
     }
 
     /**
      *
      */
-    public boolean isResource(Path path) {
+    public boolean isResource(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         return file.isFile();
     }
@@ -51,7 +54,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
-    public boolean exists(Path path) {
+    public boolean exists(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         // TODO: Get name of repository for debugging ...
         //log.debug("Path (" + getName() + "): " + file);
@@ -61,7 +64,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
-    public boolean delete(Path path) {
+    public boolean delete(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         return file.delete();
     }
@@ -69,7 +72,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
-    public boolean isCollection(Path path) {
+    public boolean isCollection(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         return file.isDirectory();
     }
@@ -77,7 +80,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      *
      */
-    public Path[] getChildren(Path path) {
+    public Path[] getChildren(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         String[] filenames = file.list();
 
@@ -104,7 +107,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      * Get UID
      */
-    public synchronized UID getUID(Path path) {
+    public synchronized UID getUID(Path path) throws RepositoryException {
         // TODO: Check if leading slash should be removed ...
         return new UID(path.toString());
     }
@@ -112,7 +115,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      * Create UID
      */
-    public synchronized UID createUID(Path path) {
+    public synchronized UID createUID(Path path) throws RepositoryException {
         // TODO: Check if leading slash should be removed ...
         return new UID(path.toString());
     }

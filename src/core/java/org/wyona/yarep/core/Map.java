@@ -12,40 +12,40 @@ public interface Map {
     /**
      *
      */
-    public void readConfig(Configuration mapConfig, File repoConfigFile);
+    public void readConfig(Configuration mapConfig, File repoConfigFile) throws RepositoryException;
 
     /**
      *
      */
-    public boolean isResource(Path path);
+    public boolean isResource(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public boolean isCollection(Path path);
+    public boolean isCollection(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public boolean exists(Path path);
+    public boolean exists(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public boolean delete(Path path);
+    public boolean delete(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public Path[] getChildren(Path path);
+    public Path[] getChildren(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public UID getUID(Path path);
+    public UID getUID(Path path) throws RepositoryException;
 
     /**
      *
      */
-    public UID createUID(Path path);
+    public UID createUID(Path path) throws RepositoryException;
 }

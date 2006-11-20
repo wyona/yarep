@@ -2,6 +2,7 @@ package org.wyona.yarep.examples;
 
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
 
 import java.io.BufferedReader;
@@ -31,13 +32,15 @@ public class HelloWorld {
 
         System.out.println(repoFactory);
 
-        Repository repoA = repoFactory.newRepository("example1");
-        Repository repoC = repoFactory.newRepository("hugo");
-
-        // Add more repositories to repository factory
+        Repository repoA;
+        Repository repoC;
         Repository repoB;
         Repository repoD;
         try {
+            repoA = repoFactory.newRepository("example1");
+            repoC = repoFactory.newRepository("hugo");
+    
+            // Add more repositories to repository factory
             repoB = repoFactory.newRepository("vanya", new File("example2/repository-config.xml"));
             repoD = repoFactory.newRepository("vfs-example", new File("vfs-example/repository.xml"));
         } catch (Exception e) {
@@ -48,12 +51,18 @@ public class HelloWorld {
         System.out.println(repoFactory);
 
         // Test YarepUtil ...
-        Path path = new Path("/example2/hello.txt");
-        org.wyona.yarep.util.RepoPath rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
-        System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
-        path = new Path("/pele/hello/");
-        rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
-        System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
+        Path path;
+        try {
+            path = new Path("/example2/hello.txt");
+            org.wyona.yarep.util.RepoPath rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
+            System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
+            path = new Path("/pele/hello/");
+            rp = new org.wyona.yarep.util.YarepUtil().getRepositoryPath(path, repoFactory);
+            System.out.println("YarepUtil: " + rp.getRepo() + " " + rp.getPath());
+        } catch (RepositoryException e) {
+            System.err.println(e);
+            return;
+        }
 
         Path worldPath = new Path("/hello/world.txt");
 

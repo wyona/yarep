@@ -27,14 +27,14 @@ public class RepositoryFactory {
     /**
      *
      */
-    public RepositoryFactory() throws Exception {
+    public RepositoryFactory() throws RepositoryException {
         this(DEFAULT_CONFIGURATION_FILE);
     }
 
     /**
      * TODO: Make CONFIGURATION_FILE loadable from absolute path
      */
-    public RepositoryFactory(String configurationFile) throws Exception {
+    public RepositoryFactory(String configurationFile) throws RepositoryException {
         CONFIGURATION_FILE = configurationFile;
 
         propertiesURL = RepositoryFactory.class.getClassLoader().getResource(CONFIGURATION_FILE);
@@ -50,7 +50,7 @@ public class RepositoryFactory {
         try {
             props.load(propertiesURL.openStream());
 
-	    String separator = ",";
+            String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
             if (tokens.length % 2 != 0) {
                 // NOTE: An exception is being trown and hence the repo factory instance will be null anyway
@@ -80,7 +80,8 @@ public class RepositoryFactory {
             // see src/java/org/wyona/meguni/parser/Parser.java
         } catch (Exception e) {
             log.error(e.toString(), e);
-            throw e;
+            throw new RepositoryException("Could not create RepositoryFactory with file " 
+                    + configurationFile + ": " + e.getMessage(), e);
         }
     }
 
@@ -119,7 +120,7 @@ public class RepositoryFactory {
      *
      * @param rid Repository ID
      */
-    public Repository newRepository(String rid) {
+    public Repository newRepository(String rid) throws RepositoryException {
         for (int i = 0;i < repositories.size(); i++) {
             if (((Repository) repositories.elementAt(i)).getID().equals(rid)) return (Repository) repositories.elementAt(i);
         }
@@ -134,7 +135,7 @@ public class RepositoryFactory {
      * Get first repository from yarep.properties
      *
      */
-    public Repository firstRepository() {
+    public Repository firstRepository() throws RepositoryException {
         if (repositories.size() > 0) return (Repository) repositories.elementAt(0);
         log.error("No repositories (" + getPropertiesURL() + ")! Maybe properties file is misconfigured!");
         return null;
@@ -143,7 +144,7 @@ public class RepositoryFactory {
     /**
      * Get repository from specified config, whereas config is being resolved relative to classpath
      */
-    public Repository newRepository(String rid, File config) throws Exception {
+    public Repository newRepository(String rid, File config) throws RepositoryException {
         if (exists(rid)) {
             log.warn("Repository ID already exists: " + rid + " Repository will not be added to list of Repository Factory!");
             return null;
@@ -159,7 +160,8 @@ public class RepositoryFactory {
                 return repository;
             } catch (Exception e) {
                 log.error(e);
-                return null;
+                throw new RepositoryException("Could not create repository: " + rid + " " 
+                        + config.getAbsolutePath() + " " + e.getMessage(), e);
             }
         }
         // TODO: Register rid

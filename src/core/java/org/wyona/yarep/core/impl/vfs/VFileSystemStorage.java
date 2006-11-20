@@ -3,6 +3,7 @@ package org.wyona.yarep.core.impl.vfs;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
@@ -27,7 +28,7 @@ public class VFileSystemStorage implements Storage {
     /**
      *
      */
-    public void readConfig(Configuration storageConfig, File repoConfigFile) {
+    public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
         Configuration contentConfig = storageConfig.getChild("content", false);
         try {
             contentDir = new File(contentConfig.getAttribute("src"));
@@ -41,6 +42,7 @@ public class VFileSystemStorage implements Storage {
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
         } catch (Exception e) {
             log.error(e);
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 
@@ -54,7 +56,7 @@ public class VFileSystemStorage implements Storage {
     /**
      *
      */
-    public OutputStream getOutputStream(UID uid, Path path) {
+    public OutputStream getOutputStream(UID uid, Path path) throws RepositoryException {
         return new VFileSystemRepositoryOutputStream(uid, path, contentDir);
     }
 
@@ -68,14 +70,14 @@ public class VFileSystemStorage implements Storage {
     /**
      *
      */
-    public InputStream getInputStream(UID uid, Path path) throws NoSuchNodeException {
+    public InputStream getInputStream(UID uid, Path path) throws RepositoryException {
         return new VFileSystemRepositoryInputStream(uid, path, contentDir);
     }
 
     /**
      *
      */
-    public long getLastModified(UID uid, Path path) {
+    public long getLastModified(UID uid, Path path) throws RepositoryException {
         File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
         return file.lastModified(); 
     }
@@ -83,7 +85,7 @@ public class VFileSystemStorage implements Storage {
     /**
      *
      */
-    public boolean delete(UID uid, Path path) {
+    public boolean delete(UID uid, Path path) throws RepositoryException {
         File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
         log.debug("Try to delete: " + file);
         return file.delete();

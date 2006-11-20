@@ -1,6 +1,7 @@
 package org.wyona.yarep.core.impl.svn;
 
 import org.wyona.yarep.core.NoSuchNodeException;
+import org.wyona.yarep.core.RepositoryException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,16 +23,16 @@ public class SVNRepositoryInputStream extends InputStream {
     /**
      *
      */
-    public SVNRepositoryInputStream(File file) throws IOException {
+    public SVNRepositoryInputStream(File file) throws RepositoryException {
         try {
             log.debug(file.toString());
             in = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             log.error(e);
-            throw new NoSuchNodeException(e.getMessage());
+            throw new NoSuchNodeException(e.getMessage(), e);
         } catch (Exception e) {
             log.error(e);
-            throw new IOException(e.getMessage());
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 

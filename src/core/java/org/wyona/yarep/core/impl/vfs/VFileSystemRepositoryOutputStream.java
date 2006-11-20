@@ -1,6 +1,7 @@
 package org.wyona.yarep.core.impl.vfs;
 
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
@@ -22,13 +23,14 @@ public class VFileSystemRepositoryOutputStream extends OutputStream {
     /**
      *
      */
-    public VFileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) {
+    public VFileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) throws RepositoryException {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
             log.debug(file.toString());
             out = new FileOutputStream(file);
         } catch (Exception e) {
             log.error(e);
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 

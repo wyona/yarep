@@ -1,6 +1,7 @@
 package org.wyona.yarep.core.impl.fs;
 
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
@@ -22,7 +23,7 @@ public class FileSystemRepositoryOutputStream extends OutputStream {
     /**
      *
      */
-    public FileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) throws IOException {
+    public FileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) throws RepositoryException {
         try {
             File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
             //File file = new File(contentDir.getAbsolutePath() + path.toString());
@@ -37,7 +38,7 @@ public class FileSystemRepositoryOutputStream extends OutputStream {
             out = new FileOutputStream(file);
         } catch (IOException e) {
             log.error(e);
-            throw e;
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 

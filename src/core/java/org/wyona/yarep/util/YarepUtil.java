@@ -4,6 +4,7 @@ import org.apache.log4j.Category;
 
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
 
 /**
@@ -16,7 +17,7 @@ public class YarepUtil {
     /**
      *
      */
-    public RepoPath getRepositoryPath(Path path, RepositoryFactory repoFactory) {
+    public RepoPath getRepositoryPath(Path path, RepositoryFactory repoFactory) throws RepositoryException {
         Repository repo = null;
 
         // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository

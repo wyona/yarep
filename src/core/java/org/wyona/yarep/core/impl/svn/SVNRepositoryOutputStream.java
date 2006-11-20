@@ -10,6 +10,7 @@ import org.apache.log4j.Category;
 
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNStatusType;
+import org.wyona.yarep.core.RepositoryException;
 
 /**
  * 
@@ -27,7 +28,7 @@ public class SVNRepositoryOutputStream extends OutputStream {
     /**
      * 
      */
-    public SVNRepositoryOutputStream(File file, SVNClient svnClient) throws IOException {
+    public SVNRepositoryOutputStream(File file, SVNClient svnClient) throws RepositoryException {
         this.svnClient = svnClient;
         try {
             this.file = file;
@@ -43,7 +44,7 @@ public class SVNRepositoryOutputStream extends OutputStream {
             out = new FileOutputStream(file);
         } catch (Exception e) {
             log.error(e);
-            throw new IOException(e.getMessage());
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 

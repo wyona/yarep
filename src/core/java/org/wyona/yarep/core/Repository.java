@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
@@ -41,7 +42,7 @@ public class Repository {
     /**
      *
      */
-    public Repository(String id, File configFile) throws Exception {
+    public Repository(String id, File configFile) throws RepositoryException {
         this.id = id;
         this.configFile = configFile;
 
@@ -51,7 +52,7 @@ public class Repository {
     /**
      * Read respectively load repository configuration
      */
-    private void readConfiguration() throws Exception {
+    private void readConfiguration() throws RepositoryException {
         DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
         Configuration config;
 
@@ -83,7 +84,8 @@ public class Repository {
             log.debug(storage.getClass().getName());
         } catch (Exception e) {
             log.error(e.toString());
-            throw e;
+            throw new RepositoryException("Could not read repository configuration: " 
+                    + e.getMessage(), e);
         }
     }
 
@@ -118,19 +120,23 @@ public class Repository {
     /**
      *
      */
-    public Writer getWriter(Path path) throws IOException {
+    public Writer getWriter(Path path) throws RepositoryException {
         OutputStream out = getOutputStream(path);
-        if (out != null) {
-            return new OutputStreamWriter(getOutputStream(path), "UTF-8");
-        } else {
-            return null;
+        try {
+            if (out != null) {
+                return new OutputStreamWriter(getOutputStream(path), "UTF-8");
+            } else {
+                return null;
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new RepositoryException("Could not read path: " + path + ": " + e.getMessage(), e);
         }
     }
 
     /**
      *
      */
-    public OutputStream getOutputStream(Path path) throws IOException  {
+    public OutputStream getOutputStream(Path path) throws RepositoryException  {
         UID uid = getUID(path);
         if (uid == null) {
             if (fallback) {
@@ -147,14 +153,18 @@ public class Repository {
     /**
      *
      */
-    public Reader getReader(Path path) throws IOException {
-        return new InputStreamReader(getInputStream(path), "UTF-8");
+    public Reader getReader(Path path) throws RepositoryException {
+        try {
+            return new InputStreamReader(getInputStream(path), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RepositoryException("Could not read path: " + path + ": " + e.getMessage(), e);
+        }
     }
 
     /**
      *
      */
-    public InputStream getInputStream(Path path) throws IOException {
+    public InputStream getInputStream(Path path) throws RepositoryException {
         UID uid = null;
         if (!exists(path)) {
             if (fallback) {
@@ -177,7 +187,7 @@ public class Repository {
     /**
      *
      */
-    public long getLastModified(Path path) {
+    public long getLastModified(Path path) throws RepositoryException {
         UID uid = getUID(path);
         if (uid == null) {
             log.error("No UID: " + path);
@@ -189,7 +199,7 @@ public class Repository {
     /**
      * @return true if node has been deleted, otherwise false
      */
-    public boolean delete(Path path) {
+    public boolean delete(Path path) throws RepositoryException {
         if(map.isCollection(path)) {
             log.warn("Node is a collection and hence cannot be deleted: " + path);
             return false;
@@ -212,7 +222,7 @@ public class Repository {
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getValidity()
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/SourceValidity.html
      */
-    public void getValidity(Path path) {
+    public void getValidity(Path path) throws RepositoryException {
         log.error("TODO: No implemented yet!");
     }
 
@@ -220,7 +230,7 @@ public class Repository {
      * Not implemented yet
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getContentLength()
      */
-    public void getContentLength(Path path) {
+    public void getContentLength(Path path) throws RepositoryException {
         log.error("TODO: No implemented yet!");
     }
 
@@ -228,14 +238,14 @@ public class Repository {
      * Not implemented yet
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getURI()
      */
-    public void getURI(Path path) {
+    public void getURI(Path path) throws RepositoryException {
         log.error("TODO: No implemented yet!");
     }
 
     /**
      *
      */
-    public boolean isResource(Path path) {
+    public boolean isResource(Path path) throws RepositoryException {
         return map.isResource(path);
     }
 
@@ -244,21 +254,21 @@ public class Repository {
      * also be a collection, but a collection with some default content.
      * In the case of JCR there are only nodes and properties!
      */
-    public boolean isCollection(Path path) {
+    public boolean isCollection(Path path) throws RepositoryException {
         return map.isCollection(path);
     }
 
     /**
      *
      */
-    public boolean exists(Path path) {
+    public boolean exists(Path path) throws RepositoryException {
        return map.exists(path);
     }
 
     /**
      *
      */
-    public Path[] getChildren(Path path) {
+    public Path[] getChildren(Path path) throws RepositoryException {
         // TODO: Order by last modified resp. alphabetical resp. ...
         return map.getChildren(path);
     }
@@ -270,7 +280,7 @@ public class Repository {
      * http://incubator.apache.org/jackrabbit/apidocs/org/apache/jackrabbit/uuid/UUID.html
      * http://www.webdav.org/specs/draft-leach-uuids-guids-01.txt
      */
-    public synchronized UID getUID(Path path) {
+    public synchronized UID getUID(Path path) throws RepositoryException {
         return map.getUID(path);
     }
 }

@@ -5,6 +5,7 @@ import org.apache.avalon.framework.configuration.Configuration;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class DefaultMapImpl implements Map {
     /**
      *
      */
-    public void readConfig(Configuration mapConfig, File repoConfigFile) {
+    public void readConfig(Configuration mapConfig, File repoConfigFile) throws RepositoryException {
         try {
             pathsDir = new File(mapConfig.getAttribute("src"));
             if (!pathsDir.isAbsolute()) {
@@ -37,13 +38,15 @@ public class DefaultMapImpl implements Map {
             if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
         } catch(Exception e) {
             log.error(e);
+            throw new RepositoryException("Could not read map configuration: " 
+                    + repoConfigFile.getAbsolutePath() + e.getMessage(), e);
         }
     }
 
     /**
      *
      */
-    public boolean isResource(Path path) {
+    public boolean isResource(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         return uidFile.exists() || file.isFile();
@@ -52,7 +55,7 @@ public class DefaultMapImpl implements Map {
     /**
      *
      */
-    public boolean exists(Path path) {
+    public boolean exists(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         // TODO: Get name of repository for debugging ...
         //log.debug("Path (" + getName() + "): " + file);
@@ -62,7 +65,7 @@ public class DefaultMapImpl implements Map {
     /**
      *
      */
-    public boolean delete(Path path) {
+    public boolean delete(Path path) throws RepositoryException {
 /*
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         if (uidFile.isFile()) uidFile.delete();
@@ -74,7 +77,7 @@ public class DefaultMapImpl implements Map {
     /**
      *
      */
-    public boolean isCollection(Path path) {
+    public boolean isCollection(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         return (file.exists() && !isResource(path));
     }
@@ -82,7 +85,7 @@ public class DefaultMapImpl implements Map {
     /**
      *
      */
-    public Path[] getChildren(Path path) {
+    public Path[] getChildren(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         String[] filenames = file.list();
 
@@ -109,7 +112,7 @@ public class DefaultMapImpl implements Map {
     /**
      * Get UID
      */
-    public synchronized UID getUID(Path path) {
+    public synchronized UID getUID(Path path) throws RepositoryException {
         log.debug(pathsDir.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         log.debug(uidFile.toString());
@@ -123,7 +126,8 @@ public class DefaultMapImpl implements Map {
                 return new UID(existingUID);
             } catch (Exception e) {
                 log.error(e);
-                throw new RuntimeException(e);
+                throw new RepositoryException("Error reading uid of path: " + path.toString() 
+                        + ": " + e.getMessage(), e);
             }
         }
 
@@ -133,7 +137,7 @@ public class DefaultMapImpl implements Map {
     /**
      * Get UID
      */
-    public synchronized UID createUID(Path path) {
+    public synchronized UID createUID(Path path) throws RepositoryException {
         log.debug(pathsDir.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         log.debug(uidFile.toString());
@@ -157,6 +161,8 @@ public class DefaultMapImpl implements Map {
             fw.close();
         } catch (Exception e) {
             log.error(e);
+            throw new RepositoryException("Error creating uid for path: " + path.toString() 
+                    + ": " + e.getMessage(), e);
         }
         return new UID(uuid);
     }

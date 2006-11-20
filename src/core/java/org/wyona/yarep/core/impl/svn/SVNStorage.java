@@ -3,6 +3,7 @@ package org.wyona.yarep.core.impl.svn;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
@@ -15,6 +16,7 @@ import java.io.Writer;
 import java.util.Date;
 
 import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.ConfigurationException;
 import org.apache.log4j.Category;
 
 import org.tmatesoft.svn.core.SVNCommitInfo;
@@ -62,42 +64,52 @@ public class SVNStorage implements Storage {
      * copy. 
      * TODO: checkout/update should be moved to a separate init() method.
      */
-    public void readConfig(Configuration storageConfig, File repoConfigFile) throws Exception {
-        Configuration contentConfig = storageConfig.getChild("content", false);
-        svnRepoUrl = SVNURL.parseURIEncoded(contentConfig.getAttribute("src"));
-        svnWorkingDir = new File(contentConfig.getAttribute("workdir"));
-        if (!svnWorkingDir.isAbsolute()) {
-            svnWorkingDir = FileUtil.file(repoConfigFile.getParent(), svnWorkingDir.toString());
-        }
-        String username = contentConfig.getAttribute("username");
-        String password = contentConfig.getAttribute("password");
+    public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
+        try {
+            Configuration contentConfig = storageConfig.getChild("content", false);
+            svnRepoUrl = SVNURL.parseURIEncoded(contentConfig.getAttribute("src"));
+            svnWorkingDir = new File(contentConfig.getAttribute("workdir"));
+            if (!svnWorkingDir.isAbsolute()) {
+                svnWorkingDir = FileUtil.file(repoConfigFile.getParent(), svnWorkingDir.toString());
+            }
+            String username = contentConfig.getAttribute("username");
+            String password = contentConfig.getAttribute("password");
 
-        log.debug("SVN host URL: " + svnRepoUrl.toString());
-        log.debug("SVN working dir: " + svnWorkingDir.getAbsolutePath());
+            log.debug("SVN host URL: " + svnRepoUrl.toString());
+            log.debug("SVN working dir: " + svnWorkingDir.getAbsolutePath());
 
-        if (!svnWorkingDir.isDirectory()) {
-            svnWorkingDir.mkdirs();
-        }
+            if (!svnWorkingDir.isDirectory()) {
+                svnWorkingDir.mkdirs();
+            }
 
-        svnClient = new SVNClient(username, password);
+            svnClient = new SVNClient(username, password);
 
-        // check out or update repository:
-        if (svnWorkingDir.listFiles().length == 0) {
-            log.info("checking out repository " + svnRepoUrl + " to " + svnWorkingDir);
-            long rev = svnClient.checkout(svnRepoUrl, svnWorkingDir);
-            log.info("checked out revision " + rev);
-        } else {
-            log.info("updating " + svnWorkingDir);
-            long rev = svnClient.update(svnWorkingDir, SVNRevision.HEAD, true);
-            svnClient.checkStatus(svnWorkingDir);
-            log.info("updated to revison " + rev);
+            // check out or update repository:
+            if (svnWorkingDir.listFiles().length == 0) {
+                log.info("checking out repository " + svnRepoUrl + " to " + svnWorkingDir);
+                long rev = svnClient.checkout(svnRepoUrl, svnWorkingDir);
+                log.info("checked out revision " + rev);
+            } else {
+                log.info("updating " + svnWorkingDir);
+                long rev = svnClient.update(svnWorkingDir, SVNRevision.HEAD, true);
+                svnClient.checkStatus(svnWorkingDir);
+                log.info("updated to revison " + rev);
+            }
+        } catch (ConfigurationException e) {
+            log.error(e);
+            throw new RepositoryException("Could not load repository configuration: " + repoConfigFile + ": " 
+                    + e.getMessage(), e);
+        } catch (SVNException e) {
+            log.error(e);
+            throw new RepositoryException("Could not checkout/update svn repository: " + repoConfigFile + ": " 
+                    + e.getMessage(), e);
         }
     }
 
     /**
      * 
      */
-    public OutputStream getOutputStream(UID uid, Path path) throws IOException {
+    public OutputStream getOutputStream(UID uid, Path path) throws RepositoryException {
         File file = getFile(uid);
         return new SVNRepositoryOutputStream(file, svnClient);
     }
@@ -105,7 +117,7 @@ public class SVNStorage implements Storage {
     /**
      * 
      */
-    public InputStream getInputStream(UID uid, Path path) throws IOException {
+    public InputStream getInputStream(UID uid, Path path) throws RepositoryException {
         File file = getFile(uid);
         return new SVNRepositoryInputStream(file);
     }
@@ -113,32 +125,33 @@ public class SVNStorage implements Storage {
     /**
      * 
      */
-    public long getLastModified(UID uid, Path path) {
+    public long getLastModified(UID uid, Path path) throws RepositoryException {
         File file = getFile(uid);
         try {
             Date date = svnClient.getCommittedDate(file);
             return date.getTime();
         } catch (SVNException e) {
-            // TODO
             log.error(e);
+            throw new RepositoryException("Could not get committed date of " + file.getAbsolutePath()
+                    + ": " + e.getMessage(), e);
         }
-        return 0;
     }
 
     /**
      * 
      */
-    public boolean delete(UID uid, Path path) {
+    public boolean delete(UID uid, Path path) throws RepositoryException {
         File file = getFile(uid);
         try {
             svnClient.delete(file);
             svnClient.commit(file, "yarep automated commit");
             return true;
         } catch (SVNException e) {
-            // TODO
             log.error(e);
+            //throw new RepositoryException("Could not delete " + file.getAbsolutePath()
+            //        + ": " + e.getMessage(), e);
+            return false;    
         }
-        return false;
     }
 
     /**

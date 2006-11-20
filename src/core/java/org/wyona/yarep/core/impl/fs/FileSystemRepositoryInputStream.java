@@ -2,6 +2,7 @@ package org.wyona.yarep.core.impl.fs;
 
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
 import java.io.File;
@@ -24,17 +25,17 @@ public class FileSystemRepositoryInputStream extends InputStream {
     /**
      *
      */
-    public FileSystemRepositoryInputStream(UID uid, Path path, File contentDir) throws IOException {
+    public FileSystemRepositoryInputStream(UID uid, Path path, File contentDir) throws RepositoryException {
         try {
             File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
             log.debug(file.toString());
             in = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             log.error(e);
-            throw new NoSuchNodeException(e.getMessage());
+            throw new NoSuchNodeException(e.getMessage(), e);
         } catch (Exception e) {
             log.error(e);
-            throw new IOException(e.getMessage());
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
 
