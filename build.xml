@@ -34,6 +34,8 @@
                   version="2.7.1"/>
       <dependency groupId="xml-apis" artifactId="xml-apis"
                   version="1.3.02"/>
+      <dependency groupId="xml-resolver" artifactId="xml-resolver"
+                  version="1.1"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-discovery"
                   version="0.2"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging"
@@ -102,7 +104,7 @@
     <jar
       destfile="build/lib/yarep-${yarep.version}-r${subversion.revision}.jar"
       basedir="build/classes"
-      excludes="org/wyona/yarep/examples/**,yarep.properties"
+      excludes="org/wyona/yarep/examples/**,org/wyona/yarep/tests/**,yarep.properties"
     >
     <!--
       <manifest>
@@ -133,6 +135,18 @@
     <java classname="org.wyona.yarep.examples.HelloWorld">
       <classpath refid="classpath.run"/>
     </java>
+  </target>
+
+  <target name="test" description="Run Tests" depends="init, build-examples">
+    <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" failureproperty="tests.failed">
+      <formatter type="plain" usefile="false" />
+      <formatter type="xml" />
+      <classpath refid="classpath.run" />
+      <batchtest todir="log">
+        <fileset dir="${classes.dir}" includes="**/*Test.class" excludes="**/Abstract*.class"/>
+      </batchtest>
+    </junit>
+    <fail if="tests.failed"  message="One or more junit tests failed. Please check the log."/>
   </target>
 
   <target name="javadoc" description="Generate Javadoc" depends="init">

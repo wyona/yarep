@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<repository>
+  <name>SVN Example</name>
+
+  <!-- <paths src="../paths" fallback="true"/> -->
+  <!-- <paths src="../paths/paths.xml" class="org.wyona.yarep.impl.XMLFileMap"/> -->
+  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="../content"/>
+
+  <storage class="org.wyona.yarep.core.impl.svn.SVNStorage">
+    <content src="http://localhost/svn/yarep-test"
+             workdir="../content"
+             username="test"
+             password="test"/>
+  </storage>
+</repository>
