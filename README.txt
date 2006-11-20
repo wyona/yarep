@@ -25,6 +25,13 @@
      "./build.sh run-examples"
 
 
+     Running the tests:
+     ------------------
+
+     Run the examples by executing "ant test" resp.
+     "./build.sh test"
+
+
      Configuration of repositories:
      ------------------------------
 

@@ -16,3 +16,4 @@
     - Finish VFS example resp. add sample node
     - FileSystem implementation could return path if .yarep-uid does not exist ... (I think rather NOT ...)
     - Improve Exception Handling
+    - Replace examples by tests
