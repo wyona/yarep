@@ -52,7 +52,8 @@ public class YarepTest extends TestCase {
         // Write content to repository
         System.out.println("\nWrite content to repository " + repoA.getName() + " (repoA) ...");
         Writer writerA = repoA.getWriter(worldPath);
-        writerA.write("Hello World!\n...");
+        String testContent = "Hello World!\n...\n";
+        writerA.write(testContent);
         writerA.close();
 
         System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
@@ -81,18 +82,23 @@ public class YarepTest extends TestCase {
         strWriter.close();
         br.close();
         readerA.close();
+        assertEquals("Repository content did not match expected result.", testContent, strWriter.toString());
 
         System.out.println("\nRead content from repository " + repoD.getName() + " (repoD) ...");
         Reader readerD = repoD.getReader(new Path("/hello/vfs-example.txt"));
         br = new BufferedReader(readerD);
-        System.out.println("Very first line: " + br.readLine());
+        String firstLine = br.readLine();
+        System.out.println("Very first line: " + firstLine);
         readerD.close();
+        assertEquals("Repository content did not match expected result.", "Hello VFS!", firstLine);
 
         System.out.println("\nRead content from node without a UID:");
         readerA = repoA.getReader(new Path("/no/uid/example.txt"));
         br = new BufferedReader(readerA);
-        System.out.println("Very first line: " + br.readLine());
+        firstLine = br.readLine();
+        System.out.println("Very first line: " + firstLine);
         readerA.close();
+        assertEquals("Repository content did not match expected result.", "No UID example!", firstLine);
 
         // List children
         System.out.println("\nList children of path /hello from repository " + repoA.getName() + " ...");
@@ -101,18 +107,11 @@ public class YarepTest extends TestCase {
         Path[] children = repoA.getChildren(helloPath);
         for (int i = 0; i < children.length; i++) {
             System.out.println(children[i]);
+            // assert what?
         }
 
-        if (repoA.delete(helloPath)) {
-            System.out.println("Node '" + helloPath + "' has been deleted.");
-        } else {
-            System.err.println("Node '" + helloPath + "' could not be deleted!");
-        }
-
-        if (repoA.delete(worldPath)) {
-            System.out.println("Node '" + worldPath + "' has been deleted.");
-        } else {
-            System.err.println("Node '" + worldPath + "' could not be deleted!");
-        }
+        assertFalse("Deleting '" + helloPath + "' should not be possible because it has children.", 
+                repoA.delete(helloPath));
+        assertTrue("Deleting '" + worldPath + "' should be possible.", repoA.delete(worldPath));
     }
 }
