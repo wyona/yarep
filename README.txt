@@ -28,7 +28,13 @@
      Running the tests:
      ------------------
 
-     Run the examples by executing "ant test" resp.
+     For the SVN repository implementation one needs to configure the src, username and password within
+
+       build/repository/svn-example/config/repository.xml
+
+     of the storage.
+
+     Run the tests by executing "ant test" resp.
      "./build.sh test"
 
 
