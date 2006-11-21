@@ -140,16 +140,17 @@
   <!-- the test target executes all tests in the test directory, or alternatively
        it executes a single test which is specified by the test.class.name property -->
   <target name="test" description="Run Tests" depends="init, build-examples">
+    <mkdir dir="build/log"/>
     <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" failureproperty="tests.failed">
       <formatter type="plain" usefile="false" />
       <formatter type="xml"/>
       <classpath refid="classpath.run" />
-      <batchtest todir="log" unless="test.class.name">
+      <batchtest todir="build/log" unless="test.class.name">
         <fileset dir="${classes.dir}" includes="**/*Test.class" excludes="**/Abstract*.class"/>
       </batchtest>
-      <test todir="log" name="${test.class.name}" if="test.class.name"/>
+      <test todir="build/log" name="${test.class.name}" if="test.class.name"/>
     </junit>
-    <fail if="tests.failed"  message="One or more junit tests failed. Please check the log."/>
+    <fail if="tests.failed"  message="One or more junit tests failed. Please check the log (build/log)."/>
   </target>
 
   <target name="javadoc" description="Generate Javadoc" depends="init">
