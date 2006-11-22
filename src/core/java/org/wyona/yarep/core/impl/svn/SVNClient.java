@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.avalon.framework.configuration.Configuration;
@@ -41,6 +43,8 @@ import org.tmatesoft.svn.core.wc.SVNStatusType;
 public class SVNClient {
 
     private static Category log = Category.getInstance(SVNClient.class);
+    
+    protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
     protected SVNClientManager clientManager;
 
@@ -142,6 +146,28 @@ public class SVNClient {
     public Date getCommittedDate(File file) throws SVNException {
         SVNInfo info = clientManager.getWCClient().doInfo(file, SVNRevision.HEAD);
         return info.getCommittedDate();
+    }
+
+    /*public long[] getRevisionNumbers(File file) throws SVNException {
+        RevisionLogEntryHandler logHandler = new RevisionLogEntryHandler();
+        clientManager.getLogClient().doLog(new File[] { file }, SVNRevision.HEAD, SVNRevision.BASE, 
+                SVNRevision.create(0), false, false, 100, logHandler);
+        return logHandler.getRevisions();
+    }*/
+
+    public String[] getRevisionStrings(File file) throws SVNException {
+        RevisionLogEntryHandler logHandler = new RevisionLogEntryHandler();
+        clientManager.getLogClient().doLog(new File[] { file }, SVNRevision.HEAD, SVNRevision.BASE, 
+                SVNRevision.create(0), false, false, 100, logHandler);
+        long[] revisions = logHandler.getRevisions();
+        //String[] messages = logHandler.getMessages();
+        Date[] dates = logHandler.getDates();
+        
+        String[] revStrings = new String[revisions.length];
+        for (int i=0; i<revisions.length; i++) {
+            revStrings[i] = String.valueOf(revisions[i]) + "|" + dateFormat.format(dates[i]);
+        }
+        return revStrings;
     }
 
 }

@@ -283,4 +283,16 @@ public class Repository {
     public synchronized UID getUID(Path path) throws RepositoryException {
         return map.getUID(path);
     }
+    
+    /**
+     * Get all revision numbers of the given path.
+     * @return Array of revision number strings. Newest revision first. 
+     */
+   public String[] getRevisions(Path path) throws RepositoryException {
+       UID uid = getUID(path);
+       //if (uid == null) throw new NoSuchNodeException("Path not found: " + path);
+       // fallback?
+       return storage.getRevisions(uid, path);
+   }
+
 }

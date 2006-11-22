@@ -74,4 +74,13 @@ public class ORMStorage implements Storage {
         log.error("TODO: Not implemented yet!");
         return false;
     }
+    
+    /**
+     * 
+     */
+    public String[] getRevisions(UID uid, Path path) throws RepositoryException {
+        log.warn("Versioning not implemented yet");
+        return null;
+    }
+
 }

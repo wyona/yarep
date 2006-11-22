@@ -48,4 +48,10 @@ public interface Storage {
      *
      */
     public boolean delete(UID uid, Path path) throws RepositoryException;
+    
+    /**
+     *
+     */
+    public String[] getRevisions(UID uid, Path path) throws RepositoryException;
+
 }

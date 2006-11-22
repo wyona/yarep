@@ -1,14 +1,6 @@
 package org.wyona.yarep.core.impl.svn;
 
-import org.wyona.commons.io.FileUtil;
-import org.wyona.yarep.core.NoSuchNodeException;
-import org.wyona.yarep.core.Path;
-import org.wyona.yarep.core.RepositoryException;
-import org.wyona.yarep.core.Storage;
-import org.wyona.yarep.core.UID;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -18,20 +10,15 @@ import java.util.Date;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.ConfigurationException;
 import org.apache.log4j.Category;
-
-import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
-import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
-import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
-import org.tmatesoft.svn.core.internal.util.SVNPathUtil;
-import org.tmatesoft.svn.core.wc.ISVNOptions;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.SVNUpdateClient;
-import org.tmatesoft.svn.core.wc.SVNWCUtil;
-import org.tmatesoft.svn.core.wc.ISVNEventHandler;
+import org.wyona.commons.io.FileUtil;
+import org.wyona.yarep.core.NoSuchNodeException;
+import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.core.Storage;
+import org.wyona.yarep.core.UID;
 
 /**
  * Subversion based storage implementation.
@@ -155,6 +142,24 @@ public class SVNStorage implements Storage {
     }
 
     /**
+     * 
+     */
+    public String[] getRevisions(UID uid, Path path) throws RepositoryException {
+        File file = getFile(uid);
+        try {
+            //long[] revNumbers = svnClient.getRevisionNumbers(file);
+            //String[] revisions = new String[revNumbers.length];
+            //for (int i=0; i<revNumbers.length; i++) revisions[i] = String.valueOf(revNumbers[i]);
+            //return revisions;
+            return svnClient.getRevisionStrings(file);
+        } catch (SVNException e) {
+            log.error(e);
+            throw new RepositoryException("Could not get revisions of " + file.getAbsolutePath()
+                    + ": " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * @deprecated
      */
     public Writer getWriter(UID uid, Path path) {
@@ -171,5 +176,5 @@ public class SVNStorage implements Storage {
     protected File getFile(UID uid) {
         return new File(svnWorkingDir.getAbsolutePath() + File.separator + uid.toString());
     }
-
+    
 }

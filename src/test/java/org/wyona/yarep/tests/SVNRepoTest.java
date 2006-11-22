@@ -26,8 +26,7 @@ public class SVNRepoTest extends TestCase {
     
     public void testWriteRead() throws Exception {
 
-        // this path may or may not exist in the repository.
-        // if if does not exist, it will be created.
+        // if this path does not exist yet, it will be created automatically.
         Path path = new Path("/test/foo/bar.txt");
 
         // Write content to repository
@@ -49,5 +48,38 @@ public class SVNRepoTest extends TestCase {
         
         assertEquals(line, testContent);
         
-    }    
+    }
+    
+    public void testRevisions() throws Exception {
+
+        // if this path does not exist yet, it will be created automatically.
+        Path path = new Path("/test/foo/bar.txt");
+        
+        write(path, "revision test 1111");
+        String[] revisions1 = repo.getRevisions(path);
+        
+        System.out.println("revisions after first edit: ");
+        for (int i=0; i<revisions1.length; i++) {
+            System.out.println("rev[" + i + "]: " + revisions1[i]);
+        }
+        
+        write(path, "revision test 2222");
+        String[] revisions2 = repo.getRevisions(path);
+        
+        System.out.println("revisions after second edit: ");
+        for (int i=0; i<revisions2.length; i++) {
+            System.out.println("rev[" + i + "]: " + revisions2[i]);
+        }
+        
+        assertTrue("New revision has not been created.", revisions1.length + 1 == revisions2.length);
+        
+        assertEquals("New revision not found in history.", revisions1[0], revisions2[1]);
+    }
+    
+    protected void write(Path path, String content) throws Exception {
+        Writer writer = repo.getWriter(path);
+        writer.write(content);
+        writer.close();
+    }
+
 }

@@ -90,4 +90,13 @@ public class VFileSystemStorage implements Storage {
         log.debug("Try to delete: " + file);
         return file.delete();
     }
+    
+    /**
+     * 
+     */
+    public String[] getRevisions(UID uid, Path path) throws RepositoryException {
+        log.warn("Versioning not implemented yet");
+        return null;
+    }
+
 }
