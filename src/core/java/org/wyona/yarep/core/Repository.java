@@ -295,4 +295,24 @@ public class Repository {
        return storage.getRevisions(uid, path);
    }
 
+    /**
+     * Add symbolic link
+     */
+    public void addSymbolicLink(Path target, Path link) throws NoSuchNodeException, RepositoryException {
+        log.debug("Target: " + target);
+        UID uid = null;
+        if (!exists(target)) {
+            if (fallback) {
+                log.warn("No UID! Fallback to : " + target);
+                uid = new UID(target.toString());
+            } else {
+                throw new NoSuchNodeException(target, this);
+            }
+        } else {
+            uid = getUID(target);
+        }
+        log.debug("UID of Target: " + uid);
+        log.debug("Link: " + link);
+        map.addSymbolicLink(link, uid);
+    }
 }
