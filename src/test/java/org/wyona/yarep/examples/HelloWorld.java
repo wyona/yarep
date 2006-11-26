@@ -73,6 +73,8 @@ public class HelloWorld {
             writerA.write("Hello World!\n...");
             writerA.close();
 
+            repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
+
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
 
