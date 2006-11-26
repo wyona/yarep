@@ -48,4 +48,9 @@ public interface Map {
      *
      */
     public UID createUID(Path path) throws RepositoryException;
+
+    /**
+     *
+     */
+    public void addSymbolicLink(Path link, UID uid) throws RepositoryException;
 }
