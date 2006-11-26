@@ -119,4 +119,11 @@ public class VFileSystemMapImpl implements Map {
         // TODO: Check if leading slash should be removed ...
         return new UID(path.toString());
     }
+
+    /**
+     *
+     */
+    public void addSymbolicLink(Path path, UID uid) throws RepositoryException {
+        throw new RepositoryException("Not implemented!");
+    }
 }
