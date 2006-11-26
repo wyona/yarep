@@ -166,4 +166,31 @@ public class DefaultMapImpl implements Map {
         }
         return new UID(uuid);
     }
+
+    /**
+     *
+     */
+    public void addSymbolicLink(Path link, UID uid) throws RepositoryException {
+        File uidFile = new File(pathsDir + link.toString() + File.separator + ".yarep-uid");
+
+        String uuid = uid.toString();
+        try {
+            File parent = new File(uidFile.getParent());
+            if (!parent.exists()) {
+                log.warn("Directory will be created: " + parent);
+                parent.mkdirs();
+            }
+            // TODO: ...
+            if (parent.isFile()) {
+                log.warn("Parent is a file and not a directory: " + parent);
+            }
+            FileWriter fw = new FileWriter(uidFile);
+            fw.write(uuid);
+            fw.close();
+        } catch (Exception e) {
+            log.error(e);
+            throw new RepositoryException("Error creating uid for path: " + link.toString() 
+                    + ": " + e.getMessage(), e);
+        }
+    }
 }
