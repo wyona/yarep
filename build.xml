@@ -42,6 +42,8 @@
                   version="1.0.4"/>
       <dependency groupId="hsqldb" artifactId="hsqldb"
                   version="1.8.0.7"/>
+      <dependency groupId="postgresql" artifactId="postgresql"
+                  version="7.4.1-jdbc3"/>
     </artifact:dependencies>
     <property name="maven2.cp" refid="maven2.classpath"/>
 
