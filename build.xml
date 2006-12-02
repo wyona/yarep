@@ -40,6 +40,8 @@
                   version="0.2"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging"
                   version="1.0.4"/>
+      <dependency groupId="hsqldb" artifactId="hsqldb"
+                  version="1.8.0.7"/>
     </artifact:dependencies>
     <property name="maven2.cp" refid="maven2.classpath"/>
 

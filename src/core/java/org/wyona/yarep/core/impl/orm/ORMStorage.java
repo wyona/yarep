@@ -25,6 +25,15 @@ public class ORMStorage implements Storage {
      *
      */
     public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
+        try {
+            Class.forName("org.hsqldb.jdbcDriver");
+            String username = "sa";
+            String password = "";
+            java.sql.Connection con = java.sql.DriverManager.getConnection("jdbc:hsqldb:hsql://127.0.0.1:9001", username, password);
+        } catch(Exception e) {
+            log.error(e.getMessage());
+            //throw new RepositoryException(e);
+        }
     }
 
     /**
