@@ -26,6 +26,12 @@ public class ORMStorage implements Storage {
      */
     public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
         try {
+/*
+            Class.forName("org.postgresql.Driver");
+            String username = "univers";
+            String password = "";
+            java.sql.Connection con = java.sql.DriverManager.getConnection("jdbc:postgresql:import_dev://127.0.0.1:5432", username, password);
+*/
             Class.forName("org.hsqldb.jdbcDriver");
             String username = "sa";
             String password = "";
