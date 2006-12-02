@@ -23,6 +23,8 @@
 
      Run the examples by executing "ant run-examples" resp.
      "./build.sh run-examples"
+     
+     OPTIONAL: Run the hsqldb server: java -cp /home/USER/.m2/repository/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar org.hsqldb.Server
 
 
      Running the tests:
