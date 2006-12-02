@@ -47,7 +47,7 @@ public interface Map {
     /**
      *
      */
-    public UID createUID(Path path) throws RepositoryException;
+    public UID create(Path path) throws RepositoryException;
 
     /**
      *

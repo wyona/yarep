@@ -142,8 +142,9 @@ public class Repository {
             if (fallback) {
                 log.warn("No path to get UID from! Fallback to : " + path);
                 uid = new UID(path.toString());
+                map.addSymbolicLink(path, uid);
             } else {
-                uid = map.createUID(path);
+                uid = map.create(path);
             }
         }
         log.debug(uid.toString());
@@ -269,6 +270,9 @@ public class Repository {
      *
      */
     public Path[] getChildren(Path path) throws RepositoryException {
+        if (fallback) {
+            log.warn("Repository " + getName() + " has fallback enabled and hence some children might be missed because these only exist within the storage (Path: " + path + ")");
+        }
         // TODO: Order by last modified resp. alphabetical resp. ...
         return map.getChildren(path);
     }

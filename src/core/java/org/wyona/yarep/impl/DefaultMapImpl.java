@@ -137,7 +137,7 @@ public class DefaultMapImpl implements Map {
     /**
      * Get UID
      */
-    public synchronized UID createUID(Path path) throws RepositoryException {
+    public synchronized UID create(Path path) throws RepositoryException {
         log.debug(pathsDir.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
         log.debug(uidFile.toString());

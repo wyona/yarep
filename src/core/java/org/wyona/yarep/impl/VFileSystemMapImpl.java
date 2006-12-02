@@ -115,7 +115,7 @@ public class VFileSystemMapImpl implements Map {
     /**
      * Create UID
      */
-    public synchronized UID createUID(Path path) throws RepositoryException {
+    public synchronized UID create(Path path) throws RepositoryException {
         // TODO: Check if leading slash should be removed ...
         return new UID(path.toString());
     }
