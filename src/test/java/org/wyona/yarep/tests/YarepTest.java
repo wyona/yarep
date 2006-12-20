@@ -110,6 +110,11 @@ public class YarepTest extends TestCase {
             // assert what?
         }
 
+        // test size:
+        long size = repoD.getSize(new Path("/hello/vfs-example.txt"));
+        assertEquals("Size of file /hello/vfs-example.txt did not match expected size.", 11, size);
+
+        
         assertFalse("Deleting '" + helloPath + "' should not be possible because it has children.", 
                 repoA.delete(helloPath));
         assertTrue("Deleting '" + worldPath + "' should be possible.", repoA.delete(worldPath));
