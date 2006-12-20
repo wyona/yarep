@@ -88,6 +88,8 @@ public class SVNStorage implements Storage {
                     + e.getMessage(), e);
         } catch (SVNException e) {
             log.error(e);
+            log.error("Error message: " + e.getErrorMessage());
+            log.error("Error code: " + e.getErrorMessage().getErrorCode());
             throw new RepositoryException("Could not checkout/update svn repository: " + repoConfigFile + ": " 
                     + e.getMessage(), e);
         }
