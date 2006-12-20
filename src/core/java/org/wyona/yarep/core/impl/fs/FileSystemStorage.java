@@ -83,7 +83,15 @@ public class FileSystemStorage implements Storage {
         File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
         return file.lastModified(); 
     }
-
+    
+    /**
+     * @return Size of file in bytes
+     */
+    public long getSize(UID uid, Path path) throws RepositoryException {
+    	File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
+    	return file.length(); 
+    }
+    
     /**
      *
      */

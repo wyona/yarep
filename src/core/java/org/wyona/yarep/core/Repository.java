@@ -196,7 +196,19 @@ public class Repository {
         }
         return storage.getLastModified(uid, path);
     }
-
+    
+    /**
+     *
+     */
+    public long getSize(Path path) throws RepositoryException {
+    	UID uid = getUID(path);
+    	if (uid == null) {
+    		log.error("No UID: " + path);
+    		return -1;
+    	}
+    	return storage.getSize(uid, path);
+    }
+    
     /**
      * @return true if node has been deleted, otherwise false
      */

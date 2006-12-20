@@ -81,6 +81,14 @@ public class ORMStorage implements Storage {
         log.warn("Not implemented yet!");
         return 0;
     }
+    
+    /**
+     *
+     */
+    public long getSize(UID uid, Path path) throws RepositoryException {
+    	log.warn("Not implemented yet!");
+    	return 0;
+    }
 
     /**
      *

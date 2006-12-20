@@ -125,6 +125,14 @@ public class SVNStorage implements Storage {
                     + ": " + e.getMessage(), e);
         }
     }
+    
+    /**
+     *
+     */
+    public long getSize(UID uid, Path path) throws RepositoryException {
+    	log.warn("Not implemented yet!");
+    	return 0;
+    }
 
     /**
      * 

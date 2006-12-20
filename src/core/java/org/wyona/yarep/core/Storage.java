@@ -43,6 +43,11 @@ public interface Storage {
      *
      */
     public long getLastModified(UID uid, Path path) throws RepositoryException;
+    
+    /**
+     * 
+     */
+    public long getSize(UID uid, Path path) throws RepositoryException;
 
     /**
      *
