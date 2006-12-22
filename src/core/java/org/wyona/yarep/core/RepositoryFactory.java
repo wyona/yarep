@@ -150,22 +150,20 @@ public class RepositoryFactory {
             return null;
         }
 
-        if (!config.isAbsolute()) {
-            URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
-            try {
-                File configFile = new File(configURL.getFile());
-                log.debug("Config file: " + configFile);
-                Repository repository = new Repository(rid, configFile);
-                repositories.addElement(repository);
-                return repository;
-            } catch (Exception e) {
-                log.error(e);
-                throw new RepositoryException("Could not create repository: " + rid + " " 
-                        + config.getAbsolutePath() + " " + e.getMessage(), e);
+        try {
+            if (!config.isAbsolute()) {
+                URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
+                config = new File(configURL.getFile());
             }
+            log.debug("Config file: " + config);
+            Repository repository = new Repository(rid, config);
+            repositories.addElement(repository);
+            return repository;
+        } catch (Exception e) {
+            log.error(e);
+            throw new RepositoryException("Could not create repository: " + rid + " " 
+                    + config.getAbsolutePath() + " " + e.getMessage(), e);
         }
-        // TODO: Register rid
-        return new Repository(rid, config);
     }
 
     /**
