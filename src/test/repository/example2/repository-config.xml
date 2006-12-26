@@ -5,7 +5,7 @@
 
   <paths src="paths" fallback="false"/>
 
-  <storage class="org.wyona.yarep.core.impl.orm.ORMStorage">
+  <storage class="org.wyona.yarep.impl.repo.orm.ORMStorage">
     <jdbc>
       <dburl>jdbc:hsqldb:hsql://127.0.0.1:9002</dburl>
       <user>sa</user>

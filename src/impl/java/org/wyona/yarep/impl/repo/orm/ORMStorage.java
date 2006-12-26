@@ -1,4 +1,4 @@
-package org.wyona.yarep.core.impl.orm;
+package org.wyona.yarep.impl.repo.orm;
 
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.RepositoryException;
