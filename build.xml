@@ -148,15 +148,26 @@
   </target>
 
   <target name="install-jar" description="Place jar into local maven repository" depends="init,jar">
-    <copy file="src/core/pom.xml" todir="build/lib"/>
-    <replace file="build/lib/pom.xml" value="${yarep.version}-r${subversion.revision}">
+    <copy file="src/core/pom.xml" tofile="build/lib/pom-core.xml"/>
+    <replace file="build/lib/pom-core.xml" value="${yarep.version}-r${subversion.revision}">
       <replacetoken>@VERSION@</replacetoken>
     </replace>
 
-    <artifact:pom id="maven.project" file="build/lib/pom.xml"/>
+    <artifact:pom id="maven.project.core" file="build/lib/pom-core.xml"/>
   
     <artifact:install file="build/lib/yarep-core-${yarep.version}-r${subversion.revision}.jar">
-      <pom refid="maven.project"/>
+      <pom refid="maven.project.core"/>
+    </artifact:install>
+
+    <copy file="src/impl/pom.xml" tofile="build/lib/pom-impl.xml"/>
+    <replace file="build/lib/pom-impl.xml" value="${yarep.version}-r${subversion.revision}">
+      <replacetoken>@VERSION@</replacetoken>
+    </replace>
+
+    <artifact:pom id="maven.project.impl" file="build/lib/pom-impl.xml"/>
+  
+    <artifact:install file="build/lib/yarep-impl-${yarep.version}-r${subversion.revision}.jar">
+      <pom refid="maven.project.impl"/>
     </artifact:install>
   </target>
 
