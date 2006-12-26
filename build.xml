@@ -56,6 +56,14 @@
       <pathelement path="${maven2.cp}"/>
     </path>
 
+    <path id="classpath.impl">
+      <fileset dir="lib">
+        <include name="*.jar"/>
+      </fileset>
+      <pathelement path="${classes.dir}"/>
+      <pathelement path="${maven2.cp}"/>
+    </path>
+
     <path id="classpath.examples">
       <fileset dir="lib">
         <include name="*.jar"/>
@@ -84,6 +92,15 @@
     />
   </target>
 
+  <target name="compile-impl" description="Compile Java classes of Implementation" depends="init">
+    <echo>${classes.dir}</echo>
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="src/impl" destdir="${classes.dir}"
+           classpathref="classpath.impl"
+           debug="true"
+    />
+  </target>
+
   <target name="compile-examples" description="Compile Java classes of examples" depends="init,compile-core">
     <echo>${classes.dir}</echo>
     <mkdir dir="${classes.dir}"/>
@@ -94,7 +111,7 @@
     <copy file="src/test/java/yarep.properties" todir="${classes.dir}"/>
   </target>
 
-  <target name="build-examples" description="Build examples" depends="init,compile-examples">
+  <target name="build-examples" description="Build examples" depends="init,compile-examples,compile-impl">
     <copy todir="${build.dir}/repository">
       <fileset dir="src/test/repository"/>
     </copy>
