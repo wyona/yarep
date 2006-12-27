@@ -41,7 +41,7 @@ public class HelloWorld {
             repoC = repoFactory.newRepository("hugo");
     
             // Add more repositories to repository factory
-            repoB = repoFactory.newRepository("vanya", new File("example2/repository-config.xml"));
+            repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
             repoD = repoFactory.newRepository("vfs-example", new File("vfs-example/repository.xml"));
         } catch (Exception e) {
             System.err.println(e);
