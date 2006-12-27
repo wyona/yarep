@@ -34,7 +34,7 @@ public class YarepTest extends TestCase {
         // Add more repositories to repository factory
         Repository repoB;
         Repository repoD;
-        repoB = repoFactory.newRepository("vanya", new File("example2/repository-config.xml"));
+        repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
         repoD = repoFactory.newRepository("vfs-example", new File("vfs-example/repository.xml"));
 
         System.out.println(repoFactory);
