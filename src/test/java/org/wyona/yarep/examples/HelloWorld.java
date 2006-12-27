@@ -36,9 +36,11 @@ public class HelloWorld {
         Repository repoC;
         Repository repoB;
         Repository repoD;
+        Repository repoJCR;
         try {
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
+            repoJCR = repoFactory.newRepository("jcr");
     
             // Add more repositories to repository factory
             repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
@@ -74,6 +76,9 @@ public class HelloWorld {
             writerA.close();
 
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
+
+            System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
+            Writer writerJCR = repoJCR.getWriter(worldPath);
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
