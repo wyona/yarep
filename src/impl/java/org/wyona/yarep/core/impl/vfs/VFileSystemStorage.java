@@ -44,8 +44,8 @@ public class VFileSystemStorage implements Storage {
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
 
             if (directoryConfig != null) {
-                String alternativeToDirectory = directoryConfig.getAttribute("alternative");
-                log.debug("Alternative: " + alternativeToDirectory);
+                alternative = directoryConfig.getAttribute("alternative");
+                log.debug("Alternative: " + alternative);
             }
         } catch (Exception e) {
             log.error(e);
@@ -78,7 +78,7 @@ public class VFileSystemStorage implements Storage {
      *
      */
     public InputStream getInputStream(UID uid, Path path) throws RepositoryException {
-        return new VFileSystemRepositoryInputStream(uid, path, contentDir);
+        return new VFileSystemRepositoryInputStream(uid, path, contentDir, alternative);
     }
 
     /**
