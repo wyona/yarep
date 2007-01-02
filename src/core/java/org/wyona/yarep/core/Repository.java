@@ -70,7 +70,8 @@ public class Repository {
                 Class pathsClass = Class.forName(pathsClassname);
                 map = (Map) pathsClass.newInstance();
             } else {
-                map = new org.wyona.yarep.impl.DefaultMapImpl();
+                map = (Map) Class.forName("org.wyona.yarep.impl.DefaultMapImpl").newInstance();
+                //map = new org.wyona.yarep.impl.DefaultMapImpl();
             }
             map.readConfig(pathConfig, configFile);
 
