@@ -7,6 +7,7 @@
 
   <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
     <content src="content"/>
+    <!-- NOTE: The directory element is optional, but the alternative attribute is mandatory/required -->
     <directory alternative="index.html"/>
   </storage>
 </repository>
