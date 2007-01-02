@@ -7,5 +7,6 @@
 
   <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
     <content src="content"/>
+    <directory alternative="index.html"/>
   </storage>
 </repository>
