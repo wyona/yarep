@@ -24,12 +24,14 @@ public class VFileSystemStorage implements Storage {
     private static Category log = Category.getInstance(VFileSystemStorage.class);
 
     private File contentDir;
+    private String alternative;
 
     /**
-     *
+     * Read VFS Storage configuration
      */
     public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
         Configuration contentConfig = storageConfig.getChild("content", false);
+        Configuration directoryConfig = storageConfig.getChild("directory", false);
         try {
             contentDir = new File(contentConfig.getAttribute("src"));
             log.debug(contentDir.toString());
@@ -40,6 +42,11 @@ public class VFileSystemStorage implements Storage {
             log.debug(contentDir.toString());
             // TODO: Throw an exception
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
+
+            if (directoryConfig != null) {
+                String alternativeToDirectory = directoryConfig.getAttribute("alternative");
+                log.debug("Alternative: " + alternativeToDirectory);
+            }
         } catch (Exception e) {
             log.error(e);
             throw new RepositoryException(e.getMessage(), e);
