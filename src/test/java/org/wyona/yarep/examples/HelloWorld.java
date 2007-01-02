@@ -111,8 +111,9 @@ public class HelloWorld {
             br.close();
             readerA.close();
 
-            System.out.println("\nRead content from repository " + repoD.getName() + " (repoD) ...");
-            Reader readerD = repoD.getReader(new Path("/hello/vfs-example.txt"));
+            Path vfsSamplePath = new Path("/hello/vfs-example.txt");
+            System.out.println("\nRead content from repository " + repoD.getName() + " (repoD, path: " + vfsSamplePath + ") ...");
+            Reader readerD = repoD.getReader(vfsSamplePath);
             br = new BufferedReader(readerD);
             System.out.println("Very first line: " + br.readLine());
             readerD.close();
