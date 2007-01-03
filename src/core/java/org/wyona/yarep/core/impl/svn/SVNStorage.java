@@ -46,6 +46,8 @@ public class SVNStorage implements Storage {
 
     protected File svnWorkingDir;
 
+    private boolean offline = false;
+
     /**
      * Reads repository configuration and checks out / updates the local working
      * copy. 
@@ -61,6 +63,7 @@ public class SVNStorage implements Storage {
             }
             String username = contentConfig.getAttribute("username");
             String password = contentConfig.getAttribute("password");
+            offline = contentConfig.getAttributeAsBoolean("offline", false);
 
             log.debug("SVN host URL: " + svnRepoUrl.toString());
             log.debug("SVN working dir: " + svnWorkingDir.getAbsolutePath());
@@ -72,15 +75,19 @@ public class SVNStorage implements Storage {
             svnClient = new SVNClient(username, password);
 
             // check out or update repository:
-            if (svnWorkingDir.listFiles().length == 0) {
-                log.info("checking out repository " + svnRepoUrl + " to " + svnWorkingDir);
-                long rev = svnClient.checkout(svnRepoUrl, svnWorkingDir);
-                log.info("checked out revision " + rev);
+            if (offline) {
+                log.warn("Config is set offline=\"true\" (" + repoConfigFile + ")");
             } else {
-                log.info("updating " + svnWorkingDir);
-                long rev = svnClient.update(svnWorkingDir, SVNRevision.HEAD, true);
-                svnClient.checkStatus(svnWorkingDir);
-                log.info("updated to revison " + rev);
+                if (svnWorkingDir.listFiles().length == 0) {
+                    log.info("checking out repository " + svnRepoUrl + " to " + svnWorkingDir);
+                    long rev = svnClient.checkout(svnRepoUrl, svnWorkingDir);
+                    log.info("checked out revision " + rev);
+                } else {
+                    log.info("updating " + svnWorkingDir);
+                    long rev = svnClient.update(svnWorkingDir, SVNRevision.HEAD, true);
+                    svnClient.checkStatus(svnWorkingDir);
+                    log.info("updated to revison " + rev);
+                }
             }
         } catch (ConfigurationException e) {
             log.error(e);
@@ -90,8 +97,7 @@ public class SVNStorage implements Storage {
             log.error(e);
             log.error("Error message: " + e.getErrorMessage());
             log.error("Error code: " + e.getErrorMessage().getErrorCode());
-            throw new RepositoryException("Could not checkout/update svn repository: " + repoConfigFile + ": " 
-                    + e.getMessage(), e);
+            throw new RepositoryException("Could not checkout/update svn repository: " + repoConfigFile + ". One might want to set attribute offline=\"true\": " + e.getMessage(), e);
         }
     }
 
