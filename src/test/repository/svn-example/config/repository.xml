@@ -9,6 +9,7 @@
 
   <storage class="org.wyona.yarep.core.impl.svn.SVNStorage">
     <content src="http://localhost/svn/yarep-test"
+             offline="false"
              workdir="../content"
              username="test"
              password="test"/>
