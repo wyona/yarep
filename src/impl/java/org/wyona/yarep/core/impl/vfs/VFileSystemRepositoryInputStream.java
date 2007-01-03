@@ -88,7 +88,14 @@ public class VFileSystemRepositoryInputStream extends InputStream {
                             dirListing.append("<directory xmlns=\"http://www.wyona.org/yarep/1.0\" path=\""+path+"\" fs-path=\""+file+"\">");
                             String[] children = file.list();
                             for (int i = 0; i < children.length; i++) {
-                                dirListing.append("<child name=\"" + children[i] + "\"/>");
+                                File child = new File(file, children[i]);
+                                if (child.isFile()) {
+                                    dirListing.append("<file name=\"" + children[i] + "\"/>");
+                                } else if (child.isDirectory()) {
+                                    dirListing.append("<directory name=\"" + children[i] + "\"/>");
+                                } else {
+                                    dirListing.append("<child name=\"" + children[i] + "\"/>");
+                                }
                             }
                             dirListing.append("</directory>");
         return dirListing.toString();
