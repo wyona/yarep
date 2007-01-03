@@ -89,6 +89,8 @@
     <javac srcdir="src/core" destdir="${classes.dir}"
            classpathref="classpath.core"
            debug="true"
+           source="${source.java.version}"
+           target="${target.java.version}"
     />
   </target>
 
@@ -107,6 +109,8 @@
     <javac srcdir="src/test" destdir="${classes.dir}"
            classpathref="classpath.examples"
            debug="true"
+           source="${source.java.version}"
+           target="${target.java.version}"
     />
     <copy file="src/test/java/yarep.properties" todir="${classes.dir}"/>
   </target>
