@@ -129,7 +129,7 @@
     <jar
       destfile="build/lib/yarep-core-${yarep.version}-r${subversion.revision}.jar"
       basedir="build/classes"
-      excludes="org/wyona/yarep/examples/**,org/wyona/yarep/tests/**,org/wyona/yarep/impl/**,yarep.properties"
+      excludes="org/wyona/yarep/examples/**,org/wyona/yarep/tests/**,org/wyona/yarep/impl/**,org/wyona/yarep/core/impl/**,yarep.properties"
     >
     <!--
       <manifest>
@@ -141,7 +141,7 @@
     <jar
       destfile="build/lib/yarep-impl-${yarep.version}-r${subversion.revision}.jar"
       basedir="build/classes"
-      includes="org/wyona/yarep/impl/**"
+      includes="org/wyona/yarep/impl/**,org/wyona/yarep/core/impl/**"
     >
     <!--
       <manifest>
