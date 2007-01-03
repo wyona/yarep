@@ -170,7 +170,7 @@ public class Repository {
         UID uid = null;
         if (!exists(path)) {
             if (fallback) {
-                log.warn("No UID! Fallback to : " + path);
+                log.info("No UID! Fallback to : " + path);
                 uid = new UID(path.toString());
             } else {
                 throw new NoSuchNodeException(path, this);
