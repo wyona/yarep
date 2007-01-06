@@ -25,7 +25,7 @@ public class VFileSystemStorage implements Storage {
 
     private File contentDir;
     private String alternative = null;
-    private String dirListingMimeType = null;
+    private String dirListingMimeType = "application/xml";
 
     /**
      * Read VFS Storage configuration
