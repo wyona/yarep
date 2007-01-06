@@ -25,6 +25,7 @@ public class VFileSystemStorage implements Storage {
 
     private File contentDir;
     private String alternative = null;
+    private String dirListingMimeType = null;
 
     /**
      * Read VFS Storage configuration
@@ -46,6 +47,10 @@ public class VFileSystemStorage implements Storage {
             if (directoryConfig != null) {
                 alternative = directoryConfig.getAttribute("alternative", null);
                 log.debug("Alternative: " + alternative);
+            }
+            if (directoryConfig != null) {
+                dirListingMimeType = directoryConfig.getAttribute("mime-type", "application/xml");
+                log.debug("Mime type of directory listing: " + dirListingMimeType);
             }
         } catch (Exception e) {
             log.error(e);
@@ -78,7 +83,7 @@ public class VFileSystemStorage implements Storage {
      *
      */
     public InputStream getInputStream(UID uid, Path path) throws RepositoryException {
-        return new VFileSystemRepositoryInputStream(uid, path, contentDir, alternative);
+        return new VFileSystemRepositoryInputStream(uid, path, contentDir, alternative, dirListingMimeType);
     }
 
     /**

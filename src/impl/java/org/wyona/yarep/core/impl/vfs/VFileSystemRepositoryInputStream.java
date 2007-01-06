@@ -24,7 +24,7 @@ public class VFileSystemRepositoryInputStream extends InputStream {
     /**
      *
      */
-    public VFileSystemRepositoryInputStream(UID uid, Path path, File contentDir, String alternative) throws RepositoryException {
+    public VFileSystemRepositoryInputStream(UID uid, Path path, File contentDir, String alternative, String dirListingMimeType) throws RepositoryException {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
             log.debug(file.toString());
@@ -42,10 +42,10 @@ public class VFileSystemRepositoryInputStream extends InputStream {
                                 in = new FileInputStream(altFile);
                             } else {
                                 log.warn("No such alternative file: " + altFile);
-                                in = new java.io.StringBufferInputStream(getDirectoryListing(file, path));
+                                in = new java.io.StringBufferInputStream(getDirectoryListing(file, path, dirListingMimeType));
                             }
                         } else {
-                            in = new java.io.StringBufferInputStream(getDirectoryListing(file, path));
+                            in = new java.io.StringBufferInputStream(getDirectoryListing(file, path, dirListingMimeType));
                         }
                     } else {
                         in = null;
@@ -83,21 +83,44 @@ public class VFileSystemRepositoryInputStream extends InputStream {
     /**
      *
      */
-    public String getDirectoryListing(File file, Path path) {
-                            StringBuffer dirListing = new StringBuffer("<?xml version=\"1.0\"?>");
-                            dirListing.append("<directory xmlns=\"http://www.wyona.org/yarep/1.0\" path=\""+path+"\" fs-path=\""+file+"\">");
-                            String[] children = file.list();
-                            for (int i = 0; i < children.length; i++) {
-                                File child = new File(file, children[i]);
-                                if (child.isFile()) {
-                                    dirListing.append("<file name=\"" + children[i] + "\"/>");
-                                } else if (child.isDirectory()) {
-                                    dirListing.append("<directory name=\"" + children[i] + "\"/>");
-                                } else {
-                                    dirListing.append("<child name=\"" + children[i] + "\"/>");
-                                }
-                            }
-                            dirListing.append("</directory>");
+    public String getDirectoryListing(File file, Path path, String mimeType) {
+        StringBuffer dirListing = new StringBuffer("<?xml version=\"1.0\"?>");
+        if(mimeType.equals("application/xhtml+xml")) {
+            dirListing.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">");
+            dirListing.append("<head>");
+            dirListing.append("<title>"+path+"</title>");
+            dirListing.append("</head>");
+            dirListing.append("<body>");
+            dirListing.append("<ul>");
+            String[] children = file.list();
+            for (int i = 0; i < children.length; i++) {
+                File child = new File(file, children[i]);
+                if (child.isFile()) {
+                    dirListing.append("<li>File: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                } else if (child.isDirectory()) {
+                    dirListing.append("<li>Directory: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                } else {
+                    dirListing.append("<li>Child: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                }
+            }
+            dirListing.append("</ul>");
+            dirListing.append("</body>");
+            dirListing.append("</html>");
+        } else {
+            dirListing.append("<directory xmlns=\"http://www.wyona.org/yarep/1.0\" path=\""+path+"\" fs-path=\""+file+"\">");
+            String[] children = file.list();
+            for (int i = 0; i < children.length; i++) {
+                File child = new File(file, children[i]);
+                if (child.isFile()) {
+                    dirListing.append("<file name=\"" + children[i] + "\"/>");
+                } else if (child.isDirectory()) {
+                    dirListing.append("<directory name=\"" + children[i] + "\"/>");
+                } else {
+                    dirListing.append("<child name=\"" + children[i] + "\"/>");
+                }
+            }
+            dirListing.append("</directory>");
+        }
         return dirListing.toString();
     }
 }
