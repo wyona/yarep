@@ -98,7 +98,7 @@ public class VFileSystemRepositoryInputStream extends InputStream {
                 if (child.isFile()) {
                     dirListing.append("<li>File: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
                 } else if (child.isDirectory()) {
-                    dirListing.append("<li>Directory: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                    dirListing.append("<li>Directory: <a href=\"" + children[i] + "/\">" + children[i] + "/</a></li>");
                 } else {
                     dirListing.append("<li>Child: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
                 }
@@ -106,7 +106,7 @@ public class VFileSystemRepositoryInputStream extends InputStream {
             dirListing.append("</ul>");
             dirListing.append("</body>");
             dirListing.append("</html>");
-        } else {
+        } else if (mimeType.equals("application/xml")) {
             dirListing.append("<directory xmlns=\"http://www.wyona.org/yarep/1.0\" path=\""+path+"\" fs-path=\""+file+"\">");
             String[] children = file.list();
             for (int i = 0; i < children.length; i++) {
@@ -120,6 +120,8 @@ public class VFileSystemRepositoryInputStream extends InputStream {
                 }
             }
             dirListing.append("</directory>");
+        } else {
+            dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported");
         }
         return dirListing.toString();
     }
