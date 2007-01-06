@@ -24,7 +24,7 @@ public class VFileSystemStorage implements Storage {
     private static Category log = Category.getInstance(VFileSystemStorage.class);
 
     private File contentDir;
-    private String alternative;
+    private String alternative = null;
 
     /**
      * Read VFS Storage configuration
@@ -44,7 +44,7 @@ public class VFileSystemStorage implements Storage {
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
 
             if (directoryConfig != null) {
-                alternative = directoryConfig.getAttribute("alternative");
+                alternative = directoryConfig.getAttribute("alternative", null);
                 log.debug("Alternative: " + alternative);
             }
         } catch (Exception e) {

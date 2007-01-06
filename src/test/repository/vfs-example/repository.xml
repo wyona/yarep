@@ -7,7 +7,20 @@
 
   <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
     <content src="content"/>
-    <!-- NOTE: The directory element is optional, but the alternative attribute is mandatory/required -->
-    <directory alternative="index.html"/>
+    <directory alternative="index.html" mime-type="application/xml"/>
   </storage>
 </repository>
+
+<!-- TODO: Use namespaces ...! -->
+<!--
+<repository xmlns="http://www.wyona.org/yarep/1.0">
+  <name>VFS Example</name>
+
+  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content"/>
+
+  <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
+    <vfs:content src="content" xmlns:vfs="http://www.wyona.org/yarep/impl/vfs/1.0"/>
+    <vfs:directory alternative="index.html" mime-type="application/xml" xmlns:vfs="http://www.wyona.org/yarep/impl/vfs/1.0"/>
+  </storage>
+</repository>
+-->
