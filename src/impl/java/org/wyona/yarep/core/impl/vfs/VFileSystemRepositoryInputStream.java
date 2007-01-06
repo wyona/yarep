@@ -121,7 +121,7 @@ public class VFileSystemRepositoryInputStream extends InputStream {
             }
             dirListing.append("</directory>");
         } else {
-            dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported");
+            dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported>");
         }
         return dirListing.toString();
     }
