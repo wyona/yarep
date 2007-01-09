@@ -72,7 +72,7 @@ public class RepositoryFactory {
                     configFile = FileUtil.file(propsFile.getParentFile().getAbsolutePath(), new File(configFilename).toString());
                 }
                 log.debug("Configuration File: " + configFile.getAbsolutePath());
-                Repository rt = new Repository(repoID, configFile);
+                Repository rt = new DefaultRepository(repoID, configFile);
                 log.debug(rt.toString());
                 repositories.addElement(rt);
             }
@@ -156,7 +156,7 @@ public class RepositoryFactory {
                 config = new File(configURL.getFile());
             }
             log.debug("Config file: " + config);
-            Repository repository = new Repository(rid, config);
+            Repository repository = new DefaultRepository(rid, config);
             repositories.addElement(repository);
             return repository;
         } catch (Exception e) {

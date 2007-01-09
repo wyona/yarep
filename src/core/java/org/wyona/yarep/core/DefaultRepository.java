@@ -25,7 +25,7 @@ import org.wyona.commons.io.FileUtil;
 /**
  *
  */
-public class Repository {
+public class DefaultRepository  implements Repository {
 
     private static Category log = Category.getInstance(Repository.class);
 
@@ -42,7 +42,7 @@ public class Repository {
     /**
      *
      */
-    public Repository(String id, File configFile) throws RepositoryException {
+    public DefaultRepository(String id, File configFile) throws RepositoryException {
         this.id = id;
         this.configFile = configFile;
 
