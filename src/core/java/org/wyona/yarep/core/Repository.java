@@ -118,4 +118,62 @@ public interface Repository {
      * Add symbolic link
      */
     public void addSymbolicLink(Path target, Path link) throws RepositoryException;
+    
+
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // New methods for node based repository 
+    ///////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Gets the node with the given path.
+     * @param path absolute path
+     * @return
+     * @throws NoSuchNodeException if node does not exist
+     * @throws RepositoryException other error
+     */
+    public Node getNode(String path) throws NoSuchNodeException, RepositoryException;
+    
+    /**
+     * Gets the node with the given uuid.
+     * @param uuid
+     * @return
+     * @throws NoSuchNodeException if node does not exist
+     * @throws RepositoryException other error
+     */
+    public Node getNodeByUUID(String uuid) throws NoSuchNodeException, RepositoryException;
+    
+    /**
+     * Indicates whether the node given by the path exists in this repository.
+     * @param path absolute path
+     * @return true if node exists
+     * @throws RepositoryException repository error
+     */
+    public boolean existsNode(String path) throws RepositoryException;
+    
+    /**
+     * Gets the root node of this repository.
+     * @return root node
+     * @throws RepositoryException repository error
+     */
+    public Node getRootNode() throws RepositoryException;
+    
+    /**
+     * Copies the node given by srcPath to destPath, including its subtree.
+     * destPath must not exist yet, but the parent must exist.
+     * @param srcPath
+     * @param destPath
+     * @throws RepositoryException repository error
+     */
+    public void copy(String srcPath, String destPath) throws RepositoryException;
+    
+    /**
+     * Moves the node given by srcPath to destPath, including its subtree.
+     * destPath must not exist yet, but the parent must exist.
+     * @param srcPath
+     * @param destPath
+     * @throws RepositoryException repository error
+     */
+    public void move(String srcPath, String destPath) throws RepositoryException;
+    
 }

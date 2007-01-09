@@ -332,4 +332,44 @@ public class DefaultRepository  implements Repository {
         log.debug("Link: " + link);
         map.addSymbolicLink(link, uid);
     }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // New methods for node based repository
+    ///////////////////////////////////////////////////////////////////////////
+    
+    public void copy(String srcPath, String destPath) throws RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+    }
+
+    public boolean existsNode(String path) throws RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+        return false;
+    }
+
+    public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+        return null;
+    }
+
+    public Node getNodeByUUID(String uuid) throws NoSuchNodeException, RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+        return null;
+    }
+
+    public Node getRootNode() throws RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+        return null;
+    }
+
+    public void move(String srcPath, String destPath) throws RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+    }
+
+
 }
