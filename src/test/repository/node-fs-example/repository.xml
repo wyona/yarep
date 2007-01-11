@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<repository class="org.wyona.yarep.impl.repo.fs.FileSystemRepository">
+  <name>Node Filesystem Example</name>
+  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content"/>
+  <content src="content"/>
+</repository>
+
