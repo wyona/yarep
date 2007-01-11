@@ -69,11 +69,12 @@ public interface Node {
     
     /**
      * Creates a new node and adds it as a child to this node.
-     * @param name of the child node 
+     * @param name name of the child node
+     * @parem type node type of the child node
      * @return the new child node
      * @throws RepositoryException repository error
      */
-    public Node addNode(String name) throws RepositoryException;
+    public Node addNode(String name, int type) throws RepositoryException;
     
     /**
      * Gets the child node with the given name. Must be a direct child.
