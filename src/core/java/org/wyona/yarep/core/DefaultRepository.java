@@ -27,7 +27,7 @@ import org.wyona.commons.io.FileUtil;
  */
 public class DefaultRepository  implements Repository {
 
-    private static Category log = Category.getInstance(Repository.class);
+    private static Category log = Category.getInstance(DefaultRepository.class);
 
     protected String id;
     protected File configFile;
@@ -42,24 +42,29 @@ public class DefaultRepository  implements Repository {
     /**
      *
      */
+    public DefaultRepository() {
+    }
+   
+    /**
+     *
+     */
     public DefaultRepository(String id, File configFile) throws RepositoryException {
-        this.id = id;
-        this.configFile = configFile;
-
-        readConfiguration();
+        setID(id);
+        readConfiguration(configFile);
     }
 
     /**
      * Read respectively load repository configuration
      */
-    private void readConfiguration() throws RepositoryException {
+    public void readConfiguration(File configFile) throws RepositoryException {
+        this.configFile = configFile;
         DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
         Configuration config;
 
         try {
             config = builder.buildFromFile(configFile);
 
-	    name = config.getChild("name", false).getValue();
+            name = config.getChild("name", false).getValue();
 
             Configuration pathConfig = config.getChild("paths", false);
 
@@ -102,6 +107,13 @@ public class DefaultRepository  implements Repository {
      */
     public String getID() {
         return id;
+    }
+
+    /**
+     * Set repository ID
+     */
+    public void setID(String id) {
+        this.id = id;
     }
 
     /**

@@ -17,6 +17,16 @@ public interface Repository {
     public String getID();
 
     /**
+     * Set repository ID
+     */
+    public void setID(String id);
+
+    /**
+     * Read configuration
+     */
+    public void readConfiguration(File configFile) throws RepositoryException;
+
+    /**
      * Get repository name
      */
     public String getName();

@@ -6,6 +6,8 @@ import java.net.URI;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
 
 import org.wyona.commons.io.FileUtil;
@@ -144,25 +146,42 @@ public class RepositoryFactory {
     /**
      * Get repository from specified config, whereas config is being resolved relative to classpath
      */
-    public Repository newRepository(String rid, File config) throws RepositoryException {
+    public Repository newRepository(String rid, File configFile) throws RepositoryException {
         if (exists(rid)) {
             log.warn("Repository ID already exists: " + rid + " Repository will not be added to list of Repository Factory!");
             return null;
         }
 
         try {
-            if (!config.isAbsolute()) {
-                URL configURL = RepositoryFactory.class.getClassLoader().getResource(config.toString());
-                config = new File(configURL.getFile());
+            if (!configFile.isAbsolute()) {
+                URL configURL = RepositoryFactory.class.getClassLoader().getResource(configFile.toString());
+                configFile = new File(configURL.getFile());
             }
-            log.debug("Config file: " + config);
-            Repository repository = new DefaultRepository(rid, config);
+            log.debug("Config file: " + configFile);
+            
+            DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
+            Configuration config;
+
+            config = builder.buildFromFile(configFile);
+
+            String className = config.getAttribute("class", null);
+            Repository repository;
+            if (className != null) {
+                log.debug("create repository instance: " + className);
+                Class repoClass = Class.forName(className);
+                repository = (Repository) repoClass.newInstance();
+            } else {
+                repository = (Repository) Class.forName("org.wyona.yarep.core.DefaultRepository").newInstance();
+            }
+            repository.setID(rid);
+            repository.readConfiguration(configFile);
+            
             repositories.addElement(repository);
             return repository;
         } catch (Exception e) {
             log.error(e);
             throw new RepositoryException("Could not create repository: " + rid + " " 
-                    + config.getAbsolutePath() + " " + e.getMessage(), e);
+                    + configFile + " " + e.getMessage(), e);
         }
     }
 
