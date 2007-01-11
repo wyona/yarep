@@ -28,6 +28,21 @@ public interface Property {
     public int getType() throws RepositoryException;
     
     /**
+     * Sets the value by reading it from the given string and converting it to 
+     * the correct type.
+     * @param value
+     * @throws RepositoryException
+     */
+    public void setValueFromString(String value) throws RepositoryException;
+    
+    /**
+     * Gets the value of this property converted to a string.
+     * @return
+     * @throws RepositoryException
+     */
+    public String getValueAsString() throws RepositoryException;
+
+    /**
      * Gets the length of this property if its a binary property.
      * @return
      * @throws RepositoryException
