@@ -44,11 +44,12 @@ public class DefaultMapImpl implements Map {
     }
 
     /**
-     *
+     * Check if path is representing a resource
      */
     public boolean isResource(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        log.debug("UID File: " + uidFile);
         return uidFile.exists() || file.isFile();
     }
 
@@ -75,10 +76,11 @@ public class DefaultMapImpl implements Map {
     }
 
     /**
-     *
+     * Check if path is representing a collection
      */
     public boolean isCollection(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
+        log.debug("Check if path is representing a collection: " + file);
         return (file.exists() && !isResource(path));
     }
 
