@@ -24,7 +24,7 @@
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-id"
                   version="0.1-dev-lcr357257"/>
       <dependency groupId="wyona-org-commons" artifactId="wyona-org-commons"
-                  version="0.0.1-dev-r17376"/>
+                  version="0.0.1-dev-r22019"/>
       <dependency groupId="svnkit" artifactId="svnkit"
                   version="1.1.0"/>
 

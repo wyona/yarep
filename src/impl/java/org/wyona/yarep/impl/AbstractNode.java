@@ -1,15 +1,5 @@
 package org.wyona.yarep.impl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,20 +7,18 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import org.apache.log4j.Category;
+import org.wyona.commons.io.PathUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchPropertyException;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
 import org.wyona.yarep.core.NodeType;
-import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.PropertyType;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
-import org.wyona.yarep.core.UID;
-import org.wyona.yarep.impl.DefaultProperty;
 
 /**
  * This class represents a repository node and implements some basic functionality which may be 
@@ -46,7 +34,6 @@ public abstract class AbstractNode implements Node {
     protected String path;
     protected String name;
     protected String uuid;
-    protected Node parent;
     protected HashMap properties;
     protected LinkedHashMap revisions;
     
@@ -68,8 +55,7 @@ public abstract class AbstractNode implements Node {
     public AbstractNode(Repository repository, String path, String uuid) throws RepositoryException {
         this.repository = repository;
         this.path = path;
-        this.name = "";
-        if (path.indexOf("/") != -1) this.name = path.substring(path.lastIndexOf("/")+1);
+        this.name = PathUtil.getName(path);
         this.uuid = uuid;
     }
     
@@ -88,11 +74,9 @@ public abstract class AbstractNode implements Node {
      * @throws RepositoryException repository error
      */
     public Node getParent() throws RepositoryException {
-        //String path = this.repository.getMap().getPath(this.uuid);
         if (getPath().equals("") || getPath().equals("/")) return null;
-        String parentPath = (new Path(getPath())).getParent().toString();
-        this.repository.getNode(parentPath);
-        return this.parent;
+        String parentPath = PathUtil.getParent(path);
+        return this.repository.getNode(parentPath);
     }
     
     /**
@@ -111,10 +95,6 @@ public abstract class AbstractNode implements Node {
      */
     public String getPath() throws RepositoryException {
         return this.path;
-        //String path = this.repository.getMap().getPath(this.uuid);
-        //if (this.parent == null) return "";
-        //String parentPath = this.parent.getPath();
-        //return parentPath + "/" + this.name;
     }
     
     /**
