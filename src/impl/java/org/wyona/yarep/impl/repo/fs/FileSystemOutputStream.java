@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import org.apache.log4j.Category;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.impl.AbstractNode;
 
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
@@ -44,8 +45,8 @@ public class FileSystemOutputStream extends OutputStream {
     public void close() throws IOException {
         out.close();
         try {
-            node.setProperty(FileSystemNode.PROPERTY_SIZE, file.length());
-            node.setProperty(FileSystemNode.PROPERTY_LAST_MODIFIED, file.lastModified());
+            node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
+            node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
         } catch (RepositoryException e) {
             log.error(e.getMessage(), e);
             throw new IOException(e.getMessage());

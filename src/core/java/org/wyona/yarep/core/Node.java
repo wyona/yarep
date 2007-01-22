@@ -173,6 +173,13 @@ public interface Node {
      */
     public Property setProperty(String name, String value) throws RepositoryException;
 
+    /**
+     * Sets a property or creates it if it does not exist yet.
+     * @param property
+     * @throws RepositoryException repository error
+     */
+    public void setProperty(Property property) throws RepositoryException;
+
     //public Property getDefaultProperty() throws RepositoryException;
     
     /**
