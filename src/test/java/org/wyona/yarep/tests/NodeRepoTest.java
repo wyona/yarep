@@ -160,5 +160,15 @@ public class NodeRepoTest extends TestCase {
         assertNull(node.getParent());
     }
 
+    public void testParents() throws Exception {
+        String path = "/hello/world.txt";
+        Node node = repo.getNode(path);
+        Node parent = node.getParent();
+        assertEquals(parent.getName(), "hello");
+        Node grandParent = parent.getParent();
+        assertEquals(grandParent.getName(), "");
+        assertNull(grandParent.getParent());
+    }
+
 
 }
