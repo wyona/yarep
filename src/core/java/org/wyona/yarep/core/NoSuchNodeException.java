@@ -39,4 +39,11 @@ public class NoSuchNodeException extends RepositoryException {
     public NoSuchNodeException(Path path, Repository repo) {
         super("No such node: " + path + " (Repository: " + repo + ")");
     }
+    
+    /**
+     *
+     */
+    public NoSuchNodeException(String path, Repository repo) {
+        super("No such node: " + path + " (Repository: " + repo + ")");
+    }
 }
