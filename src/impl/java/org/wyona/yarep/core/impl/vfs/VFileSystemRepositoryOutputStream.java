@@ -26,6 +26,11 @@ public class VFileSystemRepositoryOutputStream extends OutputStream {
     public VFileSystemRepositoryOutputStream(UID uid, Path path, File contentDir) throws RepositoryException {
         try {
             File file = new File(contentDir.getAbsolutePath() + path.toString());
+            File parent = file.getParentFile();
+            if (parent != null && !parent.isDirectory()) {
+                parent.mkdirs();
+                log.warn("Directory has been created: " + parent);
+            }
             log.debug(file.toString());
             out = new FileOutputStream(file);
         } catch (Exception e) {
