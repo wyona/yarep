@@ -2,8 +2,11 @@ package org.wyona.yarep.impl.repo.fs;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
@@ -16,6 +19,7 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
@@ -90,72 +94,100 @@ public class FileSystemRepository implements Repository {
         }
     }
 
+    /**
+    *
+    */
+   public String toString() {
+       return "Repository: ID = " + id + ", Configuration-File = " + configFile + ", Name = " + name;
+   }
+
+   /**
+    * Get repository ID
+    */
+   public String getID() {
+       return id;
+   }
+
+   /**
+    * Set repository ID
+    */
+   public void setID(String id) {
+       this.id = id;
+   }
+
+   /**
+    * Get repository name
+    */
+   public String getName() {
+       return name;
+   }
+
+   /**
+    * Get repository configuration file
+    */
+   public File getConfigFile() {
+       return configFile;
+   }
+   
     public void addSymbolicLink(Path target, Path link) throws RepositoryException {
         log.warn("Not implemented.");
     }
 
     public boolean delete(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return false;
+        getNode(path.toString()).remove();
+        return true;
     }
 
     public boolean exists(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return false;
+        return existsNode(path.toString());
     }
 
     public Path[] getChildren(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
-    }
-
-    public File getConfigFile() {
-        log.warn("Not implemented.");
-        return null;
+        Node node = getNode(path.toString());
+        Node[] childNodes = node.getNodes();
+        Path[] childPaths = new Path[childNodes.length];
+        for (int i=0; i<childNodes.length; i++) {
+            childPaths[i] = new Path(childNodes[i].getPath());
+        }
+        return childPaths;
     }
 
     public void getContentLength(Path path) throws RepositoryException {
         log.warn("Not implemented.");
     }
 
-    public String getID() {
-        log.warn("Not implemented.");
-        return null;
-    }
-
     public InputStream getInputStream(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
+        return getNode(path.toString()).getInputStream();
     }
 
     public long getLastModified(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return 0;
-    }
-
-    public String getName() {
-        log.warn("Not implemented.");
-        return null;
+        return getNode(path.toString()).getLastModified();
     }
 
     public OutputStream getOutputStream(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
+        return getNode(path.toString()).getOutputStream();
     }
 
     public Reader getReader(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
+        try {
+            return new InputStreamReader(getNode(path.toString()).getInputStream(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     public String[] getRevisions(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
+        Node node = getNode(path.toString());
+        Revision[] revisions = node.getRevisions();
+        String[] revisionNames = new String[revisions.length];
+        for (int i=0; i<revisions.length; i++) {
+            revisionNames[i] = revisions[i].getName();
+        }
+        return revisionNames;
     }
 
     public long getSize(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return 0;
+        return getNode(path.toString()).getSize();
     }
 
     public UID getUID(Path path) throws RepositoryException {
@@ -172,22 +204,19 @@ public class FileSystemRepository implements Repository {
     }
 
     public Writer getWriter(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return null;
+        try {
+            return new OutputStreamWriter(getNode(path.toString()).getOutputStream(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     public boolean isCollection(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return false;
+        return getNode(path.toString()).isCollection();
     }
 
     public boolean isResource(Path path) throws RepositoryException {
-        log.warn("Not implemented.");
-        return false;
-    }
-
-    public void setID(String id) {
-        log.warn("Not implemented.");
+        return getNode(path.toString()).isResource();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -202,11 +231,41 @@ public class FileSystemRepository implements Repository {
     }
 
     public boolean existsNode(String path) throws RepositoryException {
-        return map.exists(new Path(path));
+        // strip trailing slash:
+        if (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        if (map.exists(new Path(path))) {
+            return true;
+        } else if (fallback) {
+            log.info("No UID! Fallback to : " + path);
+            File file = new File(contentDir + path);
+            return file.exists();
+        } else {
+            return false;
+        }
+        //return map.exists(new Path(path));
     }
 
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        String uuid = map.getUID(new Path(path)).toString();
+        // strip trailing slash:
+        if (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        String uuid;
+        if (!map.exists(new Path(path))) {
+            if (fallback) {
+                log.info("No UID! Fallback to : " + path);
+                uuid = new UID(path).toString();
+            } else {
+                throw new NoSuchNodeException(path, this);
+            }
+        } else {
+            UID uid = map.getUID(new Path(path));
+            uuid = (uid == null) ? path : uid.toString();
+        }
+        
+        //String uuid = map.getUID(new Path(path)).toString();
         return new FileSystemNode(this, path, uuid);
     }
 
