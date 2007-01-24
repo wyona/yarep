@@ -74,6 +74,30 @@ public class NodeRepoTest extends TestCase {
         assertEquals(date1, date2);
     }
 
+    public void testAddNode() throws Exception {
+        String path = "/hello";
+        assertTrue("Path does not exist: " + path, repo.existsNode(path));
+        
+        Node node1 = repo.getNode(path);
+        // add file node:
+        Node node2 = node1.addNode("sub-uuu", NodeType.RESOURCE);
+        
+        // write content to node2:
+        Writer writer = new OutputStreamWriter(node2.getOutputStream());
+        String testContent = "Hello Sub World! " + System.currentTimeMillis();
+        writer.write(testContent);
+        writer.close();
+        
+        // read content from node2:
+        Reader reader = new InputStreamReader(node2.getInputStream());
+        BufferedReader br = new BufferedReader(reader);
+        String line = br.readLine();
+        br.close();
+        reader.close();
+        
+        assertEquals(line, testContent);
+    }
+
     public void testAddNodes() throws Exception {
         String path = "/hello";
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
@@ -168,6 +192,30 @@ public class NodeRepoTest extends TestCase {
         Node grandParent = parent.getParent();
         assertEquals(grandParent.getName(), "");
         assertNull(grandParent.getParent());
+    }
+
+    public void testChildren() throws Exception {
+        Node parent = repo.getNode("/hello");
+        Node[] children = parent.getNodes();
+        assertTrue("No children found", children.length > 0);
+        Node child = parent.getNode("world.txt");
+        assertEquals("world.txt", child.getName());
+    }
+
+    public void testResource() throws Exception {
+        Node node = repo.getNode("/hello/world.txt");
+        assertTrue(node.isResource());
+        assertFalse(node.isCollection());
+    }
+
+    public void testCollection() throws Exception {
+        Node node = repo.getNode("/hello");
+        assertTrue(node.isCollection());
+        assertFalse(node.isResource());
+        
+        node = repo.getNode("/hello/");
+        assertTrue(node.isCollection());
+        assertFalse(node.isResource());
     }
 
 
