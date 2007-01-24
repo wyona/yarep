@@ -1,27 +1,17 @@
 package org.wyona.yarep.impl;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
-
 import org.apache.log4j.Category;
-
-import org.wyona.commons.io.FileUtil;
-
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Node;
@@ -364,15 +354,28 @@ public class DefaultRepository  implements Repository {
     }
 
     public boolean existsNode(String path) throws RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
-        return false;
+        return exists(new Path(path));
     }
 
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
-        return null;
+        // strip trailing slash:
+        if (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        String uuid;
+        if (!map.exists(new Path(path))) {
+            if (fallback) {
+                log.info("No UID! Fallback to : " + path);
+                uuid = new UID(path).toString();
+            } else {
+                throw new NoSuchNodeException(path, this);
+            }
+        } else {
+            UID uid = map.getUID(new Path(path));
+            uuid = (uid == null) ? path : uid.toString();
+        }
+        
+        return new DummyNode(this, path, uuid);
     }
 
     public Node getNodeByUUID(String uuid) throws NoSuchNodeException, RepositoryException {
@@ -382,14 +385,22 @@ public class DefaultRepository  implements Repository {
     }
 
     public Node getRootNode() throws RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
-        return null;
+        return getNode("/");
     }
 
     public void move(String srcPath, String destPath) throws RepositoryException {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
+    }
+
+    // implemenation specific methods:
+    
+    public Map getMap() {
+        return this.map;
+    }
+
+    public Storage getStorage() {
+        return this.storage;
     }
 
 
