@@ -128,7 +128,7 @@ public class FileSystemNode extends AbstractNode {
         Path[] childPaths = ((FileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
         Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
-            childNodes[i] = this.repository.getNode(childPaths.toString());
+            childNodes[i] = this.repository.getNode(childPaths[i].toString());
         }
         return childNodes;
     }
