@@ -131,6 +131,8 @@ public class DefaultMapImpl implements Map {
                 throw new RepositoryException("Error reading uid of path: " + path.toString() 
                         + ": " + e.getMessage(), e);
             }
+        } else {
+            log.warn("uid file [" + uidFile + "] does not exist for path: " + path);
         }
 
         return null;
