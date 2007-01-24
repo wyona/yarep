@@ -1,4 +1,4 @@
-package org.wyona.yarep.core;
+package org.wyona.yarep.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +21,15 @@ import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
 
 import org.wyona.commons.io.FileUtil;
+
+import org.wyona.yarep.core.Map;
+import org.wyona.yarep.core.NoSuchNodeException;
+import org.wyona.yarep.core.Node;
+import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.Repository;
+import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.core.Storage;
+import org.wyona.yarep.core.UID;
 
 /**
  *
