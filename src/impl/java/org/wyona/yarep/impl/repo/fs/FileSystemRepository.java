@@ -287,7 +287,7 @@ public class FileSystemRepository implements Repository {
         log.warn("Not implemented yet.");
     }
     
-    // implemenation specific methods:
+    // implementation specific methods:
     
     public File getContentDir() {
         return this.contentDir;

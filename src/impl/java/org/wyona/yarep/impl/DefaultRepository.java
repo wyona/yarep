@@ -393,7 +393,7 @@ public class DefaultRepository  implements Repository {
         log.warn("Not implemented yet.");
     }
 
-    // implemenation specific methods:
+    // implementation specific methods:
     
     public Map getMap() {
         return this.map;
