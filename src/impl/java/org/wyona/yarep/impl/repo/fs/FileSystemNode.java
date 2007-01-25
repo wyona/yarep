@@ -2,6 +2,7 @@ package org.wyona.yarep.impl.repo.fs;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,9 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Category;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
@@ -36,8 +41,17 @@ import org.wyona.yarep.impl.DefaultProperty;
 public class FileSystemNode extends AbstractNode {
     private static Category log = Category.getInstance(FileSystemNode.class);
 
+    protected static final String META_FILE_NAME = "meta";
+    protected static final String REVISIONS_BASE_DIR = "revisions";
+    protected static final String META_DIR_SUFFIX = ".yarep";
+    
     //protected FileSystemRepository repository;
+    protected File contentDir;
+    protected File contentFile;
+    protected File metaDir;
     protected File metaFile;
+    
+    protected RevisionDirectoryFilter revisionDirectoryFilter = new RevisionDirectoryFilter();
     
     
     /**
@@ -46,28 +60,55 @@ public class FileSystemNode extends AbstractNode {
      */
     public FileSystemNode(FileSystemRepository repository, String path, String uuid) throws RepositoryException {
         super(repository, path, uuid);
+        init();
+    }
+    
+    /**
+     * Constructor
+     * @throws RepositoryException
+     */
+    protected FileSystemNode(FileSystemRepository repository, String path, String uuid, boolean doInit) throws RepositoryException {
+        super(repository, path, uuid);
         
-        this.metaFile = new File(repository.getContentDir(), uuid + ".yarep" + File.separator + "meta");
+        if (doInit) {
+            init();
+        }
+    }
+    
+    protected void init() throws RepositoryException {
+        
+        this.contentDir = ((FileSystemRepository)repository).getContentDir();
+        this.contentFile = new File(this.contentDir, this.uuid);
+        this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
+        this.metaFile = new File(this.metaDir, META_FILE_NAME);
+        
+        if (log.isDebugEnabled()) {
+            log.debug("FileSystemNode: path=" + path + " uuid=" + uuid);
+            log.debug("contentDir=" + contentDir);
+            log.debug("contentFile=" + contentFile);
+            log.debug("metaDir=" + metaDir);
+            log.debug("metaFile=" + metaFile);
+        }
+        
         if (!metaFile.exists()) {
             createMetaFile();
         }
         readProperties();
+        readRevisions();
     }
     
     protected void createMetaFile() throws RepositoryException {
-        File metaDir = new File(getContentDir(), uuid + ".yarep");
         log.debug("creating new meta file in dir: " + metaDir);
         if (!metaDir.exists()) {
             metaDir.mkdir();
         }
         this.properties = new HashMap();
-        File contentFile = new File(getContentDir(), uuid);
-        if (contentFile.isDirectory()) {
+        if (this.contentFile.isDirectory()) {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_COLLECTION);
         } else {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_RESOURCE);
-            this.setProperty(PROPERTY_SIZE, contentFile.length());
-            this.setProperty(PROPERTY_LAST_MODIFIED, contentFile.lastModified());
+            this.setProperty(PROPERTY_SIZE, this.contentFile.length());
+            this.setProperty(PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
         }
     }
     
@@ -126,10 +167,25 @@ public class FileSystemNode extends AbstractNode {
      */
     public Node[] getNodes() throws RepositoryException {
         Path[] childPaths = ((FileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
-        Node[] childNodes = new Node[childPaths.length];
+        
+        // begin hack (this should be fixed in the map, not here)
+        ArrayList filteredChildNodes = new ArrayList();
+        for (int i=0; i<childPaths.length; i++) {
+            String tmpPath = childPaths[i].toString(); 
+            System.out.println("*** " + tmpPath);
+            if (!tmpPath.endsWith(META_DIR_SUFFIX) && tmpPath.indexOf(".svn")==-1) {
+                filteredChildNodes.add(this.repository.getNode(childPaths[i].toString()));
+            }
+        }
+        
+        Node[] childNodes = new Node[filteredChildNodes.size()]; 
+        childNodes = (Node[])filteredChildNodes.toArray(childNodes);
+        // end hack
+        
+        /*Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
             childNodes[i] = this.repository.getNode(childPaths[i].toString());
-        }
+        }*/
         return childNodes;
     }
     
@@ -147,7 +203,7 @@ public class FileSystemNode extends AbstractNode {
         }
         UID uid = ((FileSystemRepository)this.repository).getMap().create(new Path(newPath));
         // create file:
-        File file = new File(getContentDir(), uid.toString());
+        File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
                 file.mkdir();
@@ -174,9 +230,8 @@ public class FileSystemNode extends AbstractNode {
      * @throws RepositoryException repository error
      */
     public InputStream getInputStream() throws RepositoryException {
-        File file = new File(getContentDir(), this.uuid);
         try {
-            return new FileInputStream(file);
+            return new FileInputStream(this.contentFile);
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -190,9 +245,9 @@ public class FileSystemNode extends AbstractNode {
      * @throws RepositoryException repository error
      */
     public OutputStream getOutputStream() throws RepositoryException {
-        File file = new File(getContentDir(), this.uuid);
         try {
-            return new FileSystemOutputStream(this, file);
+            return new FileOutputStream(this.contentFile);
+            //return new FileSystemOutputStream(this, this.contentFile);
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -206,9 +261,14 @@ public class FileSystemNode extends AbstractNode {
      * @throws RepositoryException repository error
      */
     public Revision checkin() throws NodeStateException, RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
-        return null;
+        if (!isCheckedOut()) {
+            throw new NodeStateException("Node " + path + " is not checked out.");
+        }
+        Revision revision = createRevision();
+        
+        setProperty(PROPERTY_IS_CHECKED_OUT, false);
+        
+        return revision;
     }
     
     /**
@@ -217,8 +277,58 @@ public class FileSystemNode extends AbstractNode {
      * @throws RepositoryException repository error
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
+        // TODO: this should be somehow synchronized
+        if (isCheckedOut()) {
+            throw new NodeStateException("Node " + path + " is already checked out by: " + getCheckoutUserID());
+        }
+        
+        setProperty(PROPERTY_IS_CHECKED_OUT, true);
+        setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
+
+        if (getRevisions().length == 0) {
+            // create a backup revision
+            createRevision();
+        }
+    }
+    
+    protected Revision createRevision() throws RepositoryException {
+        try {
+            File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+            String revisionName = String.valueOf(System.currentTimeMillis());
+            File revisionDir = new File(revisionsBaseDir, revisionName);
+            
+            File destContentFile = new File(revisionDir, FileSystemRevision.CONTENT_FILE_NAME);
+            FileUtils.copyFile(this.contentFile, destContentFile);
+        
+            File destMetaFile = new File(revisionDir, META_FILE_NAME);
+            FileUtils.copyFile(this.metaFile, destMetaFile);
+        
+            Revision revision = new FileSystemRevision(this, revisionName);
+            revision.setProperty(PROPERTY_IS_CHECKED_OUT, false);
+            ((FileSystemRevision)revision).setCreationDate(new Date());
+            this.revisions.put(revisionName, revision);
+            return revision;
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new RepositoryException(e.getMessage(), e);
+        }
+    }
+    
+    protected void readRevisions() throws RepositoryException {
+        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        
+        File[] revisionDirs = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
+        
+        this.revisions = new LinkedHashMap();
+        
+        if (revisionDirs != null) {
+            // hope the order is correct
+            for (int i=0; i<revisionDirs.length; i++) {
+                String revisionName = revisionDirs[i].getName();
+                Revision revision = new FileSystemRevision(this, revisionName);
+                this.revisions.put(revisionName, revision);
+            }
+        }
     }
     
     /**
@@ -228,13 +338,56 @@ public class FileSystemNode extends AbstractNode {
      * @throws RepositoryException
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
+        try {
+            File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+            File revisionDir = new File(revisionsBaseDir, revisionName);
+            
+            File srcContentFile = new File(revisionDir, FileSystemRevision.CONTENT_FILE_NAME);
+            FileUtils.copyFile(srcContentFile, this.contentFile);
+        
+            File srcMetaFile = new File(revisionDir, META_FILE_NAME);
+            FileUtils.copyFile(srcMetaFile, this.metaFile);
+            
+            setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
-    protected File getContentDir() {
-        return ((FileSystemRepository)repository).getContentDir();
+    protected class RevisionDirectoryFilter implements FileFilter {
+        public boolean accept(File pathname) {
+            if (pathname.getName().matches("[0-9]+") && pathname.isDirectory()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
     
+    /**
+     * Gets the last modified date in ms of this node.
+     * Changing a property should update the last modified date.
+     * This implementation does not change the last modified date if a property changes.
+     * @return
+     * @throws RepositoryException
+     */
+    public long getLastModified() throws RepositoryException {
+        return this.contentFile.lastModified();
+    }
+    
+    /**
+     * Gets the size of the default property if this node is of type resource.
+     * @return
+     * @throws RepositoryException
+     */
+    public long getSize() throws RepositoryException {
+        return this.contentFile.length();
+    }
+    
+
+    protected FileSystemRepository getRepository() {
+        return (FileSystemRepository)this.repository;
+    }
        
 }
