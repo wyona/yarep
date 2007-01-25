@@ -168,24 +168,10 @@ public class FileSystemNode extends AbstractNode {
     public Node[] getNodes() throws RepositoryException {
         Path[] childPaths = ((FileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
         
-        // begin hack (this should be fixed in the map, not here)
-        ArrayList filteredChildNodes = new ArrayList();
-        for (int i=0; i<childPaths.length; i++) {
-            String tmpPath = childPaths[i].toString(); 
-            System.out.println("*** " + tmpPath);
-            if (!tmpPath.endsWith(META_DIR_SUFFIX) && tmpPath.indexOf(".svn")==-1) {
-                filteredChildNodes.add(this.repository.getNode(childPaths[i].toString()));
-            }
-        }
-        
-        Node[] childNodes = new Node[filteredChildNodes.size()]; 
-        childNodes = (Node[])filteredChildNodes.toArray(childNodes);
-        // end hack
-        
-        /*Node[] childNodes = new Node[childPaths.length];
+        Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
             childNodes[i] = this.repository.getNode(childPaths[i].toString());
-        }*/
+        }
         return childNodes;
     }
     
@@ -322,7 +308,7 @@ public class FileSystemNode extends AbstractNode {
         this.revisions = new LinkedHashMap();
         
         if (revisionDirs != null) {
-            // hope the order is correct
+            // TODO: sort!
             for (int i=0; i<revisionDirs.length; i++) {
                 String revisionName = revisionDirs[i].getName();
                 Revision revision = new FileSystemRevision(this, revisionName);
