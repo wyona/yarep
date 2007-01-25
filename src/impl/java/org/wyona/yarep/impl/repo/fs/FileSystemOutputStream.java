@@ -14,6 +14,9 @@ import org.wyona.yarep.impl.AbstractNode;
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
  * when the stream is closed.
+ * 
+ * NOTE: Currently not used, because the Node implemenation uses the lastModified and size
+ * of the content file.
  */
 public class FileSystemOutputStream extends OutputStream {
 
