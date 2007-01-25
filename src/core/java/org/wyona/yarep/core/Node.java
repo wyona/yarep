@@ -247,7 +247,8 @@ public interface Node {
     public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException;
     
     /**
-     * Gets the revision with the given name.
+     * Gets the revision with the given label.
+     * If multiple revisions have the same label, the oldest one will be returned.
      * @param label
      * @return
      * @throws NoSuchRevisionException if the revision does not exist
