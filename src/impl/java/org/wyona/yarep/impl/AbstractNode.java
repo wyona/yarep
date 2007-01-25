@@ -270,6 +270,9 @@ public abstract class AbstractNode implements Node {
      * @throws RepositoryException repository error
      */
     public boolean isCheckedOut() throws RepositoryException {
+        if (!hasProperty(PROPERTY_IS_CHECKED_OUT)) {
+            return false;
+        }
         return getProperty(PROPERTY_IS_CHECKED_OUT).getBoolean();
     }
     
@@ -311,7 +314,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the revision with the given name.
+     * Gets the revision with the given label.
      * @param label
      * @return
      * @throws NoSuchRevisionException if the revision does not exist
@@ -322,7 +325,7 @@ public abstract class AbstractNode implements Node {
         
         while (iter.hasNext()) {
             Revision revision = (Revision)iter.next();
-            if (revision.getLabel().equals(label)) {
+            if (revision.hasLabel() && revision.getLabel().equals(label)) {
                 return revision;
             }
         }
