@@ -25,6 +25,13 @@ public interface Revision extends Node {
     public void setLabel(String label) throws RepositoryException;
     
     /**
+     * Indicates whether this revision has a label or not.
+     * @return true if this revision has a label.
+     * @throws RepositoryException
+     */
+    public boolean hasLabel() throws RepositoryException;
+
+    /**
      * Gets the date when this revision was created.
      * @return
      * @throws RepositoryException
