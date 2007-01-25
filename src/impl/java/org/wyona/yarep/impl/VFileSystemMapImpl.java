@@ -124,6 +124,6 @@ public class VFileSystemMapImpl implements Map {
      *
      */
     public void addSymbolicLink(Path path, UID uid) throws RepositoryException {
-        throw new RepositoryException("Not implemented!");
+        throw new RepositoryException("Symbolic links not implemented for virtual file system!");
     }
 }
