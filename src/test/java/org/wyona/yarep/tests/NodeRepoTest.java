@@ -5,6 +5,7 @@ import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryFactory;
+import org.wyona.yarep.core.Revision;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,18 +38,12 @@ public class NodeRepoTest extends TestCase {
 
         // Write content to repository
         System.out.println("\nWriting content to repository " + repo.getName());
-        Writer writer = new OutputStreamWriter(node.getOutputStream());
         String testContent = "Hello World! " + System.currentTimeMillis();
-        writer.write(testContent);
-        writer.close();
+        writeToNode(node, testContent);
         
         // Read content from repository
         System.out.println("\nReading content from repository " + repo.getName());
-        Reader reader = new InputStreamReader(node.getInputStream());
-        BufferedReader br = new BufferedReader(reader);
-        String line = br.readLine();
-        br.close();
-        reader.close();
+        String line = readFromNode(node);
         
         assertEquals(line, testContent);
     }
@@ -83,17 +78,11 @@ public class NodeRepoTest extends TestCase {
         Node node2 = node1.addNode("sub-uuu", NodeType.RESOURCE);
         
         // write content to node2:
-        Writer writer = new OutputStreamWriter(node2.getOutputStream());
         String testContent = "Hello Sub World! " + System.currentTimeMillis();
-        writer.write(testContent);
-        writer.close();
+        writeToNode(node2, testContent);
         
         // read content from node2:
-        Reader reader = new InputStreamReader(node2.getInputStream());
-        BufferedReader br = new BufferedReader(reader);
-        String line = br.readLine();
-        br.close();
-        reader.close();
+        String line = readFromNode(node2);
         
         assertEquals(line, testContent);
     }
@@ -123,17 +112,11 @@ public class NodeRepoTest extends TestCase {
         assertEquals(date1, date2);
         
         // write content to node3:
-        Writer writer = new OutputStreamWriter(node3.getOutputStream());
         String testContent = "Hello Sub World! " + System.currentTimeMillis();
-        writer.write(testContent);
-        writer.close();
+        writeToNode(node3, testContent);
         
         // read content from node3:
-        Reader reader = new InputStreamReader(node3.getInputStream());
-        BufferedReader br = new BufferedReader(reader);
-        String line = br.readLine();
-        br.close();
-        reader.close();
+        String line = readFromNode(node3);
         
         assertEquals(line, testContent);
     }
@@ -149,10 +132,8 @@ public class NodeRepoTest extends TestCase {
         Thread.sleep(1000);
         
         // Write content to repository
-        Writer writer = new OutputStreamWriter(node.getOutputStream());
         String testContent = "bla";
-        writer.write(testContent);
-        writer.close();
+        writeToNode(node, testContent);
         
         long lastModified2 = node.getLastModified();
         
@@ -166,10 +147,8 @@ public class NodeRepoTest extends TestCase {
         Node node = repo.getNode(path);
         
         // Write content to repository
-        Writer writer = new OutputStreamWriter(node.getOutputStream());
         String testContent = "bla bla bla";
-        writer.write(testContent);
-        writer.close();
+        writeToNode(node, testContent);
         
         long size = node.getSize();
         
@@ -216,6 +195,92 @@ public class NodeRepoTest extends TestCase {
         node = repo.getNode("/hello/");
         assertTrue(node.isCollection());
         assertFalse(node.isResource());
+    }
+
+    public void testCheckinCheckout() throws Exception {
+        Node node = repo.getNode("/hello/world.txt");
+        assertFalse("Node is not supposed to be checked out", node.isCheckedOut());
+        String testUser = "test-user";
+        node.checkout(testUser);
+        assertTrue("Node is supposed to be checked out", node.isCheckedOut());
+        assertEquals(testUser, node.getCheckoutUserID());
+        String testContent = "checkin checkout test";
+        writeToNode(node, testContent);
+        node.checkin();
+        assertFalse("Node is not supposed to be checked out", node.isCheckedOut());
+    }
+    
+    public void testRevision() throws Exception {
+        Node node = repo.getNode("/hello/revisiontest.txt");
+        
+        node.checkout("test-user");
+        String testContent = "editing...";
+        writeToNode(node, testContent);
+        Revision newRevision = node.checkin();
+        
+        Revision[] revisions = node.getRevisions();
+        String contentRev0 = readFromNode(revisions[0]);
+        assertFalse(testContent.equals(contentRev0));
+        assertEquals(newRevision, revisions[revisions.length-1]);
+        
+        String contentNewRev = readFromNode(newRevision);
+        assertEquals(testContent, contentNewRev);
+    }
+
+    public void testRevisionLabel() throws Exception {
+        Node node = repo.getNode("/hello/revisiontest.txt");
+        
+        node.checkout("test-user");
+        String testContent = "revision label test";
+        writeToNode(node, testContent);
+        Revision newRevision = node.checkin();
+        newRevision.setLabel("testlabel");
+        
+        Revision revision = node.getRevisionByLabel("testlabel");
+        
+        String content = readFromNode(revision);
+        assertEquals(testContent, content);
+    }
+
+    public void testRestore() throws Exception {
+        Node node = repo.getNode("/hello/revisiontest.txt");
+        
+        node.checkout("test-user");
+        String testContent1 = "editing... step1";
+        writeToNode(node, testContent1);
+        Revision newRevision = node.checkin();
+        
+        String revisionName = newRevision.getRevisionName();
+        
+        node.checkout("test-user");
+        String testContent2 = "editing... step2";
+        writeToNode(node, testContent2);
+        node.checkin();
+        
+        String content = readFromNode(node);
+        assertEquals(testContent2, content);
+        
+        node.restore(revisionName);
+        
+        content = readFromNode(node);
+        assertEquals(testContent1, content);
+    }
+
+    // auxiliary methods:
+    
+    protected void writeToNode(Node node, String content) throws Exception {
+        Writer writer = new OutputStreamWriter(node.getOutputStream());
+        writer.write(content);
+        writer.close();
+    }
+
+    protected String readFromNode(Node node) throws Exception {
+        Reader reader = new InputStreamReader(node.getInputStream());
+        BufferedReader br = new BufferedReader(reader);
+        String line = br.readLine();
+        br.close();
+        reader.close();
+        return line;
     }
 
 
