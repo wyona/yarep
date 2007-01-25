@@ -3,6 +3,7 @@ package org.wyona.yarep.impl;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.apache.log4j.Category;
 import org.wyona.yarep.core.Map;
@@ -32,6 +33,7 @@ public class DummyNode extends AbstractNode {
     public DummyNode(DefaultRepository repository, String path, String uuid) throws RepositoryException {
         super(repository, path, uuid);
         setDummyProperties();
+        this.revisions = new LinkedHashMap();
     }
     
     protected void setDummyProperties() throws RepositoryException {
