@@ -107,8 +107,8 @@ public class FileSystemNode extends AbstractNode {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_COLLECTION);
         } else {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_RESOURCE);
-            this.setProperty(PROPERTY_SIZE, this.contentFile.length());
-            this.setProperty(PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
+            //this.setProperty(PROPERTY_SIZE, this.contentFile.length());
+            //this.setProperty(PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
         }
     }
     
