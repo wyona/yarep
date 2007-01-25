@@ -13,7 +13,10 @@
  -->  
 <repository class="org.wyona.yarep.impl.repo.fs.FileSystemRepository">
   <name>Node Filesystem Example</name>
-  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content"/>
+  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content">
+    <ignore pattern=".*\.svn"/>
+    <ignore pattern=".*\.yarep"/>
+  </paths>
   <content src="content"/>
 </repository>
 
