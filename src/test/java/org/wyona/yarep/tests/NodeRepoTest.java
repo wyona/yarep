@@ -222,6 +222,7 @@ public class NodeRepoTest extends TestCase {
         String contentRev0 = readFromNode(revisions[0]);
         assertFalse(testContent.equals(contentRev0));
         assertEquals(newRevision, revisions[revisions.length-1]);
+        assertTrue(revisions[0].getRevisionName().compareTo(revisions[revisions.length-1].getRevisionName()) < 0);
         
         String contentNewRev = readFromNode(newRevision);
         assertEquals(testContent, contentNewRev);
