@@ -7,11 +7,15 @@ import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
+import org.wyona.yarep.impl.VFileSystemMapImpl.ChildrenFilter;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedReader;
+import java.io.FilenameFilter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Category;
 
@@ -23,6 +27,8 @@ public class DefaultMapImpl implements Map {
     private static Category log = Category.getInstance(DefaultMapImpl.class);
 
     protected File pathsDir;
+    protected Pattern[] ignorePatterns;
+    protected ChildrenFilter childrenFilter = new ChildrenFilter();
 
     /**
      *
@@ -36,11 +42,36 @@ public class DefaultMapImpl implements Map {
             log.debug(pathsDir.toString());
             // TODO: Throw Exception
             if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
+            
+            Configuration[] ignoreElements = mapConfig.getChildren("ignore");
+            ignorePatterns = new Pattern[ignoreElements.length];
+            for (int i=0; i<ignoreElements.length; i++) {
+                String patternString = ignoreElements[i].getAttribute("pattern");
+                ignorePatterns[i] = Pattern.compile(patternString);
+                log.debug("adding ignore pattern: " + ignorePatterns[i].pattern());
+            }
+            
         } catch(Exception e) {
             log.error(e);
             throw new RepositoryException("Could not read map configuration: " 
                     + repoConfigFile.getAbsolutePath() + e.getMessage(), e);
         }
+    }
+
+    protected boolean ignorePath(String path) {
+        for (int i=0; i<this.ignorePatterns.length; i++) {
+            Matcher matcher = this.ignorePatterns[i].matcher(path); 
+            if (matcher.matches()) {
+                if (log.isDebugEnabled()) {
+                    log.debug(path + " matched ignore pattern " + ignorePatterns[i].pattern());
+                }
+                return true;
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(path + " did not match any ignore patterns");
+        }
+        return false;
     }
 
     /**
@@ -60,7 +91,7 @@ public class DefaultMapImpl implements Map {
         File file = new File(pathsDir + path.toString());
         // TODO: Get name of repository for debugging ...
         //log.debug("Path (" + getName() + "): " + file);
-        return file.exists();
+        return file.exists() && !ignorePath(file.getPath());
     }
 
     /**
@@ -89,7 +120,7 @@ public class DefaultMapImpl implements Map {
      */
     public Path[] getChildren(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
-        String[] filenames = file.list();
+        String[] filenames = file.list(this.childrenFilter);
 
 	// NOTE: This situation should only occur if isResource(Path) didn't work properly!
         if (filenames == null) {
@@ -197,4 +228,16 @@ public class DefaultMapImpl implements Map {
                     + ": " + e.getMessage(), e);
         }
     }
+    
+    protected class ChildrenFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            
+            if (DefaultMapImpl.this.ignorePath(name)) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
 }
