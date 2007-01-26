@@ -232,6 +232,7 @@ public interface Node {
     
     /**
      * Gets all revisions of this node.
+     * Oldest revision at the first array position, newest at the last position.
      * @return 
      * @throws RepositoryException
      */

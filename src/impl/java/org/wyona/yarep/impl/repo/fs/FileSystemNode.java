@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -308,7 +308,7 @@ public class FileSystemNode extends AbstractNode {
         this.revisions = new LinkedHashMap();
         
         if (revisionDirs != null) {
-            // TODO: sort!
+            Arrays.sort(revisionDirs);
             for (int i=0; i<revisionDirs.length; i++) {
                 String revisionName = revisionDirs[i].getName();
                 Revision revision = new FileSystemRevision(this, revisionName);
