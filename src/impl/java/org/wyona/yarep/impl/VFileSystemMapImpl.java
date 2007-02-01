@@ -109,13 +109,18 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     *
+     * Get children
      */
     public Path[] getChildren(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
+        if (!file.exists()) {
+            log.warn("No such file or directory: " + file);
+            return new Path[0];
+        }
+
         String[] filenames = file.list(this.childrenFilter);
 
-	// NOTE: This situation should only occur if isResource(Path) didn't work properly!
+	// NOTE: This situation should only occur if one is trying to get children for a file than a directory! One might want to consider to test first with isResource() or isCollection().
         if (filenames == null) {
             log.warn("No children: " + path + " (" + file + ")");
             return new Path[0];
@@ -158,6 +163,9 @@ public class VFileSystemMapImpl implements Map {
         throw new RepositoryException("Symbolic links not implemented for virtual file system!");
     }
     
+    /**
+     * Ignore all children which are matched by an ignore pattern (see repository configuration, e.g. src/test/repository/node-fs-example/repository.xml)
+     */
     protected class ChildrenFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
             
