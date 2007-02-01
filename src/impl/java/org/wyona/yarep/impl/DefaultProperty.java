@@ -20,7 +20,7 @@ public class DefaultProperty implements Property {
     protected Node node;
     protected int type;
     
-    protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     
     protected boolean booleanValue;
     protected double doubleValue;
