@@ -119,6 +119,15 @@ public class DummyNode extends AbstractNode {
     }
     
     /**
+     * @see org.wyona.yarep.core.Node#checkin(java.lang.String)
+     */
+    public Revision checkin(String comment) throws NodeStateException, RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+        return null;
+    }
+
+    /**
      * Checks out this node.
      * @throws NodeStateException if node is checked out by a different user
      * @throws RepositoryException repository error

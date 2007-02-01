@@ -142,6 +142,10 @@ public class FileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * FIXME: this implementation does not work correctly when a string property contains a line-break. 
+     * @throws RepositoryException
+     */
     protected void saveProperties() throws RepositoryException {
         try {
             log.debug("writing meta file: " + this.metaFile);
@@ -241,16 +245,20 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Checks in this node and creates a new revision.
-     * @return
-     * @throws NodeStateException if node is not in checked out state
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#checkin()
      */
     public Revision checkin() throws NodeStateException, RepositoryException {
+        return checkin("");
+    }
+    
+    /**
+     * @see org.wyona.yarep.core.Node#checkin()
+     */
+    public Revision checkin(String comment) throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
             throw new NodeStateException("Node " + path + " is not checked out.");
         }
-        Revision revision = createRevision();
+        Revision revision = createRevision(comment);
         
         setProperty(PROPERTY_IS_CHECKED_OUT, false);
         
@@ -258,9 +266,7 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Checks out this node.
-     * @throws NodeStateException if node is checked out by a different user
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
         // TODO: this should be somehow synchronized
@@ -270,14 +276,15 @@ public class FileSystemNode extends AbstractNode {
         
         setProperty(PROPERTY_IS_CHECKED_OUT, true);
         setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
+        setProperty(PROPERTY_CHECKOUT_DATE, new Date());
 
         if (getRevisions().length == 0) {
             // create a backup revision
-            createRevision();
+            createRevision("initial revision");
         }
     }
     
-    protected Revision createRevision() throws RepositoryException {
+    protected Revision createRevision(String comment) throws RepositoryException {
         try {
             File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
             String revisionName = String.valueOf(System.currentTimeMillis());
@@ -292,6 +299,8 @@ public class FileSystemNode extends AbstractNode {
             Revision revision = new FileSystemRevision(this, revisionName);
             revision.setProperty(PROPERTY_IS_CHECKED_OUT, false);
             ((FileSystemRevision)revision).setCreationDate(new Date());
+            ((FileSystemRevision)revision).setCreator(getCheckoutUserID());
+            ((FileSystemRevision)revision).setComment(comment);
             this.revisions.put(revisionName, revision);
             return revision;
         } catch (IOException e) {

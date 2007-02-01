@@ -228,16 +228,16 @@ public class NodeRepoTest extends TestCase {
         assertEquals(testContent, contentNewRev);
     }
 
-    public void testRevisionLabel() throws Exception {
+    public void testRevisionTag() throws Exception {
         Node node = repo.getNode("/hello/revisiontest.txt");
         
         node.checkout("test-user");
         String testContent = "revision label test";
         writeToNode(node, testContent);
         Revision newRevision = node.checkin();
-        newRevision.setLabel("testlabel");
+        newRevision.setTag("testTag");
         
-        Revision revision = node.getRevisionByLabel("testlabel");
+        Revision revision = node.getRevisionByTag("testTag");
         
         String content = readFromNode(revision);
         assertEquals(testContent, content);
@@ -283,6 +283,5 @@ public class NodeRepoTest extends TestCase {
         reader.close();
         return line;
     }
-
 
 }

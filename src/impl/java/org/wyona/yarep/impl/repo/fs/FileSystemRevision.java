@@ -13,10 +13,13 @@ import org.wyona.yarep.core.Revision;
 /**
  */
 public class FileSystemRevision extends FileSystemNode implements Revision {
+
     private static Category log = Category.getInstance(FileSystemRevision.class);
     
     public static final String PROPERTY_REVISION_CREATION_DATE = "yarep_revisionCreationDate";
-    public static final String PROPERTY_REVISION_LABEL = "yarep_revisionLabel";
+    public static final String PROPERTY_REVISION_CREATOR = "yarep_revisionCreator";
+    public static final String PROPERTY_REVISION_TAG = "yarep_revisionTag";
+    public static final String PROPERTY_REVISION_COMMENT = "yarep_revisionComment";
 
     public static final String CONTENT_FILE_NAME = "content";
 
@@ -101,21 +104,36 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
         setProperty(PROPERTY_REVISION_CREATION_DATE, date);
     }
 
-    public String getLabel() throws RepositoryException {
-        return getProperty(PROPERTY_REVISION_LABEL).getString();
+    public String getCreator() throws RepositoryException {
+        return getProperty(PROPERTY_REVISION_CREATOR).getString();
     }
 
-    public void setLabel(String label) throws RepositoryException {
-        setProperty(PROPERTY_REVISION_LABEL, label);
+    public void setCreator(String creator) throws RepositoryException {
+        setProperty(PROPERTY_REVISION_CREATOR, creator);
+    }
+
+    public String getComment() throws RepositoryException {
+        return getProperty(PROPERTY_REVISION_COMMENT).getString();
+    }
+
+    public void setComment(String comment) throws RepositoryException {
+        setProperty(PROPERTY_REVISION_COMMENT, comment);
+    }
+
+    public String getTag() throws RepositoryException {
+        return getProperty(PROPERTY_REVISION_TAG).getString();
+    }
+
+    public void setTag(String tag) throws RepositoryException {
+        setProperty(PROPERTY_REVISION_TAG, tag);
     }    
        
-    public boolean hasLabel() throws RepositoryException {
-        return hasProperty(PROPERTY_REVISION_LABEL);
+    public boolean hasTag() throws RepositoryException {
+        return hasProperty(PROPERTY_REVISION_TAG);
     }    
        
     public String getRevisionName() throws RepositoryException {
         return this.revisionName;
     }
-
 
 }

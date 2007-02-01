@@ -46,6 +46,7 @@ public abstract class AbstractNode implements Node {
     public static final String PROPERTY_ENCODING = "yarep_encoding";
     public static final String PROPERTY_IS_CHECKED_OUT = "yarep_isCheckedOut";
     public static final String PROPERTY_CHECKOUT_USER_ID = "yarep_checkoutUserID";
+    public static final String PROPERTY_CHECKOUT_DATE = "yarep_checkoutDate";
     
     
     /**
@@ -290,6 +291,19 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
+     * Gets the userID which was supplied when calling checkout(userID).
+     * @return
+     * @throws NodeStateException if node is not checked out.
+     * @throws RepositoryException
+     */
+    public Date getCheckoutDate() throws NodeStateException, RepositoryException {
+        if (!isCheckedOut()) {
+            throw new NodeStateException("Node is not checked out: " + getPath());
+        }
+        return getProperty(PROPERTY_CHECKOUT_DATE).getDate();
+    }
+    
+    /**
      * Gets all revisions of this node.
      * @return 
      * @throws RepositoryException
@@ -314,23 +328,35 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the revision with the given label.
-     * @param label
-     * @return
-     * @throws NoSuchRevisionException if the revision does not exist
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getRevisionByTag(java.lang.String)
      */
-    public Revision getRevisionByLabel(String label) throws NoSuchRevisionException, RepositoryException {
+    public Revision getRevisionByTag(String tag) throws NoSuchRevisionException, RepositoryException {
         Iterator iter = this.revisions.values().iterator();
         
         while (iter.hasNext()) {
             Revision revision = (Revision)iter.next();
-            if (revision.hasLabel() && revision.getLabel().equals(label)) {
+            if (revision.hasTag() && revision.getTag().equals(tag)) {
                 return revision;
             }
         }
         // revision not found:
-        throw new NoSuchRevisionException("Node " + getPath() + " has no revision with label: " + label);
+        throw new NoSuchRevisionException("Node " + getPath() + " has no revision with tag: " + tag);
+    }
+    
+    /**
+     * @see org.wyona.yarep.core.Node#hasRevisionWithTag(java.lang.String)
+     */
+    public boolean hasRevisionWithTag(String tag) throws RepositoryException {
+        Iterator iter = this.revisions.values().iterator();
+        
+        while (iter.hasNext()) {
+            Revision revision = (Revision)iter.next();
+            if (revision.hasTag() && revision.getTag().equals(tag)) {
+                return true;
+            }
+        }
+        // revision not found:
+        return false;
     }
     
     /**

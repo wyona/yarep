@@ -201,7 +201,7 @@ public interface Node {
     public OutputStream getOutputStream() throws RepositoryException;
     
     /**
-     * Checks in this node and creates a new revision.
+     * Puts this node into checked-in state and creates a new revision.
      * @return
      * @throws NodeStateException if node is not in checked out state
      * @throws RepositoryException repository error
@@ -209,8 +209,17 @@ public interface Node {
     public Revision checkin() throws NodeStateException, RepositoryException;
     
     /**
-     * Checks out this node.
-     * @throws NodeStateException if node is checked out by a different user
+     * Puts this node into checked-in state and creates a new revision.
+     * @param comment a comment to add to the new revision.
+     * @return
+     * @throws NodeStateException if node is not in checked out state
+     * @throws RepositoryException repository error
+     */
+    public Revision checkin(String comment) throws NodeStateException, RepositoryException;
+    
+    /**
+     * Puts this node into checked-out state.
+     * @throws NodeStateException if node is in checked out state already
      * @throws RepositoryException repository error
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException;
@@ -231,6 +240,14 @@ public interface Node {
     public String getCheckoutUserID() throws NodeStateException, RepositoryException;
     
     /**
+     * Gets the date when this node was checked out.
+     * @return
+     * @throws NodeStateException if node is not checked out.
+     * @throws RepositoryException
+     */
+    public Date getCheckoutDate() throws NodeStateException, RepositoryException;
+    
+    /**
      * Gets all revisions of this node.
      * Oldest revision at the first array position, newest at the last position.
      * @return 
@@ -248,14 +265,23 @@ public interface Node {
     public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException;
     
     /**
-     * Gets the revision with the given label.
-     * If multiple revisions have the same label, the oldest one will be returned.
-     * @param label
-     * @return
+     * Gets the revision with the given tag.
+     * If multiple revisions have the same tag, the oldest one will be returned.
+     * @param tag
+     * @return 
      * @throws NoSuchRevisionException if the revision does not exist
      * @throws RepositoryException
      */
-    public Revision getRevisionByLabel(String label) throws NoSuchRevisionException, RepositoryException;
+    public Revision getRevisionByTag(String tag) throws NoSuchRevisionException, RepositoryException;
+    
+    /**
+     * Indicates whether this node has a revision with the given tag.
+     * If multiple revisions have the same tag, the oldest one will be returned.
+     * @param tag
+     * @return
+     * @throws RepositoryException
+     */
+    public boolean hasRevisionWithTag(String tag) throws RepositoryException;
     
     /**
      * Restores the revision with the given name.
