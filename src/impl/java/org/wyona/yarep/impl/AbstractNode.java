@@ -131,6 +131,7 @@ public abstract class AbstractNode implements Node {
      * @throws RepositoryException repository error
      */
     public boolean isCollection() throws RepositoryException {
+        log.error("DEBUG: Node Type: " + getType() + ", " + getPath());
         return getType() == NodeType.COLLECTION; 
     }
     
