@@ -112,9 +112,12 @@ public class FileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * Read properties from meta file
+     */
     protected void readProperties() throws RepositoryException {
         try {
-            log.debug("reading meta file: " + this.metaFile);
+            log.error("DEBUG: reading meta file: " + this.metaFile);
             this.properties = new HashMap();
             BufferedReader reader = new BufferedReader(new FileReader(this.metaFile));
             String line;
