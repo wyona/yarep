@@ -17,7 +17,9 @@ import org.apache.log4j.Category;
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Database;
+import org.xmldb.api.base.Service;
 import org.xmldb.api.base.XMLDBException;
+import org.xmldb.api.modules.CollectionManagementService;
 
 /**
  * @author Andreas Wuest
@@ -37,6 +39,7 @@ public class XMLDBStorage implements Storage {
         Boolean       createPrefix;
         Configuration credentialsConfig;
         Database      database;
+        Service       collectionService;
         String        driverName;
         String        databaseHome;
         String        rootCollection;
@@ -153,7 +156,21 @@ public class XMLDBStorage implements Storage {
         // check if the complete collection prefix exists
         if (getCollectionRelative(null) == null) {
             if (createPrefix) {
-                // TODO: create the prefix collection
+                // create the prefix collection
+                try {
+                    collectionService = getCollection(databaseURIPrefix).getService("CollectionManagementService", "1.0");
+
+                    ((CollectionManagementService) collectionService).createCollection(pathPrefix);
+
+                    // re-check if complete collection prefix exists now
+                    if (getCollectionRelative(null) == null)
+                        throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
+                } catch (Exception exception) {
+                    mLog.error(exception);
+                    throw new RepositoryException("Failed to create prefix collection (\"" + pathPrefix + "\"). Original message: " + exception.getMessage(), exception);
+                }
+
+                mLog.error("Created new collection \"" + pathPrefix + "\".");
             } else {
                 // the prefix collection does not exist
                 throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
