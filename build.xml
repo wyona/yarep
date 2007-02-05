@@ -46,6 +46,8 @@
                   version="1.8.0.7"/>
       <dependency groupId="postgresql" artifactId="postgresql"
                   version="7.4.1-jdbc3"/>
+      <dependency groupId="xindice" artifactId="xmldb"
+                  version="1.0"/>
     </artifact:dependencies>
     <property name="maven2.cp" refid="maven2.classpath"/>
 
