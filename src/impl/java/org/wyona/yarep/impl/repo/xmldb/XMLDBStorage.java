@@ -64,7 +64,7 @@ public class XMLDBStorage implements Storage {
      * @param aRepoConfigFile  the storage configuration as a raw file
      */
     public void readConfig(Configuration aStorageConfig, File aRepoConfigFile) throws RepositoryException {
-        Boolean       createPrefix;
+        boolean       createPrefix;
         Configuration repositoryConfig;
         Configuration credentialsConfig;
         Database      database;
