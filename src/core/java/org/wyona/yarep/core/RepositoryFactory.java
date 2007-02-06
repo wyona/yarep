@@ -3,6 +3,7 @@ package org.wyona.yarep.core;
 import java.io.File;
 import java.net.URL;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -48,7 +49,9 @@ public class RepositoryFactory {
 
         Properties props = new Properties();
         log.debug("Properties URL: " + propertiesURL);
-        File propsFile = new File(propertiesURL.getFile());
+        // use URLDecoder to avoid problems when the filename contains spaces
+        File propsFile = new File(URLDecoder.decode(propertiesURL.getFile()));
+
         try {
             props.load(propertiesURL.openStream());
 
