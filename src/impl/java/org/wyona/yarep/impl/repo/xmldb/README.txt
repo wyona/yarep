@@ -33,7 +33,7 @@ A sample repository configuration could look like this:
   <storage class="org.wyona.yarep.impl.repo.xmldb.XMLDBStorage">
     <driver>org.apache.xindice.client.xmldb.embed.DatabaseImpl</driver>
     <address></address>
-    <db-home></db-home>
+    <db-home>../data</db-home>
     <root>db</root>
     <prefix createIfNotExists="true">sample-repo</prefix>
     <credentials>
@@ -57,10 +57,8 @@ address: [optional]
 db-home: [optional]
   The database location on your disk.
 
-  This element can be empty or missing (e.g. for embedded
-  databases). If no <db-home> is specified, the database home is
-  assumed to be the location as specified by the <paths> "src"
-  attribute.
+  This element can be empty or missing (e.g. for remote/non-embedded
+  databases).
 
 root: [mandatory]
   The database root collection. This element is

@@ -1,17 +1,21 @@
 package org.wyona.yarep.impl.repo.xmldb;
 
-import org.wyona.yarep.core.Path;
-import org.wyona.yarep.core.RepositoryException;
-import org.wyona.yarep.core.Storage;
-import org.wyona.yarep.core.UID;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 
+import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.core.Storage;
+import org.wyona.yarep.core.UID;
+
+import org.wyona.commons.io.FileUtil;
+
 import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
+
 import org.apache.log4j.Category;
 
 import org.xmldb.api.DatabaseManager;
@@ -30,6 +34,30 @@ public class XMLDBStorage implements Storage {
     private        String      mDatabaseURIPrefix;
 
     /**
+     * XMLDBStorage constructor.
+     */
+    public XMLDBStorage() {}
+
+    /**
+     * XMLDBStorage constructor.
+     *
+     * @param aID              the repository ID
+     * @param aRepoConfigFile  the repsitory configuration file
+     */
+    public XMLDBStorage(String aID, File aRepoConfigFile) throws RepositoryException {
+        Configuration storageConfig;
+
+        try {
+            storageConfig = (new DefaultConfigurationBuilder()).buildFromFile(aRepoConfigFile).getChild("storage", false);
+        } catch (Exception exception) {
+            mLog.error(exception);
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
+        readConfig(storageConfig, aRepoConfigFile);
+    }
+
+    /**
      * Reads the repository configuration and initialises the database.
      *
      * @param aStorageConfig   the storage configuration
@@ -37,8 +65,10 @@ public class XMLDBStorage implements Storage {
      */
     public void readConfig(Configuration aStorageConfig, File aRepoConfigFile) throws RepositoryException {
         Boolean       createPrefix;
+        Configuration repositoryConfig;
         Configuration credentialsConfig;
         Database      database;
+        File          databaseHomeDir;
         Service       collectionService;
         String        driverName;
         String        databaseHome;
@@ -52,17 +82,17 @@ public class XMLDBStorage implements Storage {
          * Unfortunately, mLog.debug() produces no output, even if activated
          * in the log4.properties. */
 
-        // check if we received a storage configuration
-        if (aStorageConfig == null)
-            throw new RepositoryException("No storage configuration available.");
+        // check if we received a storage configuration and a repo config file
+        if (aStorageConfig == null || aRepoConfigFile == null)
+            throw new RepositoryException("No storage/repository configuration available.");
 
         try {
             // retrieve the database driver name (e.g. "org.apache.xindice.client.xmldb.DatabaseImpl") [mandatory]
             driverName        = aStorageConfig.getChild("driver").getValue("");
             mLog.error("Specified driver name = \"" + driverName + "\".");
 
-            // retrieve the database home (e.g. "/var/db/") [optional]
-            databaseHome      = aStorageConfig.getChild("db-home").getValue("");
+            // retrieve the database home (e.g. "../data") [optional]
+            databaseHome      = aStorageConfig.getChild("db-home").getValue(null);
             mLog.error("Specified database home = \"" + databaseHome + "\".");
 
             // retrieve the root collection name (e.g. "db") [mandatory]
@@ -103,15 +133,21 @@ public class XMLDBStorage implements Storage {
         try {
             database = (Database) Class.forName(driverName).newInstance();
 
-            // set the database location
-            if (databaseHome == null || (databaseHome != null && databaseHome.equals(""))) {
-                // TODO: use the repo data path
-                database.setProperty("db-home", "/Users/awuest/Documents/devel/src/wyona/realms/xmldb-test/yanel/data");
-            } else {
-                // use the specifed database home
-                database.setProperty("db-home", databaseHome);
+            // determine the database location
+            if (databaseHome != null) {
+                // resolve the database home relative to the repo config file directory
+                databaseHomeDir = new File(databaseHome);
+
+                if (!databaseHomeDir.isAbsolute()) {
+                    databaseHomeDir = FileUtil.file(aRepoConfigFile.getParent(), databaseHomeDir.toString());
+                }
+
+                mLog.error("Resolved database home directory = \"" + databaseHomeDir + "\"");
+
+                database.setProperty("db-home", databaseHomeDir.toString());
             }
 
+            // set the database location
             DatabaseManager.registerDatabase(database);
 
             databaseName = database.getName();
@@ -149,32 +185,47 @@ public class XMLDBStorage implements Storage {
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
-        // check if the specified root collection exists
-        if (getCollection(databaseURIPrefix) == null)
-            throw new RepositoryException("Specified root collection (\"" + rootCollection + "\") does not exist.");
+        try {
+            // check if the specified root collection exists
+            if (getCollection(databaseURIPrefix) == null)
+                throw new RepositoryException("Specified root collection (\"" + rootCollection + "\") does not exist.");
 
-        // check if the complete collection prefix exists
-        if (getCollectionRelative(null) == null) {
-            if (createPrefix) {
-                // create the prefix collection
-                try {
-                    collectionService = getCollection(databaseURIPrefix).getService("CollectionManagementService", "1.0");
+            // check if the complete collection prefix exists
+            if (getCollectionRelative(null) == null) {
+                if (createPrefix) {
+                    // create the prefix collection
+                    try {
+                        collectionService = getCollection(databaseURIPrefix).getService("CollectionManagementService", "1.0");
 
-                    ((CollectionManagementService) collectionService).createCollection(pathPrefix);
+                        ((CollectionManagementService) collectionService).createCollection(pathPrefix);
 
-                    // re-check if complete collection prefix exists now
-                    if (getCollectionRelative(null) == null)
-                        throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
-                } catch (Exception exception) {
-                    mLog.error(exception);
-                    throw new RepositoryException("Failed to create prefix collection (\"" + pathPrefix + "\"). Original message: " + exception.getMessage(), exception);
+                        // re-check if complete collection prefix exists now, we don't want to take any chances here
+                        if (getCollectionRelative(null) == null)
+                            throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
+                    } catch (Exception exception) {
+                        mLog.error(exception);
+                        throw new RepositoryException("Failed to create prefix collection (\"" + pathPrefix + "\"). Original message: " + exception.getMessage(), exception);
+                    }
+
+                    mLog.error("Created new collection \"" + pathPrefix + "\".");
+                } else {
+                    // the prefix collection does not exist
+                    throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
                 }
-
-                mLog.error("Created new collection \"" + pathPrefix + "\".");
-            } else {
-                // the prefix collection does not exist
-                throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
             }
+        } catch (Exception exception) {
+            // something went wrong after registering the database, we have to deregister it now
+            try {
+                DatabaseManager.deregisterDatabase(database);
+            } catch (Exception databaseException) {
+                mLog.error(databaseException);
+                throw new RepositoryException(databaseException.getMessage(), databaseException);
+            }
+
+            /* Rethrow exception. We have to construct a new exception here, because the type system
+             * doesn't know that only RepositoryExceptions can get to this point (we catch all other
+             * exceptions above already), and would therefore complain. */
+            throw new RepositoryException(exception.getMessage(), exception);
         }
     }
 
