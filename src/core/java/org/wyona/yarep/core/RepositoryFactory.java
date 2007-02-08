@@ -94,6 +94,12 @@ public class RepositoryFactory {
         }
     }
 
+    /**
+     * Resets the repository factory and removes all registered repositories.
+     */
+    public void reset() {
+        this.repositories = new Vector();
+    }
 
     /**
      * Get properties URL
