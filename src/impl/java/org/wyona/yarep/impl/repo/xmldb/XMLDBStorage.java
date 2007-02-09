@@ -21,17 +21,21 @@ import org.apache.log4j.Category;
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Database;
+import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.Service;
 import org.xmldb.api.base.XMLDBException;
+import org.xmldb.api.modules.BinaryResource;
+import org.xmldb.api.modules.XMLResource;
 import org.xmldb.api.modules.CollectionManagementService;
 
 /**
  * @author Andreas Wuest
  */
 public class XMLDBStorage implements Storage {
-    private static Category    mLog               = Category.getInstance(XMLDBStorage.class);
-    private        Credentials mCredentials;
-    private        String      mDatabaseURIPrefix;
+    private static Category mLog = Category.getInstance(XMLDBStorage.class);
+
+    private Credentials mCredentials;
+    private String      mDatabaseURIPrefix;
 
     /**
      * XMLDBStorage constructor.
@@ -60,8 +64,9 @@ public class XMLDBStorage implements Storage {
     /**
      * Reads the repository configuration and initialises the database.
      *
-     * @param aStorageConfig   the storage configuration
-     * @param aRepoConfigFile  the storage configuration as a raw file
+     * @param  aStorageConfig   the storage configuration
+     * @param  aRepoConfigFile  the storage configuration as a raw file
+     * @throws RepositoryException
      */
     public void readConfig(Configuration aStorageConfig, File aRepoConfigFile) throws RepositoryException {
         boolean       createPrefix;
@@ -159,12 +164,12 @@ public class XMLDBStorage implements Storage {
         // construct the database URI prefix up to (and inluding) the root collection
         databaseURIPrefix = "xmldb:" + databaseName + "://" + databaseAddress  + "/" + rootCollection + "/";
 
-        // construct the complete database URI prefix including a potential path prefix
-        if (pathPrefix.equals("")) {
-            mDatabaseURIPrefix = databaseURIPrefix;
-        } else {
-            mDatabaseURIPrefix = databaseURIPrefix + "/" + pathPrefix + "/";
-        }
+            // construct the complete database URI prefix including a potential path prefix
+            if (pathPrefix.equals("")) {
+                mDatabaseURIPrefix = databaseURIPrefix;
+            } else {
+                mDatabaseURIPrefix = databaseURIPrefix + "/" + pathPrefix + "/";
+            }
 
         mLog.error("Collection base path = \"" + databaseURIPrefix + "\".");
         mLog.error("Complete collection base path = \"" + mDatabaseURIPrefix + "\".");
@@ -230,66 +235,230 @@ public class XMLDBStorage implements Storage {
     }
 
     /**
-     *@deprecated
+     * Returns a Writer to store character data. Creates an XML resource in the database if one of
+     * the same name and path does not already exist, otherwise overwrites an already existing
+     * resource. If the already existing resource is of a binary type, the resource is removed,
+     * and a new XML resource is created.
+     *
+     * Call close() on the returned Writer to actually store the data in the database.
+     *
+     * Do not use this to write binary data, use getOutputStream instead. This method will
+     * create a XML character resource. Ignore the deprecated status of this method in the
+     * super class.
+     *
+     * @param  aUID    the UID (not used in this implementation)
+     * @param  aPath   the path including the resource name of the resource to write to
+     * @return Writer  returns a Writer instance
      */
     public Writer getWriter(UID aUID, Path aPath) {
-        mLog.warn("Not implemented yet!");
-        return null;
+        org.wyona.commons.io.Path parentPath;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+        // obviously, writing means creation of a new resource, so we have to get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        /* For whatever reasons, the Storage interface does not declare this method to throw a
+         * RepositoryException, therefore we have to catch it here. */
+        try {
+            return (new XMLDBStorageWriter(this, parentPath.toString(), null, XMLResource.RESOURCE_TYPE));
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     /**
+     * Returns an OutputStream to store character data. Creates a binary resource in the database
+     * if one of the same name and path does not already exist, otherwise overwrites an already
+     * existing resource. If the already existing resource is of an XML type, the resource is removed,
+     * and a new binary resource is created.
      *
+     * Call close() on the returned OutputStream to actually store the data in the database.
+     *
+     * Do not use this to write character data, use getWriter instead. This method will
+     * create a binary resource.
+     *
+     * @param  aUID          the UID (not used in this implementation)
+     * @param  aPath         the path including the resource name of the resource to write to
+     * @return OutputStream  returns an OutputStream instance
+     * @throws RepositoryException
      */
     public OutputStream getOutputStream(UID aUID, Path aPath) throws RepositoryException {
-        mLog.warn("Not implemented yet!");
-        return null;
+        org.wyona.commons.io.Path parentPath;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+        // obviously, writing means creation of a new resource, so we have to get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        return (new XMLDBStorageOutputStream(this, parentPath.toString(), null, BinaryResource.RESOURCE_TYPE));
     }
 
     /**
-     *@deprecated
+     * Returns a Reader to read character data.
+     *
+     * Call close() on the returned Reader when you are done reading.
+     *
+     * Do not use this to read binary data, use getInputStream instead. If you read
+     * binary data with this Reader, all data will be converted to characters using
+     * UTF-8 encoding. Ignore the deprecated status of this method in the super class.
+     *
+     * @param  aUID    the UID (not used in this implementation)
+     * @param  aPath   the path including the resource name of the resource to read from
+     * @return Reader  returns a Reader instance
      */
     public Reader getReader(UID aUID, Path aPath) {
-        mLog.warn("Not implemented yet!");
-        return null;
+        org.wyona.commons.io.Path parentPath;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+        // get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        /* For whatever reasons, the Storage interface does not declare this method to throw a
+         * RepositoryException, therefore we have to catch it here. */
+        try {
+            return (new XMLDBStorageReader(this, parentPath.toString(), aPath.getName()));
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     /**
+     * Returns an InputStream to read binary data.
      *
+     * Call close() on the returned InputStream when you are done reading.
+     *
+     * Do not use this to read character data, use getReader instead. If you read
+     * XML character data with this InputStream, all data will be converted to bytes
+     * using UTF-8 encoding. Ignore the deprecated status of this method in the super
+     * class.
+     *
+     * @param  aUID         the UID (not used in this implementation)
+     * @param  aPath        the path including the resource name of the resource to read from
+     * @return InputStream  returns an InputStream instance
+     * @throws RepositoryException
      */
     public InputStream getInputStream(UID aUID, Path aPath) throws RepositoryException {
-        mLog.warn("Not implemented yet!");
-        return null;
+        org.wyona.commons.io.Path parentPath;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+        // get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        return (new XMLDBStorageInputStream(this, parentPath.toString(), aPath.getName()));
     }
 
     /**
-     *
+     * This repository does not modification dates.
      */
     public long getLastModified(UID aUID, Path aPath) throws RepositoryException {
-        mLog.warn("Not implemented yet!");
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        mLog.warn("This repository does not modification dates.");
         return 0;
     }
 
     /**
+     * Returns the size of a resource.
      *
+     * @param  aUID   the UID (not used in this implementation)
+     * @param  aPath  the path including the resource name of the resource to get the size
+     * @return long   returns the size of the resource
+     * @throws RepositoryException  throws a RepositoryException if the resource does not exist,
+     *                              or another exception occurrs
      */
     public long getSize(UID aUID, Path aPath) throws RepositoryException {
-        mLog.warn("Not implemented yet!");
+        Collection                collection;
+        org.wyona.commons.io.Path parentPath;
+        Resource                  resource;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+         // get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        if ((collection = getCollectionRelative(parentPath.toString())) == null)
+            throw new RepositoryException("Requested resource \"" + aPath + "\" does not exist.");
+
+        try {
+            resource = collection.getResource(aPath.getName());
+        } catch (XMLDBException exception) {
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
+        if (resource == null)
+            throw new RepositoryException("Requested resource \"" + aPath.getName() + "\" does not exist.");
+
+        try {
+            if (resource.getResourceType().equals(BinaryResource.RESOURCE_TYPE)) {
+                return ((byte[]) resource.getContent()).length;
+            } else if (resource.getResourceType().equals(XMLResource.RESOURCE_TYPE)) {
+                return ((String) resource.getContent()).length();
+            }
+        } catch (Exception exception) {
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
         return 0;
     }
 
     /**
+     * Removes a resouce.
      *
+     * Throws a RepositoryException if the resource to remove does not exist.
+     *
+     * @param  aUID     the UID (not used in this implementation)
+     * @param  aPath    the path including the resource name of the resource to remove
+     * @return boolean  returns true (TODO: what is this for??)
+     * @throws RepositoryException  throws a RepositoryException if the resource does not exist,
+     *                              or another exception occurrs
      */
     public boolean delete(UID aUID, Path aPath) throws RepositoryException {
-        mLog.error("TODO: Not implemented yet!");
-        return false;
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+        Collection                collection;
+        org.wyona.commons.io.Path parentPath;
+        Resource                  resource;
+
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+
+         // get the parent collection
+        parentPath = aPath.getParent();
+        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+
+        if ((collection = getCollectionRelative(parentPath.toString())) == null)
+            throw new RepositoryException("Requested resource \"" + aPath + "\" does not exist.");
+
+        try {
+            resource = collection.getResource(aPath.getName());
+        } catch (XMLDBException exception) {
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
+        if (resource == null)
+            throw new RepositoryException("Requested resource \"" + aPath.getName() + "\" does not exist.");
+
+        try {
+            collection.removeResource(resource);
+        } catch (Exception exception) {
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
+        return true;
     }
 
     /**
-     *
+     * This repository does not support versioning.
      */
     public String[] getRevisions(UID aUID, Path aPath) throws RepositoryException {
-        mLog.warn("Versioning not implemented yet");
+        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        mLog.warn("This repository does not support versioning.");
         return null;
     }
 
@@ -304,7 +473,7 @@ public class XMLDBStorage implements Storage {
      * @throws RepositoryException  if an error occurred retrieving the collection (e.g.
      *                              permission was denied)
      */
-    private Collection getCollectionRelative(String aCollectionURI) throws RepositoryException {
+    Collection getCollectionRelative(String aCollectionURI) throws RepositoryException {
         return getCollection(constructCollectionURI(aCollectionURI));
     }
 
@@ -333,6 +502,7 @@ public class XMLDBStorage implements Storage {
     private String constructCollectionURI(String aCollectionURI) {
         return mDatabaseURIPrefix + "/" + (aCollectionURI != null ? aCollectionURI : "");
     }
+
 
     private class Credentials {
         private final String mUsername;
