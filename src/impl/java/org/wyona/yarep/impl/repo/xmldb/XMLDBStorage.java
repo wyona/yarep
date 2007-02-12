@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.RepositoryException;
@@ -22,11 +25,14 @@ import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Database;
 import org.xmldb.api.base.Resource;
+import org.xmldb.api.base.ResourceIterator;
+import org.xmldb.api.base.ResourceSet;
 import org.xmldb.api.base.Service;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.BinaryResource;
 import org.xmldb.api.modules.XMLResource;
 import org.xmldb.api.modules.CollectionManagementService;
+import org.xmldb.api.modules.XPathQueryService;
 
 /**
  * @author Andreas Wuest
@@ -46,7 +52,7 @@ public class XMLDBStorage implements Storage {
      * XMLDBStorage constructor.
      *
      * @param aID              the repository ID
-     * @param aRepoConfigFile  the repsitory configuration file
+     * @param aRepoConfigFile  the repository configuration file
      */
     public XMLDBStorage(String aID, File aRepoConfigFile) throws RepositoryException {
         Configuration storageConfig;
@@ -355,11 +361,11 @@ public class XMLDBStorage implements Storage {
     }
 
     /**
-     * This repository does not modification dates.
+     * This repository does not support modification dates.
      */
     public long getLastModified(UID aUID, Path aPath) throws RepositoryException {
         mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
-        mLog.warn("This repository does not modification dates.");
+        mLog.warn("This repository does not support modification dates.");
         return 0;
     }
 
@@ -370,7 +376,7 @@ public class XMLDBStorage implements Storage {
      * @param  aPath  the path including the resource name of the resource to get the size
      * @return long   returns the size of the resource
      * @throws RepositoryException  throws a RepositoryException if the resource does not exist,
-     *                              or another exception occurrs
+     *                              or another exception occurs
      */
     public long getSize(UID aUID, Path aPath) throws RepositoryException {
         Collection                collection;
@@ -409,7 +415,7 @@ public class XMLDBStorage implements Storage {
     }
 
     /**
-     * Removes a resouce.
+     * Removes a resource.
      *
      * Throws a RepositoryException if the resource to remove does not exist.
      *
@@ -417,18 +423,16 @@ public class XMLDBStorage implements Storage {
      * @param  aPath    the path including the resource name of the resource to remove
      * @return boolean  returns true (TODO: what is this for??)
      * @throws RepositoryException  throws a RepositoryException if the resource does not exist,
-     *                              or another exception occurrs
+     *                              or another exception occurs
      */
     public boolean delete(UID aUID, Path aPath) throws RepositoryException {
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
-
         Collection                collection;
         org.wyona.commons.io.Path parentPath;
         Resource                  resource;
 
         mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
-         // get the parent collection
+        // get the parent collection
         parentPath = aPath.getParent();
         mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
@@ -460,6 +464,65 @@ public class XMLDBStorage implements Storage {
         mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
         mLog.warn("This repository does not support versioning.");
         return null;
+    }
+
+    /**
+     * Executes a query.
+     *
+     * Note that this method is not part of the interface, and the repository therefore
+     * has to be explicitly casted to org.wyona.yarep.impl.repo.xmldb.XMLDBStorage.
+     *
+     * @param aPath                  the path to the collection against whose subtree the query should be evaluated, or
+     *                               null, if the root collection should be assumed
+     * @param aNamespaceMap          a mapping of namespace prefixes (key, as a String) to namespaces (value, as a String)
+     *                               as used in the aQuery parameter
+     * @param aQuery                 the XPath query (note that the namespace prefixes used have to be declared in the
+     *                               aNamespaceMap mapping
+     * @return java.util.Collection  returns a collection of org.xmldb.api.base.Resource's against which the query matched
+     * @throws RepositoryException   if an error occurred retrieving a collection or executing the query
+     */
+    public java.util.Collection executeQuery(Path aPath, Map aNamespaceMap, String aQuery) throws RepositoryException {
+        ArrayList         queryResult;
+        Collection        collection;
+        Iterator          namespaceSetIter;
+        ResourceIterator  resultSetIter;
+        Map.Entry         mapEntry;
+        ResourceSet       resultSet;
+        XPathQueryService queryService;
+
+        mLog.error("Path = \"" + aPath + "\", query = \"" + aQuery + "\".");
+
+        collection = getCollectionRelative((aPath != null ? aPath.toString() : null));
+
+        try {
+            // get the XPathQueryService
+            queryService = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+            // populate namespace map
+            namespaceSetIter = aNamespaceMap.entrySet().iterator();
+
+            while (namespaceSetIter.hasNext()) {
+                mapEntry = (Map.Entry) namespaceSetIter.next();
+                queryService.setNamespace((String) mapEntry.getKey(), (String) mapEntry.getValue());
+            }
+
+            // run query
+            resultSet = queryService.query(aQuery);
+
+            // transform result set to collection in order to return it
+            queryResult   = new ArrayList();
+            resultSetIter = resultSet.getIterator();
+
+            while (resultSetIter.hasMoreResources()) {
+                // add resource names
+                queryResult.add(resultSetIter.nextResource().getId());
+            }
+        } catch (Exception exception) {
+            mLog.error(exception);
+            throw new RepositoryException(exception.getMessage(), exception);
+        }
+
+        return queryResult;
     }
 
     /**
