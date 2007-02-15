@@ -131,7 +131,7 @@ public class DefaultMapImpl implements Map {
         log.debug("Number of children: " + filenames.length + " (" + file + ")");
         Path[] children = new Path[filenames.length];
         for (int i = 0;i < children.length; i++) {
-            if (path.toString().endsWith(File.separator)) {
+            if (path.toString().endsWith("/")) {
                 children[i] = new Path(path + filenames[i]);
             } else {
                 // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System File System path
