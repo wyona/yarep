@@ -35,27 +35,21 @@ public class DefaultProperty implements Property {
     }
     
     /**
-     * Gets the name of this property.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getName()
      */
     public String getName() throws RepositoryException {
         return this.name;
     }
     
     /**
-     * Gets the node to which this property belongs to.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getNode()
      */
     public Node getNode() throws RepositoryException {
         return this.node;
     }
     
     /**
-     * Gets the type of this property.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getType()
      */
     public int getType() throws RepositoryException {
         return this.type;
@@ -71,10 +65,7 @@ public class DefaultProperty implements Property {
     }
     
     /**
-     * Sets the value by reading it from the given string and converting it to 
-     * the correct type.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValueFromString(java.lang.String)
      */
     public void setValueFromString(String value) throws RepositoryException {
         switch (this.type) {
@@ -93,9 +84,7 @@ public class DefaultProperty implements Property {
     }
     
     /**
-     * Gets the value of this property converted to a string.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getValueAsString()
      */
     public String getValueAsString() throws RepositoryException {
         switch (this.type) {
@@ -109,106 +98,75 @@ public class DefaultProperty implements Property {
     }
     
     
-    /**
-     * Gets the length of this property if its a binary property.
-     * @return
-     * @throws RepositoryException
-     */
-    public long getLength() throws RepositoryException {
+    /*public long getLength() throws RepositoryException {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
         return -1;
-    }
+    }*/
     
     /**
-     * Gets the value of this property as a boolean.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getBoolean()
      */
     public boolean getBoolean() throws RepositoryException {
         return this.booleanValue;
     }
     
     /**
-     * Gets the value of this property as a date object.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getDate()
      */
     public Date getDate() throws RepositoryException {
         return this.dateValue;
     }
     
     /**
-     * Gets the value of this property as a double.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getDouble()
      */
     public double getDouble() throws RepositoryException {
         return this.doubleValue;
     }
     
-    /**
-     * Gets an input stream to read from this property.
-     * @return
-     * @throws RepositoryException
-     */
-    public InputStream getInputStream() throws RepositoryException {
+    /*public InputStream getInputStream() throws RepositoryException {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
         return null;
-    }
+    }*/
     
-    /**
-     * Gets an output stream to write to this property.
-     * @return
-     * @throws RepositoryException
-     */
-    public OutputStream getOutputStream() throws RepositoryException {
+    /*public OutputStream getOutputStream() throws RepositoryException {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
         return null;
-    }
+    }*/
     
-    /**
-     * Gets the value of this property as a long.
-     * @return
-     * @throws RepositoryException
+    /* (non-Javadoc)
+     * @see org.wyona.yarep.core.Property#getLong()
      */
     public long getLong() throws RepositoryException {
         return this.longValue;
     }
     
     /**
-     * Gets the value of this property as a string.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#getString()
      */
     public String getString() throws RepositoryException {
         return this.stringValue;
     }
     
     /**
-     * Sets the value of this property as a boolean.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValue(boolean)
      */
     public void setValue(boolean value) throws RepositoryException {
         this.booleanValue = value;
     }
     
     /**
-     * Sets the value of this property as a date.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValue(java.util.Date)
      */
     public void setValue(Date value) throws RepositoryException {
         this.dateValue = value;
     }
     
     /**
-     * Sets the value of this property as a double.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValue(double)
      */
     public void setValue(double value) throws RepositoryException {
         this.doubleValue = value;
@@ -217,18 +175,14 @@ public class DefaultProperty implements Property {
     //public void setValue(InputStream value) throws RepositoryException;
     
     /**
-     * Sets the value of this property as a long.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValue(long)
      */
     public void setValue(long value) throws RepositoryException {
         this.longValue = value;
     }
     
     /**
-     * Sets the value of this property as a string.
-     * @param value
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Property#setValue(java.lang.String)
      */
     public void setValue(String value) throws RepositoryException {
         this.stringValue = value;

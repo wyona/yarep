@@ -51,9 +51,7 @@ public class DummyNode extends AbstractNode {
     
     
     /**
-     * Gets all child nodes.
-     * @return child nodes or empty array if there are no child nodes.
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
         
@@ -66,10 +64,7 @@ public class DummyNode extends AbstractNode {
     }
     
     /**
-     * Creates a new node and adds it as a child to this node.
-     * @param name of the child node 
-     * @return the new child node
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#addNode(java.lang.String, int)
      */
     public Node addNode(String name, int type) throws RepositoryException {
         String newPath = getPath() + "/" + name;
@@ -82,35 +77,29 @@ public class DummyNode extends AbstractNode {
         return new DummyNode((DefaultRepository)this.repository, newPath, uid.toString());
     }
     
+    /**
+     * @see org.wyona.yarep.core.Node#setProperty(org.wyona.yarep.core.Property)
+     */
     public void setProperty(Property property) throws RepositoryException {
         this.properties.put(property.getName(), property);
     }
 
     /**
-     * Gets an input stream of the binary default property.
-     * Useful only for nodes of type resource.
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getInputStream()
      */
     public InputStream getInputStream() throws RepositoryException {
         return this.repository.getInputStream(new Path(this.path));
     }
     
     /**
-     * Gets an output stream of the binary default property.
-     * Useful only for nodes of type resource.
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getOutputStream()
      */
     public OutputStream getOutputStream() throws RepositoryException {
         return this.repository.getOutputStream(new Path(this.path));
     }
     
     /**
-     * Checks in this node and creates a new revision.
-     * @return
-     * @throws NodeStateException if node is not in checked out state
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#checkin()
      */
     public Revision checkin() throws NodeStateException, RepositoryException {
         // TODO: not implemented yet
@@ -128,9 +117,7 @@ public class DummyNode extends AbstractNode {
     }
 
     /**
-     * Checks out this node.
-     * @throws NodeStateException if node is checked out by a different user
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
         // TODO: not implemented yet
@@ -138,10 +125,7 @@ public class DummyNode extends AbstractNode {
     }
     
     /**
-     * Restores the revision with the given name.
-     * @param revisionName
-     * @throws NoSuchRevisionException if the revision does not exist
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#restore(java.lang.String)
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
         // TODO: not implemented yet

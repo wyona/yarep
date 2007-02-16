@@ -7,13 +7,13 @@ import java.util.Date;
 /**
  * This class represents a repository node.
  * A repository node may be either a collection ("directory") or a resource ("file").
- * If it is a resource, it has a binary default property, which may be accessed by using 
- * getInputStream() and getOutputStream().
+ * If it is a resource, it has an associated data content, which may be accessed by using 
+ * getInputStream()/getOutputStream().
  */
 public interface Node {
 
     /**
-     * Gets the name of this node, i.e. the last part of the path.
+     * Gets the name of this node, which is the last part of the path.
      * @return name
      * @throws RepositoryException repository error
      */
@@ -50,6 +50,7 @@ public interface Node {
      * Gets the type of this node (collection or resource).
      * @return type
      * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.NodeType
      */
     public int getType() throws RepositoryException;
     
@@ -68,42 +69,42 @@ public interface Node {
     public boolean isCollection() throws RepositoryException;
     
     /**
-     * Creates a new node and adds it as a child to this node.
+     * Creates a new node and adds it as a direct child to this node.
      * @param name name of the child node
-     * @parem type node type of the child node
+     * @param type node type of the child node
      * @return the new child node
-     * @throws RepositoryException repository error
+     * @throws RepositoryException if this node is not a collection or if a repository error occurs
      */
     public Node addNode(String name, int type) throws RepositoryException;
     
     /**
      * Gets the child node with the given name. Must be a direct child.
-     * @param name
-     * @return
+     * @param name name of the child node
+     * @return child node
      * @throws NoSuchNodeException if no child node with this name exists.
-     * @throws RepositoryException repository error
+     * @throws RepositoryException if node is not a collection or if a repository error occurs
      */
     public Node getNode(String name) throws NoSuchNodeException, RepositoryException;
     
     /**
      * Gets all child nodes.
      * @return child nodes or empty array if there are no child nodes.
-     * @throws RepositoryException repository error
+     * @throws RepositoryException if node is not a collection or if a repository error occurs
      */
     public Node[] getNodes() throws RepositoryException;
     
     /**
-     * Indicates whether this node has a child node with the given name.
+     * Indicates whether this node has a direct child node with the given name.
      * @param name
-     * @return
-     * @throws RepositoryException repository error
+     * @return true if child node exists with the given id, false otherwise
+     * @throws RepositoryException if node is not a collection or if a repository error occurs
      */
     public boolean hasNode(String name) throws RepositoryException;
     
     /**
      * Gets the property with the given name.
      * @param name
-     * @return
+     * @return property
      * @throws NoSuchPropertyException if the property does not exist.
      * @throws RepositoryException other error
      */
@@ -111,7 +112,7 @@ public interface Node {
     
     /**
      * Get all properties of this node
-     * @return properties of this node or empty array if there are no properties.
+     * @return array of properties of this node or empty array if there are no properties.
      * @throws RepositoryException other error
      */
     public Property[] getProperties() throws RepositoryException;
@@ -119,7 +120,7 @@ public interface Node {
     /**
      * Indicates whether this node has a property with the given name.
      * @param name
-     * @return
+     * @return true if a property exists with the given name, false otherwise
      * @throws RepositoryException repository error
      */
     public boolean hasProperty(String name) throws RepositoryException;
@@ -130,7 +131,7 @@ public interface Node {
      * Sets a property of type boolean or creates it if it does not exist yet.
      * @param name
      * @param value
-     * @return
+     * @return the set property
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, boolean value) throws RepositoryException;
@@ -139,7 +140,7 @@ public interface Node {
      * Sets a property of type date or creates it if it does not exist yet.
      * @param name
      * @param value
-     * @return
+     * @return the set property
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, Date value) throws RepositoryException;
@@ -148,7 +149,7 @@ public interface Node {
      * Sets a property of type double or creates it if it does not exist yet.
      * @param name
      * @param value
-     * @return
+     * @return the set property
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, double value) throws RepositoryException;
@@ -159,7 +160,7 @@ public interface Node {
      * Sets a property of type long or creates it if it does not exist yet.
      * @param name
      * @param value
-     * @return
+     * @return the set property
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, long value) throws RepositoryException;
@@ -168,7 +169,7 @@ public interface Node {
      * Sets a property of type string or creates it if it does not exist yet.
      * @param name
      * @param value
-     * @return
+     * @return the set property
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, String value) throws RepositoryException;
@@ -183,9 +184,9 @@ public interface Node {
     //public Property getDefaultProperty() throws RepositoryException;
     
     /**
-     * Gets an input stream of the binary default property.
+     * Gets an input stream of the binary data content of this node.
      * Useful only for nodes of type resource.
-     * @return
+     * @return input stream
      * @throws RepositoryException repository error
      */
     public InputStream getInputStream() throws RepositoryException;
@@ -193,16 +194,16 @@ public interface Node {
     //public void setInputStream(InputStream inputStream) throws RepositoryException;
     
     /**
-     * Gets an output stream of the binary default property.
+     * Gets an output stream of the binary data content of this node.
      * Useful only for nodes of type resource.
-     * @return
+     * @return output stream
      * @throws RepositoryException repository error
      */
     public OutputStream getOutputStream() throws RepositoryException;
     
     /**
      * Puts this node into checked-in state and creates a new revision.
-     * @return
+     * @return the new revision
      * @throws NodeStateException if node is not in checked out state
      * @throws RepositoryException repository error
      */
@@ -211,7 +212,7 @@ public interface Node {
     /**
      * Puts this node into checked-in state and creates a new revision.
      * @param comment a comment to add to the new revision.
-     * @return
+     * @return the new revision
      * @throws NodeStateException if node is not in checked out state
      * @throws RepositoryException repository error
      */
@@ -226,14 +227,14 @@ public interface Node {
     
     /**
      * Indicates whether this node is checked out.
-     * @return
+     * @return true if checked out, false otherwise
      * @throws RepositoryException repository error
      */
     public boolean isCheckedOut() throws RepositoryException;
     
     /**
      * Gets the userID which was supplied when calling checkout(userID).
-     * @return
+     * @return userID
      * @throws NodeStateException if node is not checked out.
      * @throws RepositoryException
      */
@@ -241,7 +242,7 @@ public interface Node {
     
     /**
      * Gets the date when this node was checked out.
-     * @return
+     * @return checkout date
      * @throws NodeStateException if node is not checked out.
      * @throws RepositoryException
      */
@@ -250,7 +251,7 @@ public interface Node {
     /**
      * Gets all revisions of this node.
      * Oldest revision at the first array position, newest at the last position.
-     * @return 
+     * @return array of revisions, or empty array if there are no revisions
      * @throws RepositoryException
      */
     public Revision[] getRevisions() throws RepositoryException;
@@ -258,7 +259,7 @@ public interface Node {
     /**
      * Gets the revision with the given name.
      * @param revisionName
-     * @return
+     * @return revision
      * @throws NoSuchRevisionException if the revision does not exist
      * @throws RepositoryException
      */
@@ -268,7 +269,7 @@ public interface Node {
      * Gets the revision with the given tag.
      * If multiple revisions have the same tag, the oldest one will be returned.
      * @param tag
-     * @return 
+     * @return revision
      * @throws NoSuchRevisionException if the revision does not exist
      * @throws RepositoryException
      */
@@ -278,7 +279,7 @@ public interface Node {
      * Indicates whether this node has a revision with the given tag.
      * If multiple revisions have the same tag, the oldest one will be returned.
      * @param tag
-     * @return
+     * @return true if a revision with the given tag exists, false otherwise
      * @throws RepositoryException
      */
     public boolean hasRevisionWithTag(String tag) throws RepositoryException;
@@ -292,43 +293,43 @@ public interface Node {
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException;
     
     /**
-     * Gets the last modified date in ms of this node.
+     * Gets the last modified date of this node in ms.
      * Changing a property should update the last modified date.
-     * @return
+     * @return last modified date in ms
      * @throws RepositoryException
      */
     public long getLastModified() throws RepositoryException;
     
     /**
-     * Gets the size of the default property if this node is of type resource.
-     * @return
+     * Gets the size of the data content of this node if this node is of type resource.
+     * @return size in bytes
      * @throws RepositoryException
      */
     public long getSize() throws RepositoryException;
     
     /**
-     * Gets the mimetype of the default property of this node if this node is of type resource.
-     * @return
+     * Gets the mimetype of the data content of this node if this node is of type resource.
+     * @return mimetype
      * @throws RepositoryException
      */
     public String getMimeType() throws RepositoryException;
     
     /**
-     * Sets the mimetype of the default property of this node if this node is of type resource.
+     * Sets the mimetype of the data content of this node if this node is of type resource.
      * @param mimeType
      * @throws RepositoryException
      */
     public void setMimeType(String mimeType) throws RepositoryException;
     
     /**
-     * Gets the encoding of the default property of this node if this node is of type resource.
-     * @return
+     * Gets the encoding of the data content of this node if this node is of type resource.
+     * @return encoding
      * @throws RepositoryException
      */
     public String getEncoding() throws RepositoryException;
     
     /**
-     * Sets the encoding of the default property of this node if this node is of type resource.
+     * Sets the encoding of the data content of this node if this node is of type resource.
      * @param encoding
      * @throws RepositoryException
      */

@@ -54,29 +54,21 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
     }
     
     /**
-     * Creates a new node and adds it as a child to this node.
-     * @param name of the child node 
-     * @return the new child node
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.impl.repo.fs.FileSystemNode#addNode(java.lang.String, int)
      */
     public Node addNode(String name, int type) throws RepositoryException {
         throw new RepositoryException("cannot call this method on a revision");
     }
     
     /**
-     * Checks in this node and creates a new revision.
-     * @return
-     * @throws NodeStateException if node is not in checked out state
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.impl.repo.fs.FileSystemNode#checkin()
      */
     public Revision checkin() throws NodeStateException, RepositoryException {
         throw new RepositoryException("cannot call this method on a revision");
     }
     
     /**
-     * Checks out this node.
-     * @throws NodeStateException if node is checked out by a different user
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.impl.repo.fs.FileSystemNode#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
         throw new RepositoryException("cannot call this method on a revision");
@@ -87,51 +79,84 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
     }
     
     /**
-     * Restores the revision with the given name.
-     * @param revisionName
-     * @throws NoSuchRevisionException if the revision does not exist
-     * @throws RepositoryException
+     * @see org.wyona.yarep.impl.repo.fs.FileSystemNode#restore(java.lang.String)
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
         throw new RepositoryException("cannot call this method on a revision");
     }
     
+    /**
+     * @see org.wyona.yarep.core.Revision#getCreationDate()
+     */
     public Date getCreationDate() throws RepositoryException {
         return getProperty(PROPERTY_REVISION_CREATION_DATE).getDate();
     }
 
+    /**
+     * Sets the creation date of this revision.
+     * @param date
+     * @throws RepositoryException
+     */
     public void setCreationDate(Date date) throws RepositoryException {
         setProperty(PROPERTY_REVISION_CREATION_DATE, date);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Revision#getCreator()
+     */
     public String getCreator() throws RepositoryException {
         return getProperty(PROPERTY_REVISION_CREATOR).getString();
     }
 
+    /**
+     * Sets the creator of this revision.
+     * @param creator user id
+     * @throws RepositoryException
+     */
     public void setCreator(String creator) throws RepositoryException {
         setProperty(PROPERTY_REVISION_CREATOR, creator);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Revision#getComment()
+     */
     public String getComment() throws RepositoryException {
         return getProperty(PROPERTY_REVISION_COMMENT).getString();
     }
 
+    /**
+     * Sets the comment about this revision.
+     * @param comment
+     * @throws RepositoryException
+     */
     public void setComment(String comment) throws RepositoryException {
         setProperty(PROPERTY_REVISION_COMMENT, comment);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Revision#getTag()
+     */
     public String getTag() throws RepositoryException {
         return getProperty(PROPERTY_REVISION_TAG).getString();
     }
 
+    /**
+     * @see org.wyona.yarep.core.Revision#setTag(java.lang.String)
+     */
     public void setTag(String tag) throws RepositoryException {
         setProperty(PROPERTY_REVISION_TAG, tag);
     }    
        
+    /**
+     * @see org.wyona.yarep.core.Revision#hasTag()
+     */
     public boolean hasTag() throws RepositoryException {
         return hasProperty(PROPERTY_REVISION_TAG);
     }    
        
+    /**
+     * @see org.wyona.yarep.core.Revision#getRevisionName()
+     */
     public String getRevisionName() throws RepositoryException {
         return this.revisionName;
     }

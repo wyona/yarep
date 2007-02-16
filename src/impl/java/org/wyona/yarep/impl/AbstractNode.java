@@ -23,9 +23,6 @@ import org.wyona.yarep.core.Revision;
 /**
  * This class represents a repository node and implements some basic functionality which may be 
  * shared among different implementations.
- * A repository node may be either a collection ("directory") or a resource ("file").
- * If it is a resource, it has a binary default property, which may be accessed by using 
- * getInputStream() and getOutputStream().
  */
 public abstract class AbstractNode implements Node {
     private static Category log = Category.getInstance(AbstractNode.class);
@@ -61,18 +58,14 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the name of this node, i.e. the last part of the path.
-     * @return name
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getName()
      */
     public String getName() throws RepositoryException {
         return this.name;
     }
     
     /**
-     * Gets the parent node of this node.
-     * @return parent node or null if this is the root node
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getParent()
      */
     public Node getParent() throws RepositoryException {
         if (getPath().equals("") || getPath().equals("/")) return null;
@@ -81,8 +74,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Removes this node and all subnodes.
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#remove()
      */
     public void remove() throws RepositoryException {
         // TODO: not implemented yet
@@ -90,45 +82,35 @@ public abstract class AbstractNode implements Node {
     }
 
     /**
-     * Gets the complete repository path of this node.
-     * @return path
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getPath()
      */
     public String getPath() throws RepositoryException {
         return this.path;
     }
     
     /**
-     * Gets the UUID of this node.
-     * @return uuid
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getUUID()
      */
     public String getUUID() throws RepositoryException {
         return this.uuid;
     }
     
     /**
-     * Gets the type of this node (collection or resource).
-     * @return type
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getType()
      */
     public int getType() throws RepositoryException {
         return NodeType.getType(getProperty(PROPERTY_TYPE).getString());
     }
     
     /**
-     * Indicates whether this node is of type "resource".
-     * @return true if type is resource
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#isResource()
      */
     public boolean isResource() throws RepositoryException {
         return getType() == NodeType.RESOURCE; 
     }
     
     /**
-     * Indicates whether this node is of type "collection".
-     * @return true if type is collection
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#isCollection()
      */
     public boolean isCollection() throws RepositoryException {
         log.error("DEBUG: Node Type: " + getType() + ", " + getPath());
@@ -136,11 +118,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the child node with the given name. Must be a direct child.
-     * @param name
-     * @return
-     * @throws NoSuchNodeException if no child node with this name exists.
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getNode(java.lang.String)
      */
     public Node getNode(String name) throws NoSuchNodeException, RepositoryException {
         String childPath = getPath() + "/" + name;
@@ -148,10 +126,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Indicates whether this node has a child node with the given name.
-     * @param name
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#hasNode(java.lang.String)
      */
     public boolean hasNode(String name) throws RepositoryException {
         String childPath = getPath() + "/" + name;
@@ -159,11 +134,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the property with the given name.
-     * @param name
-     * @return
-     * @throws NoSuchPropertyException if the property does not exist.
-     * @throws RepositoryException other error
+     * @see org.wyona.yarep.core.Node#getProperty(java.lang.String)
      */
     public Property getProperty(String name) throws NoSuchPropertyException, RepositoryException {
         Property property = (Property)this.properties.get(name);
@@ -173,19 +144,14 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Get all properties of this node
-     * @return properties of this node or empty array if there are no properties.
-     * @throws RepositoryException other error
+     * @see org.wyona.yarep.core.Node#getProperties()
      */
     public Property[] getProperties() throws RepositoryException {
         return (Property[])this.properties.values().toArray(new Property[this.properties.size()]);
     }
     
     /**
-     * Indicates whether this node has a property with the given name.
-     * @param name
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#hasProperty(java.lang.String)
      */
     public boolean hasProperty(String name) throws RepositoryException {
         return this.properties.containsKey(name);
@@ -194,11 +160,7 @@ public abstract class AbstractNode implements Node {
     //public boolean hasProperties() throws RepositoryException;
     
     /**
-     * Sets a property of type boolean or creates it if it does not exist yet.
-     * @param name
-     * @param value
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, boolean)
      */
     public Property setProperty(String name, boolean value) throws RepositoryException {
         Property property = new DefaultProperty(name, PropertyType.BOOLEAN, this);
@@ -208,11 +170,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Sets a property of type date or creates it if it does not exist yet.
-     * @param name
-     * @param value
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, java.util.Date)
      */
     public Property setProperty(String name, Date value) throws RepositoryException {
         Property property = new DefaultProperty(name, PropertyType.DATE, this);
@@ -222,11 +180,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Sets a property of type double or creates it if it does not exist yet.
-     * @param name
-     * @param value
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, double)
      */
     public Property setProperty(String name, double value) throws RepositoryException {
         Property property = new DefaultProperty(name, PropertyType.DOUBLE, this);
@@ -238,11 +192,7 @@ public abstract class AbstractNode implements Node {
     //public Property setProperty(String name, InputStream value) throws RepositoryException;
     
     /**
-     * Sets a property of type long or creates it if it does not exist yet.
-     * @param name
-     * @param value
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, long)
      */
     public Property setProperty(String name, long value) throws RepositoryException {
         Property property = new DefaultProperty(name, PropertyType.LONG, this);
@@ -252,11 +202,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Sets a property of type string or creates it if it does not exist yet.
-     * @param name
-     * @param value
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, java.lang.String)
      */
     public Property setProperty(String name, String value) throws RepositoryException {
         Property property = new DefaultProperty(name, PropertyType.STRING, this);
@@ -267,9 +213,7 @@ public abstract class AbstractNode implements Node {
     
     
     /**
-     * Indicates whether this node is checked out.
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#isCheckedOut()
      */
     public boolean isCheckedOut() throws RepositoryException {
         if (!hasProperty(PROPERTY_IS_CHECKED_OUT)) {
@@ -279,10 +223,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the userID which was supplied when calling checkout(userID).
-     * @return
-     * @throws NodeStateException if node is not checked out.
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getCheckoutUserID()
      */
     public String getCheckoutUserID() throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
@@ -292,10 +233,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the userID which was supplied when calling checkout(userID).
-     * @return
-     * @throws NodeStateException if node is not checked out.
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getCheckoutDate()
      */
     public Date getCheckoutDate() throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
@@ -305,9 +243,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets all revisions of this node.
-     * @return 
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getRevisions()
      */
     public Revision[] getRevisions() throws RepositoryException {
         Collection values =  this.revisions.values();
@@ -315,11 +251,7 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the revision with the given name.
-     * @param revisionName
-     * @return
-     * @throws NoSuchRevisionException if the revision does not exist
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getRevision(java.lang.String)
      */
     public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException {
         if (!this.revisions.containsKey(revisionName)) {
@@ -361,55 +293,42 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * Gets the last modified date in ms of this node.
-     * Changing a property should update the last modified date.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getLastModified()
      */
     public long getLastModified() throws RepositoryException {
         return getProperty(PROPERTY_LAST_MODIFIED).getLong();
     }
     
     /**
-     * Gets the size of the default property if this node is of type resource.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getSize()
      */
     public long getSize() throws RepositoryException {
         return getProperty(PROPERTY_SIZE).getLong();
     }
     
     /**
-     * Gets the mimetype of the default property of this node if this node is of type resource.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getMimeType()
      */
     public String getMimeType() throws RepositoryException {
         return getProperty(PROPERTY_MIME_TYPE).getString();
     }
     
     /**
-     * Sets the mimetype of the default property of this node if this node is of type resource.
-     * @param mimeType
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#setMimeType(java.lang.String)
      */
     public void setMimeType(String mimeType) throws RepositoryException {
         setProperty(PROPERTY_MIME_TYPE, mimeType);
     }
     
     /**
-     * Gets the encoding of the default property of this node if this node is of type resource.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#getEncoding()
      */
     public String getEncoding() throws RepositoryException {
         return getProperty(PROPERTY_ENCODING).getString();
     }
     
     /**
-     * Sets the encoding of the default property of this node if this node is of type resource.
-     * @param encoding
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#setEncoding(java.lang.String)
      */
     public void setEncoding(String encoding) throws RepositoryException {
         setProperty(PROPERTY_ENCODING, encoding);

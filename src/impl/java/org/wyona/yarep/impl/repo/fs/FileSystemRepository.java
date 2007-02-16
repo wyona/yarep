@@ -25,6 +25,15 @@ import org.wyona.yarep.core.UID;
 
 /**
  * Node based file system repository.
+ * A node of type resource is stored as a file.
+ * A node of type collection is stored as a directory.
+ * Each resource has a myresource.yarep directory which contains:
+ * <ul>
+ * <li>A meta file containing the properties</li>
+ * <li>A revisions directory containing the revisions</li>
+ * </ul>
+ * This directory and the meta file will be created automatically when a node is
+ * accessed which does not have such a .yarep directory yet.
  */
 public class FileSystemRepository implements Repository {
 
@@ -225,11 +234,17 @@ public class FileSystemRepository implements Repository {
     
     protected File contentDir;
     
+    /**
+     * @see org.wyona.yarep.core.Repository#copy(java.lang.String, java.lang.String)
+     */
     public void copy(String srcPath, String destPath) throws RepositoryException {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#existsNode(java.lang.String)
+     */
     public boolean existsNode(String path) throws RepositoryException {
         // strip trailing slash:
         if (path.length() > 1 && path.endsWith("/")) {
@@ -247,6 +262,9 @@ public class FileSystemRepository implements Repository {
         //return map.exists(new Path(path));
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#getNode(java.lang.String)
+     */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
         // strip trailing slash:
         if (path.length() > 1 && path.endsWith("/")) {
@@ -269,6 +287,9 @@ public class FileSystemRepository implements Repository {
         return new FileSystemNode(this, path, uuid);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#getNodeByUUID(java.lang.String)
+     */
     public Node getNodeByUUID(String uuid) throws NoSuchNodeException, RepositoryException {
         //String path = map.getPath(uuid);
         //return new FileSystemNode(this, path, uuid);
@@ -277,10 +298,16 @@ public class FileSystemRepository implements Repository {
         return null;
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#getRootNode()
+     */
     public Node getRootNode() throws RepositoryException {
         return getNode("/");
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#move(java.lang.String, java.lang.String)
+     */
     public void move(String srcPath, String destPath) throws RepositoryException {
         //map.move(srcPath, destPath);
         // TODO: not implemented yet

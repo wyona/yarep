@@ -7,7 +7,33 @@ import java.io.Reader;
 import java.io.Writer;
 
 /**
- *
+ * The repository interface has two sets of methods for historical reasons:
+ * <ul>
+ * <li>path based like repo.getInputStream(Path path)</li>
+ * <li>node based like repo.getNode(String patHh).getInputStream()</li>
+ * </ul>
+ * The path based methods are deprecated, please use the node based methods instead.
+ * <br/><br/>
+ * The node based repository is composed of a hierarchy of nodes and properties 
+ * with the following characteristics:
+ * <ul> 
+ * <li>A node has a path and a uuid (universally unique identifier).
+ *     Either the path or the uuid may be used to identify a node.
+ *     The uuid is immutable, but the path may change when a node is moved around.
+ * </li>
+ * <li>A node has a type, either collection or resource.</li>
+ * <li>A node of type 'collection' may have subnodes, but has no content.</li>
+ * <li>A node of type 'resource' may not have subnodes, but has content.</li>
+ * <li>A node of either type may have properties</li>
+ * <ul>
+ * <li>A property of a node is identified by a name</li>
+ * <li>A property of a node contains a value of a certain type 
+ *     (string, boolean, date, long, double)</li>
+ * <li>Binary properties are currently not supported yet.</li>
+ * </ul>
+ * <li>TODO: explain checkin/checkout</li>
+ * <li>TODO: explain versioning</li>
+ * </ul>
  */
 public interface Repository {
 
@@ -146,7 +172,7 @@ public interface Repository {
     /**
      * Gets the node with the given path.
      * @param path absolute path
-     * @return
+     * @return node
      * @throws NoSuchNodeException if node does not exist
      * @throws RepositoryException other error
      */
@@ -155,7 +181,7 @@ public interface Repository {
     /**
      * Gets the node with the given uuid.
      * @param uuid
-     * @return
+     * @return node
      * @throws NoSuchNodeException if node does not exist
      * @throws RepositoryException other error
      */

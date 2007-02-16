@@ -35,8 +35,6 @@ import org.wyona.yarep.impl.DefaultProperty;
 /**
  * This class represents a repository node.
  * A repository node may be either a collection ("directory") or a resource ("file").
- * If it is a resource, it has a binary default property, which may be accessed by using 
- * getInputStream() and getOutputStream().
  */
 public class FileSystemNode extends AbstractNode {
     private static Category log = Category.getInstance(FileSystemNode.class);
@@ -168,9 +166,7 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Gets all child nodes.
-     * @return child nodes or empty array if there are no child nodes.
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
         Path[] childPaths = ((FileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
@@ -183,10 +179,7 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Creates a new node and adds it as a child to this node.
-     * @param name of the child node 
-     * @return the new child node
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#addNode(java.lang.String, int)
      */
     public Node addNode(String name, int type) throws RepositoryException {
         String newPath = getPath() + "/" + name;
@@ -211,16 +204,16 @@ public class FileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * @see org.wyona.yarep.core.Node#setProperty(org.wyona.yarep.core.Property)
+     */
     public void setProperty(Property property) throws RepositoryException {
         this.properties.put(property.getName(), property);
         saveProperties();
     }
 
     /**
-     * Gets an input stream of the binary default property.
-     * Useful only for nodes of type resource.
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getInputStream()
      */
     public InputStream getInputStream() throws RepositoryException {
         try {
@@ -232,10 +225,7 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Gets an output stream of the binary default property.
-     * Useful only for nodes of type resource.
-     * @return
-     * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#getOutputStream()
      */
     public OutputStream getOutputStream() throws RepositoryException {
         try {
@@ -330,10 +320,7 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Restores the revision with the given name.
-     * @param revisionName
-     * @throws NoSuchRevisionException if the revision does not exist
-     * @throws RepositoryException
+     * @see org.wyona.yarep.core.Node#restore(java.lang.String)
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
         try {
@@ -364,20 +351,16 @@ public class FileSystemNode extends AbstractNode {
     }
     
     /**
-     * Gets the last modified date in ms of this node.
      * Changing a property should update the last modified date.
-     * This implementation does not change the last modified date if a property changes.
-     * @return
-     * @throws RepositoryException
+     * FIXME: This implementation does not change the last modified date if a property changes.
+     * @see org.wyona.yarep.impl.AbstractNode#getLastModified()
      */
     public long getLastModified() throws RepositoryException {
         return this.contentFile.lastModified();
     }
     
     /**
-     * Gets the size of the default property if this node is of type resource.
-     * @return
-     * @throws RepositoryException
+     * @see org.wyona.yarep.impl.AbstractNode#getSize()
      */
     public long getSize() throws RepositoryException {
         return this.contentFile.length();
