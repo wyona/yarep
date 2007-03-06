@@ -96,8 +96,11 @@ public class VFileSystemMapImpl implements Map {
      *
      */
     public boolean delete(Path path) throws RepositoryException {
-        File file = new File(pathsDir + path.toString());
-        return file.delete();
+        // don't do anything because if we delete the file here, the delete
+        // in the storage will fail later
+        //File file = new File(pathsDir + path.toString());
+        //return file.delete();
+        return true;
     }
 
     /**
