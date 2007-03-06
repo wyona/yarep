@@ -370,5 +370,27 @@ public class FileSystemNode extends AbstractNode {
     protected FileSystemRepository getRepository() {
         return (FileSystemRepository)this.repository;
     }
+
+    /**
+     * @see org.wyona.yarep.core.Node#delete()
+     */
+    public void delete() throws RepositoryException {
+        deleteRec(this);
+    }
+       
+    protected void deleteRec(Node node) throws RepositoryException {
+        Node[] children = node.getNodes();
+        for (int i=0; i<children.length; i++) {
+            deleteRec(children[i]);
+        }
+        boolean success = ((FileSystemRepository)this.repository).getMap().delete(new Path(getPath()));
+        try {
+            FileUtils.deleteDirectory(this.contentFile);
+            FileUtils.deleteDirectory(this.metaDir);
+        } catch (IOException e) {
+            throw new RepositoryException("Could not delete node: " + node.getPath() + ": " + 
+                    e.toString(), e);
+        }
+    }
        
 }

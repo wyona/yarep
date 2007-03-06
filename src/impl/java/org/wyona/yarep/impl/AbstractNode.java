@@ -74,14 +74,6 @@ public abstract class AbstractNode implements Node {
     }
     
     /**
-     * @see org.wyona.yarep.core.Node#remove()
-     */
-    public void remove() throws RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
-    }
-
-    /**
      * @see org.wyona.yarep.core.Node#getPath()
      */
     public String getPath() throws RepositoryException {

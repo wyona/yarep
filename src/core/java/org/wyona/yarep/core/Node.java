@@ -2,13 +2,19 @@ package org.wyona.yarep.core;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Date;
 
 /**
  * This class represents a repository node.
  * A repository node may be either a collection ("directory") or a resource ("file").
  * If it is a resource, it has an associated data content, which may be accessed by using 
- * getInputStream()/getOutputStream().
+ * getInputStream()/getOutputStream() or getReader()/getWriter().
+ * To store textual data, the reader/writer methods should be used instead of the stream
+ * methods to allow the implementation to handle textual data differently from binary data.
+ * 
+ * @see org.wyona.yarep.core.Repository
  */
 public interface Node {
 
@@ -27,10 +33,11 @@ public interface Node {
     public Node getParent() throws RepositoryException;
     
     /**
-     * Removes this node and all subnodes.
-     * @throws RepositoryException repository error
+     * Deletes this node and all subnodes.
+     * The root node cannot be deleted.
+     * @throws RepositoryException if this node is the root node or if a repository error occurs.
      */
-    public void remove() throws RepositoryException;
+    public void delete() throws RepositoryException;
     
     /**
      * Gets the complete repository path of this node.
@@ -69,6 +76,14 @@ public interface Node {
     public boolean isCollection() throws RepositoryException;
     
     /**
+     * Indicates whether the content of this node is binary or textual.
+     * Useful only if this node is a resource.
+     * @return true if the content of this node is binary
+     * @throws RepositoryException repository error
+     */
+    //public boolean isBinary() throws RepositoryException;
+    
+    /**
      * Creates a new node and adds it as a direct child to this node.
      * @param name name of the child node
      * @param type node type of the child node
@@ -76,7 +91,7 @@ public interface Node {
      * @throws RepositoryException if this node is not a collection or if a repository error occurs
      */
     public Node addNode(String name, int type) throws RepositoryException;
-    
+
     /**
      * Gets the child node with the given name. Must be a direct child.
      * @param name name of the child node
@@ -196,10 +211,32 @@ public interface Node {
     /**
      * Gets an output stream of the binary data content of this node.
      * Useful only for nodes of type resource.
+     * Don't forget to close the stream because some implementations may
+     * require that.
      * @return output stream
      * @throws RepositoryException repository error
      */
     public OutputStream getOutputStream() throws RepositoryException;
+    
+    /**
+     * Gets a reader of the data content of this node. Use this method if the
+     * node contains character data.
+     * Useful only for nodes of type resource.
+     * @return reader
+     * @throws RepositoryException repository error
+     */
+    //public Reader getReader() throws RepositoryException;
+    
+    /**
+     * Gets a writer of the data content of this node. Use this method if the
+     * node contains character data.
+     * Useful only for nodes of type resource.
+     * Don't forget to close the writer because some implementations may
+     * require that.
+     * @return writer
+     * @throws RepositoryException repository error
+     */
+    //public Writer getWriter() throws RepositoryException;
     
     /**
      * Puts this node into checked-in state and creates a new revision.

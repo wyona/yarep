@@ -34,6 +34,9 @@ import java.io.Writer;
  * <li>TODO: explain checkin/checkout</li>
  * <li>TODO: explain versioning</li>
  * </ul>
+ * @see org.wyona.yarep.core.Node
+ * @see org.wyona.yarep.core.Property
+ * @see org.wyona.yarep.core.Revision
  */
 public interface Repository {
 

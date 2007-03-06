@@ -143,7 +143,7 @@ public class FileSystemRepository implements Repository {
     }
 
     public boolean delete(Path path) throws RepositoryException {
-        getNode(path.toString()).remove();
+        getNode(path.toString()).delete();
         return true;
     }
 

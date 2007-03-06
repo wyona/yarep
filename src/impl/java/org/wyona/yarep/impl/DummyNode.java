@@ -131,6 +131,24 @@ public class DummyNode extends AbstractNode {
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
     }
+
+    /**
+     * @see org.wyona.yarep.core.Node#delete()
+     */
+    public void delete() throws RepositoryException {
+        deleteRec(this);
+        
+    }
     
+    protected void deleteRec(Node node) throws RepositoryException {
+        Node[] children = node.getNodes();
+        for (int i=0; i<children.length; i++) {
+            deleteRec(children[i]);
+        }
+        boolean success = this.repository.delete(new Path(this.path));
+        if (!success) {
+            throw new RepositoryException("Could not delete path: " + this.path);
+        }
+    }
        
 }
