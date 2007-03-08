@@ -44,11 +44,13 @@ public class DefaultMapImpl implements Map {
             if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
             
             Configuration[] ignoreElements = mapConfig.getChildren("ignore");
-            ignorePatterns = new Pattern[ignoreElements.length];
+            ignorePatterns = new Pattern[ignoreElements.length + 1];
+            // always ignore uid files:
+            ignorePatterns[0] = Pattern.compile(".*\\.yarep-uid");
             for (int i=0; i<ignoreElements.length; i++) {
                 String patternString = ignoreElements[i].getAttribute("pattern");
-                ignorePatterns[i] = Pattern.compile(patternString);
-                log.debug("adding ignore pattern: " + ignorePatterns[i].pattern());
+                ignorePatterns[i+1] = Pattern.compile(patternString);
+                log.debug("adding ignore pattern: " + ignorePatterns[i+1].pattern());
             }
             
         } catch(Exception e) {
@@ -103,6 +105,7 @@ public class DefaultMapImpl implements Map {
         if (uidFile.isFile()) uidFile.delete();
 */
         File file = new File(pathsDir + path.toString());
+        log.debug("delete from map: " + file);
         return org.wyona.commons.io.FileUtil.deleteDirectory(file);
     }
 
