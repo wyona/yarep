@@ -239,7 +239,15 @@ public class DefaultRepository  implements Repository {
                 return false;
             }
         }
-        return map.delete(path) && storage.delete(uid, path);
+        boolean deletedMap = map.delete(path);
+        if (!deletedMap) {
+            log.error("could not delete from map: " + path);
+        }
+        boolean deletedStorage = storage.delete(uid, path);
+        if (!deletedStorage) {
+            log.error("could not delete from storage: " + path);
+        }
+        return deletedMap && deletedStorage;
     }
 
     /**
