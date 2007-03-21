@@ -38,7 +38,7 @@ public class VFileSystemRepositoryReader extends Reader {
      *
      */
     public int read(char cbuf[], int off, int len) throws IOException {
-        log.debug("READ");
+        //log.debug("READ");
         return reader.read(cbuf, off, len);
     }
 

@@ -43,7 +43,7 @@ public class FileSystemRepositoryInputStream extends InputStream {
      *
      */
     public int read() throws IOException {
-        log.debug("READ");
+        //log.debug("READ");
         return in.read();
     }
 
