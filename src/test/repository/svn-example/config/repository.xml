@@ -7,8 +7,10 @@
   <!-- <paths src="../paths/paths.xml" class="org.wyona.yarep.impl.XMLFileMap"/> -->
   <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="../content"/>
 
+  <!-- Set svnkit.upgradeWC="false" when using SVN 1.3 resp. see https://wiki.svnkit.com/SVNKit_FAQ -->
   <storage class="org.wyona.yarep.core.impl.svn.SVNStorage">
     <content src="http://localhost/svn/yarep-test"
+             svnkit.upgradeWC="true"
              offline="false"
              workdir="../content"
              username="test"
