@@ -128,11 +128,8 @@ public abstract class AbstractNode implements Node {
     /**
      * @see org.wyona.yarep.core.Node#getProperty(java.lang.String)
      */
-    public Property getProperty(String name) throws NoSuchPropertyException, RepositoryException {
-        Property property = (Property)this.properties.get(name);
-        if (property == null) throw new NoSuchPropertyException("Node " + getPath() + 
-                " has no property named " + name);
-        return property;
+    public Property getProperty(String name) throws RepositoryException {
+        return (Property)this.properties.get(name);
     }
     
     /**

@@ -119,11 +119,10 @@ public interface Node {
     /**
      * Gets the property with the given name.
      * @param name
-     * @return property
-     * @throws NoSuchPropertyException if the property does not exist.
-     * @throws RepositoryException other error
+     * @return property or null if the property does not exist
+     * @throws RepositoryException repository error
      */
-    public Property getProperty(String name) throws NoSuchPropertyException, RepositoryException;
+    public Property getProperty(String name) throws RepositoryException;
     
     /**
      * Get all properties of this node
@@ -141,6 +140,14 @@ public interface Node {
     public boolean hasProperty(String name) throws RepositoryException;
     
     //public boolean hasProperties() throws RepositoryException;
+    
+    /**
+     * Removes the property with the given name.
+     * Does nothing if no property with the given name exists.
+     * @param name
+     * @throws RepositoryException repository error
+     */
+    public void removeProperty(String name) throws RepositoryException;
     
     /**
      * Sets a property of type boolean or creates it if it does not exist yet.

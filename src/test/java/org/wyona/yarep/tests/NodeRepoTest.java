@@ -67,6 +67,10 @@ public class NodeRepoTest extends TestCase {
         node.setProperty("test-date", date1);
         Date date2 = node.getProperty("test-date").getDate();
         assertEquals(date1, date2);
+        
+        // delete a property:
+        node.removeProperty("test-date");
+        assertNull(node.getProperty("test-date"));
     }
 
     public void testAddNode() throws Exception {

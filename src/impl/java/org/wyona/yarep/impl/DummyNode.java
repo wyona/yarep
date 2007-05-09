@@ -78,6 +78,13 @@ public class DummyNode extends AbstractNode {
     }
     
     /**
+     * @see org.wyona.yarep.core.Node#removeProperty(java.lang.String)
+     */
+    public void removeProperty(String name) throws RepositoryException {
+        this.properties.remove(name);
+    }
+    
+    /**
      * @see org.wyona.yarep.core.Node#setProperty(org.wyona.yarep.core.Property)
      */
     public void setProperty(Property property) throws RepositoryException {
