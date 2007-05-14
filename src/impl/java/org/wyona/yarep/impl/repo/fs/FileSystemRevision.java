@@ -7,6 +7,7 @@ import org.apache.log4j.Category;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
+import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 
@@ -137,7 +138,9 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
      * @see org.wyona.yarep.core.Revision#getTag()
      */
     public String getTag() throws RepositoryException {
-        return getProperty(PROPERTY_REVISION_TAG).getString();
+        Property tag = getProperty(PROPERTY_REVISION_TAG);
+        if (tag == null) return null;
+        return tag.getString();
     }
 
     /**
