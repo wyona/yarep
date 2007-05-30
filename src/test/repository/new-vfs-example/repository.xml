@@ -3,10 +3,12 @@
 <repository class="org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository">
   <name>New Virtual Filesystem Example</name>
 
+<!--
   <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content">
     <ignore pattern=".*\.svn"/>
     <ignore pattern=".*\.yarep"/>
   </paths>
+-->
   <content src="content"/>
 
   <directory alternative="index.html" mime-type="application/xhtml+xml"/>
