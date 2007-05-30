@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
-<repository>
+<!-- <repository> -->
+<repository class="org.wyona.yarep.impl.DefaultRepository">
   <name>VFS Example</name>
 
   <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content"/>
