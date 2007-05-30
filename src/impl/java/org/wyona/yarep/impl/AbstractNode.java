@@ -105,7 +105,7 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#isCollection()
      */
     public boolean isCollection() throws RepositoryException {
-        log.error("DEBUG: Node Type: " + getType() + ", " + getPath());
+        //log.debug("Node Type: " + getType() + ", Path: " + getPath());
         return getType() == NodeType.COLLECTION; 
     }
     
