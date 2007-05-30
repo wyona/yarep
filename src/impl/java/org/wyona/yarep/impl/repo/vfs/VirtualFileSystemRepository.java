@@ -49,6 +49,9 @@ public class VirtualFileSystemRepository implements Repository {
 
     private boolean fallback = false;
 
+    private String alternative =  null;
+    private String dirListingMimeType = "application/xml";
+
     /**
      *
      */
@@ -102,6 +105,15 @@ public class VirtualFileSystemRepository implements Repository {
 
             map = (Map) Class.forName("org.wyona.yarep.impl.VFileSystemMapImpl").newInstance();
             ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setPathsDir(contentDir, configFile);
+
+            Configuration directoryConfig = config.getChild("directory", false);
+            if (directoryConfig != null) {
+                alternative = directoryConfig.getAttribute("alternative", alternative);
+                dirListingMimeType = directoryConfig.getAttribute("mime-type", dirListingMimeType);
+            }
+            log.debug("Alternative: " + alternative);
+            log.debug("Mime type of directory listing: " + dirListingMimeType);
+
 
         } catch (Exception e) {
             log.error(e.toString());
