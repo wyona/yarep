@@ -1,15 +1,10 @@
 package org.wyona.yarep.examples;
 
-import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Repository;
-import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
 
 /**
  *
@@ -41,5 +36,13 @@ public class TestVirtualFileSystemRepository {
         }
 
         System.out.println(repoFactory);
+
+        try {
+            Node rootNode = repo.getNode("/");
+            System.out.println("Root node: " + rootNode.isCollection());
+        } catch (Exception e) {
+            System.err.println(e);
+            return;
+        }
     }
 }
