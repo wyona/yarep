@@ -53,18 +53,19 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     *
+     * Set paths directory
      */
-    public void setPathsDir(File pathsDir,  File repoConfigFile) throws RepositoryException {
-            this.pathsDir = pathsDir;
-            if (!pathsDir.isAbsolute()) {
-                pathsDir = FileUtil.file(repoConfigFile.getParent(), pathsDir.toString());
-            }
-            log.info("Paths dir: " + pathsDir.toString());
-            if (!pathsDir.exists()) {
-                log.error("No such file or directory: " + pathsDir);
-                throw new RepositoryException("No such file or directory: " + pathsDir);
-            }
+    public void setPathsDir(File src,  File repoConfigFile) throws RepositoryException {
+        pathsDir = src;
+        if (!pathsDir.isAbsolute()) {
+            pathsDir = FileUtil.file(repoConfigFile.getParent(), pathsDir.toString());
+        }
+        log.info("Paths dir: " + pathsDir.toString());
+
+        if (!pathsDir.exists()) {
+            log.error("No such file or directory: " + pathsDir);
+            throw new RepositoryException("No such file or directory: " + pathsDir);
+        }
     }
     
     /**
