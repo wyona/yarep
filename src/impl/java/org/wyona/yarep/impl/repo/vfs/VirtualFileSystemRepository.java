@@ -67,6 +67,7 @@ public class VirtualFileSystemRepository implements Repository {
      * Read respectively load repository configuration
      */
     public void readConfiguration(File configFile) throws RepositoryException {
+        this.configFile = configFile;
         DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
         Configuration config;
 
