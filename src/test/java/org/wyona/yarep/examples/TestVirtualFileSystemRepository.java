@@ -6,10 +6,14 @@ import org.wyona.yarep.core.RepositoryFactory;
 
 import java.io.File;
 
+import org.apache.log4j.Category;
+
 /**
  *
  */
 public class TestVirtualFileSystemRepository {
+
+    private static Category log = Category.getInstance(TestVirtualFileSystemRepository.class);
 
     /**
      *
@@ -41,6 +45,7 @@ public class TestVirtualFileSystemRepository {
             Node rootNode = repo.getNode("/");
             System.out.println("Root node: " + rootNode.isCollection());
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             System.err.println(e);
             return;
         }
