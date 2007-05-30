@@ -32,7 +32,6 @@ public class VFileSystemStorage implements Storage {
      */
     public void readConfig(Configuration storageConfig, File repoConfigFile) throws RepositoryException {
         Configuration contentConfig = storageConfig.getChild("content", false);
-        Configuration directoryConfig = storageConfig.getChild("directory", false);
         try {
             contentDir = new File(contentConfig.getAttribute("src"));
             log.debug(contentDir.toString());
@@ -44,11 +43,10 @@ public class VFileSystemStorage implements Storage {
             // TODO: Throw an exception
             if (!contentDir.exists()) log.error("No such file or directory: " + contentDir);
 
+            Configuration directoryConfig = storageConfig.getChild("directory", false);
             if (directoryConfig != null) {
                 alternative = directoryConfig.getAttribute("alternative", null);
                 log.debug("Alternative: " + alternative);
-            }
-            if (directoryConfig != null) {
                 dirListingMimeType = directoryConfig.getAttribute("mime-type", "application/xml");
                 log.debug("Mime type of directory listing: " + dirListingMimeType);
             }
