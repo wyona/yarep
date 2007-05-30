@@ -35,13 +35,7 @@ public class VFileSystemMapImpl implements Map {
      */
     public void readConfig(Configuration mapConfig, File repoConfigFile) throws RepositoryException {
         try {
-            pathsDir = new File(mapConfig.getAttribute("src"));
-            if (!pathsDir.isAbsolute()) {
-                pathsDir = FileUtil.file(repoConfigFile.getParent(), pathsDir.toString());
-            }
-            log.debug(pathsDir.toString());
-            // TODO: Throw Exception
-            if (!pathsDir.exists()) log.error("No such file or directory: " + pathsDir);
+            setPathsDir(new File(mapConfig.getAttribute("src")), repoConfigFile);
             
             Configuration[] ignoreElements = mapConfig.getChildren("ignore");
             ignorePatterns = new Pattern[ignoreElements.length];
@@ -57,15 +51,35 @@ public class VFileSystemMapImpl implements Map {
                     + repoConfigFile.getAbsolutePath() + e.getMessage(), e);
         }
     }
+
+    /**
+     *
+     */
+    public void setPathsDir(File pathsDir,  File repoConfigFile) throws RepositoryException {
+            this.pathsDir = pathsDir;
+            if (!pathsDir.isAbsolute()) {
+                pathsDir = FileUtil.file(repoConfigFile.getParent(), pathsDir.toString());
+            }
+            log.info("Paths dir: " + pathsDir.toString());
+            if (!pathsDir.exists()) {
+                log.error("No such file or directory: " + pathsDir);
+                throw new RepositoryException("No such file or directory: " + pathsDir);
+            }
+    }
     
+    /**
+     * Test if path should be ignored
+     */
     protected boolean ignorePath(String path) {
-        for (int i=0; i<this.ignorePatterns.length; i++) {
-            Matcher matcher = this.ignorePatterns[i].matcher(path); 
-            if (matcher.matches()) {
-                if (log.isDebugEnabled()) {
-                    log.debug(path + " matched ignore pattern " + ignorePatterns[i].pattern());
+        if (ignorePatterns != null) {
+            for (int i=0; i<this.ignorePatterns.length; i++) {
+                Matcher matcher = this.ignorePatterns[i].matcher(path); 
+                if (matcher.matches()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(path + " matched ignore pattern " + ignorePatterns[i].pattern());
+                    }
+                    return true;
                 }
-                return true;
             }
         }
         if (log.isDebugEnabled()) {
@@ -88,7 +102,7 @@ public class VFileSystemMapImpl implements Map {
     public boolean exists(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
         // TODO: Get name of repository for debugging ...
-        //log.debug("Path (" + getName() + "): " + file);
+        //log.debug("File: " + file);
         return file.exists() && !ignorePath(file.getPath());
     }
 
