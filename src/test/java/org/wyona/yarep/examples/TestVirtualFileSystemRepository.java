@@ -43,11 +43,20 @@ public class TestVirtualFileSystemRepository {
 
         try {
             Node root = repo.getNode("/");
-            System.out.println("Root node: " + root.isCollection());
+            System.out.println("Root node is collection: " + root.isCollection());
 
             Node child = root.getNode("hello-world.txt");
-            System.out.println("Child node: " + child.isCollection());
-            System.out.println("Child node: " + child.isResource());
+            System.out.println("Child node is collection: " + child.isCollection());
+            System.out.println("Child node is resource: " + child.isResource());
+
+            Node anotherChild = root.getNode("another-directory");
+            System.out.println("Another child node is collection: " + anotherChild.isCollection());
+
+            //root.getInputStream();
+
+            anotherChild.getInputStream();
+
+            child.getInputStream();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             System.err.println(e);

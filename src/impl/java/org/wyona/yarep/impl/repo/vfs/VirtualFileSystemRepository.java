@@ -350,5 +350,10 @@ public class VirtualFileSystemRepository implements Repository {
         return this.map;
     }
 
-
+    /**
+     * Get alternative filename
+     */
+    public String getAlternative() {
+        return alternative;
+    }
 }

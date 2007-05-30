@@ -225,7 +225,20 @@ public class VirtualFileSystemNode extends AbstractNode {
      */
     public InputStream getInputStream() throws RepositoryException {
         try {
-            return new FileInputStream(this.contentFile);
+            if (isCollection()) {
+                if (getRepository().getAlternative() != null) {
+                    File alternativeFile = new File(contentFile, getRepository().getAlternative());
+                    if (alternativeFile.isFile()) {
+                        return new FileInputStream(alternativeFile);
+                    } else {
+                        throw new RepositoryException("Is Collection (" + contentFile + ") and no alternative File exists (" + alternativeFile + ")");
+                    }
+                } else {
+                    throw new RepositoryException("Is Collection: " + contentFile);
+                }
+            } else {
+                return new FileInputStream(contentFile);
+            }
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -405,9 +418,9 @@ public class VirtualFileSystemNode extends AbstractNode {
      *
      */
     public int getType() throws RepositoryException {
-        if (((VirtualFileSystemRepository) repository).getMap().isCollection(new Path(path))) {
+        if (getRepository().getMap().isCollection(new Path(path))) {
             return NodeType.COLLECTION;
-        } else if (((VirtualFileSystemRepository) repository).getMap().isResource(new Path(path))) {
+        } else if (getRepository().getMap().isResource(new Path(path))) {
             return NodeType.RESOURCE;
         } else {
             return -1;
