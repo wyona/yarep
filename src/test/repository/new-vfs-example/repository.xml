@@ -15,5 +15,8 @@
 <!--
   <directory alternative="index.html"/>
 -->
+<!--
+  <directory mime-type="application/xhtml+xml"/>
+-->
 </repository>
 
