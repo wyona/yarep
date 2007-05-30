@@ -356,4 +356,11 @@ public class VirtualFileSystemRepository implements Repository {
     public String getAlternative() {
         return alternative;
     }
+
+    /**
+     * Get mime type of directory listing
+     */
+    public String getDirListingMimeType() {
+        return dirListingMimeType;
+    }
 }

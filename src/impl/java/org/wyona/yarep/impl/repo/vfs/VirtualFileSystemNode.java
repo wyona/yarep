@@ -75,7 +75,7 @@ public class VirtualFileSystemNode extends AbstractNode {
     
     protected void init() throws RepositoryException {
         
-        this.contentDir = ((VirtualFileSystemRepository)repository).getContentDir();
+        this.contentDir = getRepository().getContentDir();
         this.contentFile = new File(this.contentDir, this.uuid);
         this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
@@ -169,7 +169,7 @@ public class VirtualFileSystemNode extends AbstractNode {
      * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
-        Path[] childPaths = ((VirtualFileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
+        Path[] childPaths = getRepository().getMap().getChildren(new Path(this.path));
         
         Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
@@ -187,7 +187,7 @@ public class VirtualFileSystemNode extends AbstractNode {
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = ((VirtualFileSystemRepository)this.repository).getMap().create(new Path(newPath));
+        UID uid = getRepository().getMap().create(new Path(newPath));
         // create file:
         File file = new File(this.contentDir, uid.toString());
         try {
@@ -231,10 +231,12 @@ public class VirtualFileSystemNode extends AbstractNode {
                     if (alternativeFile.isFile()) {
                         return new FileInputStream(alternativeFile);
                     } else {
-                        throw new RepositoryException("Is Collection (" + contentFile + ") and no alternative File exists (" + alternativeFile + ")");
+                        log.warn("Is Collection (" + contentFile + ") and no alternative File exists (" + alternativeFile + ")");
+                        return new java.io.StringBufferInputStream(getDirectoryListing(contentFile, getRepository().getDirListingMimeType()));
                     }
                 } else {
-                    throw new RepositoryException("Is Collection: " + contentFile);
+                    log.warn("Is Collection: " + contentFile);
+                    return new java.io.StringBufferInputStream(getDirectoryListing(contentFile, getRepository().getDirListingMimeType()));
                 }
             } else {
                 return new FileInputStream(contentFile);
@@ -404,7 +406,7 @@ public class VirtualFileSystemNode extends AbstractNode {
         for (int i=0; i<children.length; i++) {
             deleteRec(children[i]);
         }
-        boolean success = ((VirtualFileSystemRepository)this.repository).getMap().delete(new Path(getPath()));
+        boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
             FileUtils.deleteDirectory(this.contentFile);
             FileUtils.deleteDirectory(this.metaDir);
@@ -425,5 +427,51 @@ public class VirtualFileSystemNode extends AbstractNode {
         } else {
             return -1;
         }
+    }
+
+    /**
+     * Get directory listing
+     */
+    public String getDirectoryListing(File file, String mimeType) {
+        StringBuffer dirListing = new StringBuffer("<?xml version=\"1.0\"?>");
+        if(mimeType.equals("application/xhtml+xml")) {
+            dirListing.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">");
+            dirListing.append("<head>");
+            dirListing.append("<title>"+path+"</title>");
+            dirListing.append("</head>");
+            dirListing.append("<body>");
+            dirListing.append("<ul>");
+            String[] children = file.list();
+            for (int i = 0; i < children.length; i++) {
+                File child = new File(file, children[i]);
+                if (child.isFile()) {
+                    dirListing.append("<li>File: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                } else if (child.isDirectory()) {
+                    dirListing.append("<li>Directory: <a href=\"" + children[i] + "/\">" + children[i] + "/</a></li>");
+                } else {
+                    dirListing.append("<li>Child: <a href=\"" + children[i] + "\">" + children[i] + "</a></li>");
+                }
+            }
+            dirListing.append("</ul>");
+            dirListing.append("</body>");
+            dirListing.append("</html>");
+        } else if (mimeType.equals("application/xml")) {
+            dirListing.append("<directory xmlns=\"http://www.wyona.org/yarep/1.0\" path=\""+path+"\" fs-path=\""+file+"\">");
+            String[] children = file.list();
+            for (int i = 0; i < children.length; i++) {
+                File child = new File(file, children[i]);
+                if (child.isFile()) {
+                    dirListing.append("<file name=\"" + children[i] + "\"/>");
+                } else if (child.isDirectory()) {
+                    dirListing.append("<directory name=\"" + children[i] + "\"/>");
+                } else {
+                    dirListing.append("<child name=\"" + children[i] + "\"/>");
+                }
+            }
+            dirListing.append("</directory>");
+        } else {
+            dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported>");
+        }
+        return dirListing.toString();
     }
 }

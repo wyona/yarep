@@ -52,15 +52,31 @@ public class TestVirtualFileSystemRepository {
             Node anotherChild = root.getNode("another-directory");
             System.out.println("Another child node is collection: " + anotherChild.isCollection());
 
-            //root.getInputStream();
+            print(root.getInputStream());
 
-            anotherChild.getInputStream();
+            System.out.println("\n");
 
-            child.getInputStream();
+            print(anotherChild.getInputStream());
+
+            System.out.println("\n");
+
+            print(child.getInputStream());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             System.err.println(e);
             return;
+        }
+    }
+
+    /**
+     *
+     */
+    static public void print(java.io.InputStream in) throws java.io.IOException {
+        java.io.OutputStream out = System.out;
+        byte[] buffer = new byte[8192];
+        int bytesRead = -1;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);
         }
     }
 }
