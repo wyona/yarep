@@ -76,6 +76,7 @@ public class VirtualFileSystemRepository implements Repository {
 
             name = config.getChild("name", false).getValue();
 
+/*
             Configuration pathConfig = config.getChild("paths", false);
 
             fallback = pathConfig.getAttributeAsBoolean("fallback", false);
@@ -89,6 +90,7 @@ public class VirtualFileSystemRepository implements Repository {
                 //map = new org.wyona.yarep.impl.DefaultMapImpl();
             }
             map.readConfig(pathConfig, configFile);
+*/
 
             this.contentDir = new File(config.getChild("content", false).getAttribute("src"));
             
@@ -96,7 +98,11 @@ public class VirtualFileSystemRepository implements Repository {
                 this.contentDir = FileUtil.file(configFile.getParent(), this.contentDir.toString());
             }
 
-            log.debug("content dir: " + this.contentDir);
+            log.info("Content dir: " + this.contentDir);
+
+            map = (Map) Class.forName("org.wyona.yarep.impl.VFileSystemMapImpl").newInstance();
+            ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setPathsDir(contentDir, configFile);
+
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
@@ -272,6 +278,7 @@ public class VirtualFileSystemRepository implements Repository {
             path = path.substring(0, path.length() - 1);
         }
         String uuid;
+/*
         if (!map.exists(new Path(path))) {
             if (fallback) {
                 log.info("No UID! Fallback to : " + path);
@@ -283,8 +290,14 @@ public class VirtualFileSystemRepository implements Repository {
             UID uid = map.getUID(new Path(path));
             uuid = (uid == null) ? path : uid.toString();
         }
+*/
+
+        if (map.exists(new Path(path))) {
+            uuid = new UID(path).toString();
+        } else {
+            throw new NoSuchNodeException(path, this);
+        }
         
-        //String uuid = map.getUID(new Path(path)).toString();
         return new VirtualFileSystemNode(this, path, uuid);
     }
 
