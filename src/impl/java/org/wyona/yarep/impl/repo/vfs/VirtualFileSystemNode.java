@@ -400,5 +400,17 @@ public class VirtualFileSystemNode extends AbstractNode {
                     e.toString(), e);
         }
     }
-       
+
+    /**
+     *
+     */
+    public int getType() throws RepositoryException {
+        if (((VirtualFileSystemRepository) repository).getMap().isCollection(new Path(path))) {
+            return NodeType.COLLECTION;
+        } else if (((VirtualFileSystemRepository) repository).getMap().isResource(new Path(path))) {
+            return NodeType.RESOURCE;
+        } else {
+            return -1;
+        }
+    }
 }
