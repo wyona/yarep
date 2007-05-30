@@ -185,6 +185,9 @@
 
   <target name="run-examples" description="Run Example" depends="init, build-examples">
     <java classname="org.wyona.yarep.examples.HelloWorld">
+<!--
+    <java classname="org.wyona.yarep.examples.TestVirtualFileSystemRepository">
+-->
       <classpath refid="classpath.run"/>
     </java>
   </target>
