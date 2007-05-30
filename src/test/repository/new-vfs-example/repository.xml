@@ -13,7 +13,7 @@
 
   <directory alternative="index.html" mime-type="application/xhtml+xml"/>
 <!--
-  <directory alternative="index.html" mime-type="application/xml"/>
+  <directory alternative="index.html"/>
 -->
 </repository>
 
