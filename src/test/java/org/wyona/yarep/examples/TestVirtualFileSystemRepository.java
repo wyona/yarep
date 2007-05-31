@@ -67,6 +67,8 @@ public class TestVirtualFileSystemRepository {
             if (childRevisions != null && childRevisions.length > 0) {
                 for (int i = 0;i < childRevisions.length; i++) {
                     System.out.println("Child revision: " + childRevisions[i]);
+                    Revision revision = child.getRevision(childRevisions[i].getRevisionName());
+                    System.out.println("The same child revision: " + revision);
                 }
             } else {
                 System.err.println("Child has no revisions!");
