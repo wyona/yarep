@@ -69,6 +69,7 @@ public class TestVirtualFileSystemRepository {
                     System.out.println("Child revision: " + childRevisions[i]);
                     Revision revision = child.getRevision(childRevisions[i].getRevisionName());
                     System.out.println("The same child revision: " + revision);
+                    System.out.println("Property: " + revision.getProperty("workflow-state"));
                 }
             } else {
                 System.err.println("Child has no revisions!");
