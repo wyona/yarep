@@ -106,6 +106,17 @@ public class VirtualFileSystemRepository implements Repository {
             map = (Map) Class.forName("org.wyona.yarep.impl.VFileSystemMapImpl").newInstance();
             ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setPathsDir(contentDir, configFile);
 
+            Configuration metaDirConfig = config.getChild("meta", false);
+            if (metaDirConfig != null) {
+                this.metaDir = new File(metaDirConfig.getAttribute("src"));
+            
+                if (!this.metaDir.isAbsolute()) {
+                    this.metaDir = FileUtil.file(configFile.getParent(), this.metaDir.toString());
+                }
+
+                log.info("Meta dir: " + this.metaDir);
+            }
+
             Configuration directoryConfig = config.getChild("directory", false);
             if (directoryConfig != null) {
                 alternative = directoryConfig.getAttribute("alternative", alternative);
@@ -251,7 +262,8 @@ public class VirtualFileSystemRepository implements Repository {
     // New methods for node based repository
     ///////////////////////////////////////////////////////////////////////////
     
-    protected File contentDir;
+    protected File contentDir = null;
+    protected File metaDir = null;
     
     /**
      * @see org.wyona.yarep.core.Repository#copy(java.lang.String, java.lang.String)
@@ -344,6 +356,10 @@ public class VirtualFileSystemRepository implements Repository {
     
     public File getContentDir() {
         return this.contentDir;
+    }
+    
+    public File getMetaDir() {
+        return this.metaDir;
     }
     
     public Map getMap() {
