@@ -77,7 +77,11 @@ public class VirtualFileSystemNode extends AbstractNode {
         
         this.contentDir = getRepository().getContentDir();
         this.contentFile = new File(this.contentDir, this.uuid);
-        this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
+        if (getRepository().getMetaDir() != null) {
+            this.metaDir = new File(getRepository().getMetaDir(), uuid + META_DIR_SUFFIX);
+        } else {
+            this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
+        }
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
         
         if (log.isDebugEnabled()) {
@@ -98,7 +102,7 @@ public class VirtualFileSystemNode extends AbstractNode {
     protected void createMetaFile() throws RepositoryException {
         log.debug("creating new meta file in dir: " + metaDir);
         if (!metaDir.exists()) {
-            metaDir.mkdir();
+            metaDir.mkdirs();
         }
         this.properties = new HashMap();
         if (this.contentFile.isDirectory()) {
@@ -149,7 +153,7 @@ public class VirtualFileSystemNode extends AbstractNode {
      */
     protected void saveProperties() throws RepositoryException {
         try {
-            log.debug("writing meta file: " + this.metaFile);
+            log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
             Iterator iterator = this.properties.values().iterator();
             while (iterator.hasNext()) {
@@ -482,5 +486,12 @@ public class VirtualFileSystemNode extends AbstractNode {
         Revision[] revisions = new Revision[1];
         revisions[0] = new VirtualFileSystemRevision(this, "this");
         return revisions;
+    }
+
+    /**
+     * @see org.wyona.yarep.core.Node#getRevision(java.lang.String)
+     */
+    public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException {
+        return new VirtualFileSystemRevision(this, "this");
     }
 }
