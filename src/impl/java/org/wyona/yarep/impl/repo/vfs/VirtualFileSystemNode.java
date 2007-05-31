@@ -474,4 +474,12 @@ public class VirtualFileSystemNode extends AbstractNode {
         }
         return dirListing.toString();
     }
+
+    /**
+     * @see org.wyona.yarep.core.Node#getRevisions()
+     */
+    public Revision[] getRevisions() throws RepositoryException {
+        log.error("REVISIONS");
+        return null;
+    }
 }

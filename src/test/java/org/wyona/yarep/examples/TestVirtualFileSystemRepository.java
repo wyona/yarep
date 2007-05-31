@@ -3,6 +3,7 @@ package org.wyona.yarep.examples;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryFactory;
+import org.wyona.yarep.core.Revision;
 
 import java.io.File;
 
@@ -61,6 +62,12 @@ public class TestVirtualFileSystemRepository {
             System.out.println("\n");
 
             print(child.getInputStream());
+
+            Revision[] childRevisions = child.getRevisions();
+            if (childRevisions != null && childRevisions.length > 0) {
+            } else {
+                System.err.println("Child has no revisions!");
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             System.err.println(e);
