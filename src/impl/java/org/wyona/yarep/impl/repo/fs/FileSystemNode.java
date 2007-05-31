@@ -43,7 +43,6 @@ public class FileSystemNode extends AbstractNode {
     protected static final String REVISIONS_BASE_DIR = "revisions";
     protected static final String META_DIR_SUFFIX = ".yarep";
     
-    //protected FileSystemRepository repository;
     protected File contentDir;
     protected File contentFile;
     protected File metaDir;
@@ -75,7 +74,7 @@ public class FileSystemNode extends AbstractNode {
     
     protected void init() throws RepositoryException {
         
-        this.contentDir = ((FileSystemRepository)repository).getContentDir();
+        this.contentDir = getRepository().getContentDir();
         this.contentFile = new File(this.contentDir, this.uuid);
         this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
@@ -169,7 +168,7 @@ public class FileSystemNode extends AbstractNode {
      * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
-        Path[] childPaths = ((FileSystemRepository)this.repository).getMap().getChildren(new Path(this.path));
+        Path[] childPaths = getRepository().getMap().getChildren(new Path(this.path));
         
         Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
@@ -187,7 +186,7 @@ public class FileSystemNode extends AbstractNode {
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = ((FileSystemRepository)this.repository).getMap().create(new Path(newPath));
+        UID uid = getRepository().getMap().create(new Path(newPath));
         // create file:
         File file = new File(this.contentDir, uid.toString());
         try {
@@ -391,7 +390,7 @@ public class FileSystemNode extends AbstractNode {
         for (int i=0; i<children.length; i++) {
             deleteRec(children[i]);
         }
-        boolean success = ((FileSystemRepository)this.repository).getMap().delete(new Path(getPath()));
+        boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
             FileUtils.deleteDirectory(this.contentFile);
             FileUtils.deleteDirectory(this.metaDir);
