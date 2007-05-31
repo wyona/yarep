@@ -33,6 +33,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      */
     public VirtualFileSystemRevision(VirtualFileSystemNode node, String revisionName) throws RepositoryException {
         super(node.getRepository(), node.getPath(), node.getUUID(), false);
+        this.node = node;
 
         this.revisionName = revisionName;
         this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
@@ -97,7 +98,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getCreationDate()
      */
     public Date getCreationDate() throws RepositoryException {
-        return getProperty(PROPERTY_REVISION_CREATION_DATE).getDate();
+        return new Date(node.getLastModified());
     }
 
     /**
@@ -113,7 +114,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getCreator()
      */
     public String getCreator() throws RepositoryException {
-        return getProperty(PROPERTY_REVISION_CREATOR).getString();
+        return "unknown";
     }
 
     /**
@@ -129,7 +130,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getComment()
      */
     public String getComment() throws RepositoryException {
-        return getProperty(PROPERTY_REVISION_COMMENT).getString();
+        return "no comment";
     }
 
     /**
@@ -177,7 +178,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     public String toString() {
         String s = "";
         try {
-            s = s + getName() + ", " + getRevisionName();
+            s = s + getName() + ", " + getRevisionName() + ", " + getComment() + ", " + getCreator() + ", " + getCreationDate();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             s = s + e.getMessage();
