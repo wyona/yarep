@@ -481,7 +481,6 @@ public class VirtualFileSystemNode extends AbstractNode {
     public Revision[] getRevisions() throws RepositoryException {
         Revision[] revisions = new Revision[1];
         revisions[0] = new VirtualFileSystemRevision(this, "this");
-        log.error("DEBUG: REVISIONS");
         return revisions;
     }
 }
