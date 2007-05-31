@@ -479,7 +479,9 @@ public class VirtualFileSystemNode extends AbstractNode {
      * @see org.wyona.yarep.core.Node#getRevisions()
      */
     public Revision[] getRevisions() throws RepositoryException {
-        log.error("REVISIONS");
-        return null;
+        Revision[] revisions = new Revision[1];
+        revisions[0] = new VirtualFileSystemRevision(this, "this");
+        log.error("DEBUG: REVISIONS");
+        return revisions;
     }
 }
