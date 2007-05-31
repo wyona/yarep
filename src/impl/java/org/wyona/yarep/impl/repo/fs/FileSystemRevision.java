@@ -24,7 +24,6 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
 
     public static final String CONTENT_FILE_NAME = "content";
 
-    protected Node node;
     protected String revisionName;
     
     /**
