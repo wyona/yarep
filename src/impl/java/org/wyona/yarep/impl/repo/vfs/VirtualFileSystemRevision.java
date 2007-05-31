@@ -39,27 +39,22 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
         this.contentFile = new File(this.contentDir, CONTENT_FILE_NAME);
 
-/*
-        this.metaDir = this.contentDir;
+        this.metaDir = node.metaDir;
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
-*/
-    
+
         if (log.isDebugEnabled()) {
             log.debug("VirtualFileSystemRevision: path=" + path + " uuid=" + uuid + " revisionName=" + revisionName);
             log.debug("contentDir=" + contentDir);
             log.debug("contentFile=" + contentFile);
-/*
+
             log.debug("metaDir=" + metaDir);
             log.debug("metaFile=" + metaFile);
-*/
         }
 
-/*
         if (!metaFile.exists()) {
             throw new RepositoryException("Meta file " + metaFile + " does not exist.");
         }
         readProperties();
-*/
     }
     
     /**
