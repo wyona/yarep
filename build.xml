@@ -155,7 +155,7 @@
     </jar>
   </target>
 
-  <target name="install-jar" description="Place jar files for core and impl into local maven repository" depends="init,jar">
+  <target name="install-jars" description="Place jar files for core and impl into local maven repository" depends="init,jar">
     <copy file="src/core/pom.xml" tofile="build/lib/pom-core.xml"/>
     <replace file="build/lib/pom-core.xml" value="${yarep.version}-r${subversion.revision}">
       <replacetoken>@VERSION@</replacetoken>
