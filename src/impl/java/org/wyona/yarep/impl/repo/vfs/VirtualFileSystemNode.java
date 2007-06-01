@@ -196,7 +196,7 @@ public class VirtualFileSystemNode extends AbstractNode {
         File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
-                file.mkdir();
+                file.mkdirs();
             } else if (type == NodeType.RESOURCE) {
                 file.createNewFile();
             } else {
