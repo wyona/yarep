@@ -97,7 +97,7 @@ public class FileSystemNode extends AbstractNode {
     protected void createMetaFile() throws RepositoryException {
         log.debug("creating new meta file in dir: " + metaDir);
         if (!metaDir.exists()) {
-            metaDir.mkdir();
+            metaDir.mkdirs();
         }
         this.properties = new HashMap();
         if (this.contentFile.isDirectory()) {
@@ -191,7 +191,7 @@ public class FileSystemNode extends AbstractNode {
         File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
-                file.mkdir();
+                file.mkdirs();
             } else if (type == NodeType.RESOURCE) {
                 file.createNewFile();
             } else {
