@@ -171,6 +171,17 @@ public class VFileSystemMapImpl implements Map {
      */
     public synchronized UID create(Path path) throws RepositoryException {
         // TODO: Check if leading slash should be removed ...
+        File parent = new File(pathsDir + File.separator + path.getParent().toString());
+        if (!parent.exists()) {
+            log.warn("Directory will be created: " + parent);
+            parent.mkdirs();
+        }
+        try {
+            if(!new File(parent, path.getName()).createNewFile()) log.warn("File has not been created: " + new File(parent, path.getName()));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        
         return new UID(path.toString());
     }
 
