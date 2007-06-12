@@ -30,6 +30,8 @@ public class DefaultMapImpl implements Map {
     protected Pattern[] ignorePatterns;
     protected ChildrenFilter childrenFilter = new ChildrenFilter();
 
+    private static String YAREP_UID_SUFFIX = "yarep-uid";
+
     /**
      *
      */
@@ -46,7 +48,7 @@ public class DefaultMapImpl implements Map {
             Configuration[] ignoreElements = mapConfig.getChildren("ignore");
             ignorePatterns = new Pattern[ignoreElements.length + 1];
             // always ignore uid files:
-            ignorePatterns[0] = Pattern.compile(".*\\.yarep-uid");
+            ignorePatterns[0] = Pattern.compile(".*\\." + YAREP_UID_SUFFIX);
             for (int i=0; i<ignoreElements.length; i++) {
                 String patternString = ignoreElements[i].getAttribute("pattern");
                 ignorePatterns[i+1] = Pattern.compile(patternString);
@@ -81,8 +83,8 @@ public class DefaultMapImpl implements Map {
      */
     public boolean isResource(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
-        log.debug("UID File: " + uidFile);
+        File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
+        if(log.isDebugEnabled()) log.debug("UID File: " + uidFile);
         return uidFile.exists() || file.isFile();
     }
 
@@ -101,7 +103,7 @@ public class DefaultMapImpl implements Map {
      */
     public boolean delete(Path path) throws RepositoryException {
 /*
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
         if (uidFile.isFile()) uidFile.delete();
 */
         File file = new File(pathsDir + path.toString());
@@ -114,8 +116,26 @@ public class DefaultMapImpl implements Map {
      */
     public boolean isCollection(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
-        log.debug("Check if path is representing a collection: " + file);
-        return (file.exists() && !isResource(path));
+        if(log.isDebugEnabled()) log.debug("Check if path is representing a collection: " + file);
+        if (file.isDirectory()) {
+            File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
+            if (uidFile.isFile()) {
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(uidFile));
+                    String existingUID = br.readLine();
+                    String type = br.readLine();
+                    br.close();
+                    if (type != null && type.equals("collection")) return true;
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    throw new RepositoryException("Error reading uid of path: " + path.toString() + ": " + e.getMessage(), e);
+                }
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -149,7 +169,7 @@ public class DefaultMapImpl implements Map {
      * Get UID
      */
     public synchronized UID getUID(Path path) throws RepositoryException {
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
         if (log.isDebugEnabled()) log.debug(pathsDir.toString() + ", " + uidFile.toString());
         if (uidFile.exists()) {
             try {
@@ -176,7 +196,7 @@ public class DefaultMapImpl implements Map {
      */
     public synchronized UID create(Path path) throws RepositoryException {
         log.debug(pathsDir.toString());
-        File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
+        File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
         log.debug(uidFile.toString());
 
         // TODO: Shouldn't the uid be written only if the writer is being closed successfully!
@@ -208,7 +228,7 @@ public class DefaultMapImpl implements Map {
      *
      */
     public void addSymbolicLink(Path link, UID uid) throws RepositoryException {
-        File uidFile = new File(pathsDir + link.toString() + File.separator + ".yarep-uid");
+        File uidFile = new File(pathsDir + link.toString() + File.separator + "." + YAREP_UID_SUFFIX);
 
         String uuid = uid.toString();
         try {
