@@ -149,9 +149,8 @@ public class DefaultMapImpl implements Map {
      * Get UID
      */
     public synchronized UID getUID(Path path) throws RepositoryException {
-        log.debug(pathsDir.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + ".yarep-uid");
-        log.debug(uidFile.toString());
+        if (log.isDebugEnabled()) log.debug(pathsDir.toString() + ", " + uidFile.toString());
         if (uidFile.exists()) {
             try {
                 FileReader fr = new FileReader(uidFile);
@@ -166,7 +165,7 @@ public class DefaultMapImpl implements Map {
                         + ": " + e.getMessage(), e);
             }
         } else {
-            log.warn("uid file [" + uidFile + "] does not exist for path: " + path);
+            if(log.isDebugEnabled()) log.debug("uid file [" + uidFile + "] does not exist for path: " + path);
         }
 
         return null;
