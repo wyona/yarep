@@ -156,7 +156,7 @@ public class DefaultRepository  implements Repository {
                 uid = new UID(path.toString());
                 map.addSymbolicLink(path, uid);
             } else {
-                uid = map.create(path);
+                uid = map.create(path, org.wyona.yarep.core.NodeType.RESOURCE);
             }
         }
         log.debug(uid.toString());

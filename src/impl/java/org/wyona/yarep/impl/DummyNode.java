@@ -72,7 +72,7 @@ public class DummyNode extends AbstractNode {
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = ((DefaultRepository)this.repository).getMap().create(new Path(newPath));
+        UID uid = ((DefaultRepository)this.repository).getMap().create(new Path(newPath), type);
         
         return new DummyNode((DefaultRepository)this.repository, newPath, uid.toString());
     }

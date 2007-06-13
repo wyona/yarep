@@ -194,7 +194,7 @@ public class DefaultMapImpl implements Map {
     /**
      * Get UID
      */
-    public synchronized UID create(Path path) throws RepositoryException {
+    public synchronized UID create(Path path, int type) throws RepositoryException {
         log.debug(pathsDir.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
         log.debug(uidFile.toString());
@@ -213,11 +213,21 @@ public class DefaultMapImpl implements Map {
             if (parent.isFile()) {
                 log.warn("Parent is a file and not a directory: " + parent);
             }
-            FileWriter fw = new FileWriter(uidFile);
-            fw.write(uuid);
-            fw.close();
+            if (type == org.wyona.yarep.core.NodeType.RESOURCE) {
+                FileWriter fw = new FileWriter(uidFile);
+                fw.write(uuid);
+                fw.close();
+            } else if (type == org.wyona.yarep.core.NodeType.COLLECTION) {
+                // TODO: Should a uidFile also be written in the case of a collection?!
+                FileWriter fw = new FileWriter(uidFile);
+                fw.write(uuid);
+                fw.close();
+            } else {
+                log.error("Node type is neither resource nor collection!");
+                throw new RepositoryException("Node type is neither resource nor collection!");
+            }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e.getMessage(), e);
             throw new RepositoryException("Error creating uid for path: " + path.toString() 
                     + ": " + e.getMessage(), e);
         }

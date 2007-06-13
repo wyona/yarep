@@ -191,7 +191,7 @@ public class VirtualFileSystemNode extends AbstractNode {
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = getRepository().getMap().create(new Path(newPath));
+        UID uid = getRepository().getMap().create(new Path(newPath), type);
         // create file:
         File file = new File(this.contentDir, uid.toString());
         try {
