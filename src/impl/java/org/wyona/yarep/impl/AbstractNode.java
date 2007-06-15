@@ -44,6 +44,7 @@ public abstract class AbstractNode implements Node {
     public static final String PROPERTY_IS_CHECKED_OUT = "yarep_isCheckedOut";
     public static final String PROPERTY_CHECKOUT_USER_ID = "yarep_checkoutUserID";
     public static final String PROPERTY_CHECKOUT_DATE = "yarep_checkoutDate";
+    public static final String PROPERTY_CHECKIN_DATE = "yarep_checkinDate";
     
     
     /**
@@ -229,6 +230,16 @@ public abstract class AbstractNode implements Node {
             throw new NodeStateException("Node is not checked out: " + getPath());
         }
         return getProperty(PROPERTY_CHECKOUT_DATE).getDate();
+    }
+    
+    /**
+     * @see org.wyona.yarep.core.Node#getCheckinDate()
+     */
+    public Date getCheckinDate() throws NodeStateException, RepositoryException {
+        if (isCheckedOut()) {
+            throw new NodeStateException("Node is not checked in: " + getPath());
+        }
+        return getProperty(PROPERTY_CHECKIN_DATE).getDate();
     }
     
     /**

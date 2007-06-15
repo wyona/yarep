@@ -270,6 +270,14 @@ public interface Node {
     public void checkout(String userID) throws NodeStateException, RepositoryException;
     
     /**
+     * Cancels a checkout, i.e. performs a checkin without creating a new revision.
+     * @throws NodeStateException
+     * @throws NodeStateException if node is not in checked out state
+     * @throws RepositoryException
+     */
+    public void cancelCheckout() throws NodeStateException, RepositoryException;
+    
+    /**
      * Indicates whether this node is checked out.
      * @return true if checked out, false otherwise
      * @throws RepositoryException repository error
@@ -291,6 +299,14 @@ public interface Node {
      * @throws RepositoryException
      */
     public Date getCheckoutDate() throws NodeStateException, RepositoryException;
+    
+    /**
+     * Gets the date when this node was checked in.
+     * @return checkin date
+     * @throws NodeStateException if node is not checked in.
+     * @throws RepositoryException
+     */
+    public Date getCheckinDate() throws NodeStateException, RepositoryException;
     
     /**
      * Gets all revisions of this node.

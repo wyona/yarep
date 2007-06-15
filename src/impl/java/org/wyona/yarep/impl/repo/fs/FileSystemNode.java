@@ -261,8 +261,18 @@ public class FileSystemNode extends AbstractNode {
         Revision revision = createRevision(comment);
         
         setProperty(PROPERTY_IS_CHECKED_OUT, false);
+        setProperty(PROPERTY_CHECKIN_DATE, new Date());
         
         return revision;
+    }
+    
+    public void cancelCheckout() throws NodeStateException, RepositoryException {
+        if (!isCheckedOut()) {
+            throw new NodeStateException("Node " + path + " is not checked out.");
+        }
+        
+        setProperty(PROPERTY_IS_CHECKED_OUT, false);
+        setProperty(PROPERTY_CHECKIN_DATE, new Date());
     }
     
     /**

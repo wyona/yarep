@@ -124,6 +124,14 @@ public class DummyNode extends AbstractNode {
     }
 
     /**
+     * @see org.wyona.yarep.core.Node#cancelCheckout()
+     */
+    public void cancelCheckout() throws NodeStateException, RepositoryException {
+        // TODO: not implemented yet
+        log.warn("Not implemented yet.");
+    }
+
+    /**
      * @see org.wyona.yarep.core.Node#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
