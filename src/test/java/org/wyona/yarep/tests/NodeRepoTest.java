@@ -1,6 +1,7 @@
 package org.wyona.yarep.tests;
 
 import org.wyona.yarep.core.Node;
+import org.wyona.yarep.core.NodeStateException;
 import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
@@ -269,6 +270,23 @@ public class NodeRepoTest extends TestCase {
         
         content = readFromNode(node);
         assertEquals(testContent1, content);
+    }
+
+    public void testCancelCheckout() throws Exception {
+        Node node = repo.getNode("/hello/revisiontest.txt");
+        
+        node.checkout("test-user");
+        try {
+            node.checkout("another-user");
+            assertTrue("checkout is supposed to fail", false);
+        } catch (NodeStateException e) {
+            // this exception is expected, checkout is supposed to fail
+        }
+        node.cancelCheckout();
+        
+        node.checkout("another-user");
+        writeToNode(node, "bla bla");
+        Revision newRevision = node.checkin();
     }
 
     // auxiliary methods:
