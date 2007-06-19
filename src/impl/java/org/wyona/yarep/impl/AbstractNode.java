@@ -56,6 +56,13 @@ public abstract class AbstractNode implements Node {
         this.path = path;
         this.name = PathUtil.getName(path);
         this.uuid = uuid;
+
+        // TODO: Make sure that no backslashes are being used
+        if (path.indexOf("\\") >= 0) {
+            RepositoryException e = new RepositoryException();
+            log.error(e.getMessage(), e);
+            throw e;
+        }
     }
     
     /**
