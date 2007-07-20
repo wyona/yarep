@@ -254,6 +254,7 @@ public class DefaultRepository  implements Repository {
      * @return true if node has been deleted, otherwise false
      */
     public boolean delete(Path path, boolean recursive) throws RepositoryException {
+        log.warn("Not implemented yet!");
         if (recursive) throw new RepositoryException("Not implemented yet");
         return delete(path);
     }
