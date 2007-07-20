@@ -402,7 +402,11 @@ public class FileSystemNode extends AbstractNode {
         }
         boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
-            FileUtils.deleteDirectory(this.contentFile);
+            if (this.contentFile.isDirectory()) {
+                FileUtils.deleteDirectory(this.contentFile);
+            } else {
+                this.contentFile.delete();
+            }
             FileUtils.deleteDirectory(this.metaDir);
         } catch (IOException e) {
             throw new RepositoryException("Could not delete node: " + node.getPath() + ": " + 
