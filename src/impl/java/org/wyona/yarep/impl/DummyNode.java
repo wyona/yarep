@@ -160,7 +160,8 @@ public class DummyNode extends AbstractNode {
         for (int i=0; i<children.length; i++) {
             deleteRec(children[i]);
         }
-        boolean success = this.repository.delete(new Path(this.path));
+        boolean success = this.repository.delete(new Path(this.path), false);
+        //boolean success = this.repository.delete(new Path(this.path), true);
         if (!success) {
             throw new RepositoryException("Could not delete path: " + this.path);
         }

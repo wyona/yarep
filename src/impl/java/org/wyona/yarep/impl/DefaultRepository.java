@@ -249,6 +249,14 @@ public class DefaultRepository  implements Repository {
         }
         return deletedMap && deletedStorage;
     }
+    
+    /**
+     * @return true if node has been deleted, otherwise false
+     */
+    public boolean delete(Path path, boolean recursive) throws RepositoryException {
+        if (recursive) throw new RepositoryException("Not implemented yet");
+        return delete(path);
+    }
 
     /**
      * Not implemented yet

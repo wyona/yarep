@@ -146,6 +146,18 @@ public class HelloWorld {
                 System.out.println(children[i]);
             }
 
+            org.wyona.yarep.core.Node helloNode = repoA.getNode(helloPath.toString());
+            try {
+                helloNode.delete();
+            } catch(Exception e) {
+                System.err.println(e);
+            }
+            if (repoA.existsNode(helloPath.toString())) {
+                System.out.println("Node '" + helloPath + "' has been deleted.");
+            } else {
+                System.err.println("Node '" + helloPath + "' could not be deleted!");
+            }
+
             if (repoA.delete(helloPath)) {
                 System.out.println("Node '" + helloPath + "' has been deleted.");
             } else {

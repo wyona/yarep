@@ -100,6 +100,14 @@ public interface Repository {
      * @deprecated
      */
     public boolean delete(Path path) throws RepositoryException;
+    
+    /**
+     * In order to allow deleting collections
+     *
+     * @return true if node has been deleted, otherwise false
+     * @deprecated
+     */
+    public boolean delete(Path path, boolean recursive) throws RepositoryException;
 
     /**
      * http://excalibur.apache.org/apidocs/org/apache/excalibur/source/impl/FileSource.html#getValidity()

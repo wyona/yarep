@@ -177,6 +177,14 @@ public class VirtualFileSystemRepository implements Repository {
         return true;
     }
 
+    /**
+     * @return true if node has been deleted, otherwise false
+     */
+    public boolean delete(Path path, boolean recursive) throws RepositoryException {
+        if (recursive) throw new RepositoryException("Not implemented yet");
+        return delete(path);
+    }
+
     public boolean exists(Path path) throws RepositoryException {
         return existsNode(path.toString());
     }
