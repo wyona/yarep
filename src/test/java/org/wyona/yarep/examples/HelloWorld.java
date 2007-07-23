@@ -136,9 +136,10 @@ public class HelloWorld {
             System.err.println(e);
         }
 
-        // List children
-        System.out.println("\nList children of path /hello from repository " + repoA.getName() + " ...");
         try {
+
+            // List children
+            System.out.println("\nUSECASE: List children of path /hello from repository " + repoA.getName() + " (" + repoA.getID() + ") ...");
             Path helloPath = new Path("/hello");
 
             Path[] children = repoA.getChildren(helloPath);
@@ -146,19 +147,23 @@ public class HelloWorld {
                 System.out.println(children[i]);
             }
 
+            // Delete collection
+            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository " + repoA.getName() + " (" + repoA.getID() + ") ...");
             org.wyona.yarep.core.Node helloNode = repoA.getNode(helloPath.toString());
             try {
                 helloNode.delete();
             } catch(Exception e) {
                 System.err.println(e);
             }
-            if (repoA.existsNode(helloPath.toString())) {
+            if (!repoA.existsNode(helloPath.toString())) {
                 System.out.println("Node '" + helloPath + "' has been deleted.");
             } else {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
 
-            if (repoA.delete(helloPath)) {
+            // Delete collection
+            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository " + repoA.getName() + " (" + repoA.getID() + ") with deprecated method Repository.delete(Path, boolean) ...");
+            if (repoA.delete(helloPath, true)) {
                 System.out.println("Node '" + helloPath + "' has been deleted.");
             } else {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
