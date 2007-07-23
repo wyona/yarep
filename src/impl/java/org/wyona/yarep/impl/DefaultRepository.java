@@ -235,18 +235,12 @@ public class DefaultRepository  implements Repository {
             }
         }
 
-        boolean deletedMap = map.delete(path);
-        if (!deletedMap) {
-            log.error("Could not delete from map: " + path);
-        }
-
         boolean deletedStorage = false;
         UID uid = getUID(path);
         if (uid == null) {
             if (fallback) {
                 log.warn("Fallback: " + path);
                 deletedStorage = storage.delete(new UID(path.toString()), path);
-                return deletedMap && deletedStorage;
             } else {
                 log.error("Neither UID nor Fallback: " + path);
                 return false;
@@ -257,6 +251,12 @@ public class DefaultRepository  implements Repository {
                 log.error("Could not delete from storage: " + path);
             }
         }
+
+        boolean deletedMap = map.delete(path);
+        if (!deletedMap) {
+            log.error("Could not delete from map: " + path);
+        }
+
         return deletedMap && deletedStorage;
     }
     
