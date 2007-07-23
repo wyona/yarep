@@ -127,7 +127,7 @@ public class HelloWorld {
             System.out.println("Very first line: " + br.readLine());
             readerD.close();
 
-            System.out.println("\nRead content from node without a UID:");
+            System.out.println("\nUSECASE: Read content from node without a UID \"/no/uid/example.txt\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             readerA = repoA.getReader(new Path("/no/uid/example.txt"));
             br = new BufferedReader(readerA);
             System.out.println("Very first line: " + br.readLine());
@@ -139,16 +139,32 @@ public class HelloWorld {
         try {
 
             // List children
-            System.out.println("\nUSECASE: List children of path /hello from repository " + repoA.getName() + " (" + repoA.getID() + ") ...");
+            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             Path helloPath = new Path("/hello");
 
             Path[] children = repoA.getChildren(helloPath);
             for (int i = 0; i < children.length; i++) {
-                System.out.println(children[i]);
+                System.out.println("Child: " + children[i]);
+            }
+
+            // Delete collection with deprecated method
+            System.out.println("\nUSECASE: Try to delete \"" + helloPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" with deprecated method Repository.delete(Path, boolean) ...");
+            if (repoA.delete(helloPath, false)) {
+                System.out.println("Node '" + helloPath + "' has been deleted.");
+            } else {
+                System.err.println("Node '" + helloPath + "' could not be deleted!");
+            }
+
+            // Delete resource
+            System.out.println("\nUSECASE: Try to delete \"" + worldPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" with deprecated method Repository.delete(Path) ...");
+            if (repoA.delete(worldPath)) {
+                System.out.println("Node '" + worldPath + "' has been deleted.");
+            } else {
+                System.err.println("Node '" + worldPath + "' could not be deleted!");
             }
 
             // Delete collection
-            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository " + repoA.getName() + " (" + repoA.getID() + ") ...");
+            System.out.println("\nUSECASE: Try to delete \"" + helloPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             org.wyona.yarep.core.Node helloNode = repoA.getNode(helloPath.toString());
             try {
                 helloNode.delete();
@@ -161,21 +177,6 @@ public class HelloWorld {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
 
-            // Delete collection
-            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository \"" + repoA.getName() + "\" (" + repoA.getID() + ") with deprecated method Repository.delete(Path, boolean) ...");
-            if (repoA.delete(helloPath, true)) {
-                System.out.println("Node '" + helloPath + "' has been deleted.");
-            } else {
-                System.err.println("Node '" + helloPath + "' could not be deleted!");
-            }
-
-            // Delete resource
-            System.out.println("\nUSECASE: Try to delete " + worldPath + " from repository \"" + repoA.getName() + "\" (" + repoA.getID() + ") with deprecated method Repository.delete(Path) ...");
-            if (repoA.delete(worldPath)) {
-                System.out.println("Node '" + worldPath + "' has been deleted.");
-            } else {
-                System.err.println("Node '" + worldPath + "' could not be deleted!");
-            }
         } catch (Exception e) {
             System.err.println(e);
         }
