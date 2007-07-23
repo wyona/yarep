@@ -225,27 +225,37 @@ public class DefaultRepository  implements Repository {
      * @return true if node has been deleted, otherwise false
      */
     public boolean delete(Path path) throws RepositoryException {
+        if (log.isDebugEnabled()) log.info("Try to delete: " + path);
         if(map.isCollection(path)) {
-            log.warn("Node is a collection and hence cannot be deleted: " + path);
-            return false;
+            if (map.getChildren(path).length > 0) {
+                log.error("Node is a non-empty collection: " + path);
+                return false;
+            } else {
+                log.warn("Node is an empty collection: " + path);
+            }
         }
+
+        boolean deletedMap = map.delete(path);
+        if (!deletedMap) {
+            log.error("Could not delete from map: " + path);
+        }
+
+        boolean deletedStorage = false;
         UID uid = getUID(path);
         if (uid == null) {
             if (fallback) {
                 log.warn("Fallback: " + path);
-                return storage.delete(new UID(path.toString()), path);
+                deletedStorage = storage.delete(new UID(path.toString()), path);
+                return deletedMap && deletedStorage;
             } else {
-                log.error("No UID: " + path);
+                log.error("Neither UID nor Fallback: " + path);
                 return false;
             }
-        }
-        boolean deletedMap = map.delete(path);
-        if (!deletedMap) {
-            log.error("could not delete from map: " + path);
-        }
-        boolean deletedStorage = storage.delete(uid, path);
-        if (!deletedStorage) {
-            log.error("could not delete from storage: " + path);
+        } else {
+            deletedStorage = storage.delete(uid, path);
+            if (!deletedStorage) {
+                log.error("Could not delete from storage: " + path);
+            }
         }
         return deletedMap && deletedStorage;
     }
@@ -254,8 +264,15 @@ public class DefaultRepository  implements Repository {
      * @return true if node has been deleted, otherwise false
      */
     public boolean delete(Path path, boolean recursive) throws RepositoryException {
-        log.warn("Not implemented yet!");
-        if (recursive) throw new RepositoryException("Not implemented yet");
+        Node node = getNode(path.toString());
+        Node[] children = node.getNodes();
+        if (recursive && children.length > 0) {;
+            for (int i = 0; i < children.length; i++) {
+                if (!delete(new Path(children[i].getPath()), true)) {
+                    throw new RepositoryException("Could not delete node: " + children[i]);
+                }
+            }
+        }
         return delete(path);
     }
 

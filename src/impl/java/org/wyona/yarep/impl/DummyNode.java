@@ -155,15 +155,13 @@ public class DummyNode extends AbstractNode {
         
     }
     
+    /**
+     * Delete recursively
+     */
     protected void deleteRec(Node node) throws RepositoryException {
-        Node[] children = node.getNodes();
-        for (int i=0; i<children.length; i++) {
-            deleteRec(children[i]);
-        }
-        boolean success = this.repository.delete(new Path(this.path), false);
-        //boolean success = this.repository.delete(new Path(this.path), true);
+        boolean success = this.repository.delete(new Path(node.getPath()), true);
         if (!success) {
-            throw new RepositoryException("Could not delete path: " + this.path);
+            throw new RepositoryException("Could not delete path: " + node.getPath());
         }
     }
        
