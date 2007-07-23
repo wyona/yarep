@@ -241,6 +241,9 @@ public class DefaultRepository  implements Repository {
             if (fallback) {
                 log.warn("Fallback: " + path);
                 deletedStorage = storage.delete(new UID(path.toString()), path);
+                if (!deletedStorage) {
+                    log.error("Could not delete from storage: " + path);
+                }
             } else {
                 log.error("Neither UID nor Fallback: " + path);
                 return false;
