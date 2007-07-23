@@ -162,13 +162,15 @@ public class HelloWorld {
             }
 
             // Delete collection
-            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository " + repoA.getName() + " (" + repoA.getID() + ") with deprecated method Repository.delete(Path, boolean) ...");
+            System.out.println("\nUSECASE: Try to delete " + helloPath + " from repository \"" + repoA.getName() + "\" (" + repoA.getID() + ") with deprecated method Repository.delete(Path, boolean) ...");
             if (repoA.delete(helloPath, true)) {
                 System.out.println("Node '" + helloPath + "' has been deleted.");
             } else {
                 System.err.println("Node '" + helloPath + "' could not be deleted!");
             }
 
+            // Delete resource
+            System.out.println("\nUSECASE: Try to delete " + worldPath + " from repository \"" + repoA.getName() + "\" (" + repoA.getID() + ") with deprecated method Repository.delete(Path) ...");
             if (repoA.delete(worldPath)) {
                 System.out.println("Node '" + worldPath + "' has been deleted.");
             } else {
