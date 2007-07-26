@@ -34,9 +34,12 @@ public class FileSystemRevision extends FileSystemNode implements Revision {
         super(node.getRepository(), node.getPath(), node.getUUID(), false);
 
         this.revisionName = revisionName;
-        this.contentDir = new File(((FileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
-        this.contentFile = new File(this.contentDir, CONTENT_FILE_NAME);
-        this.metaDir = this.contentDir;
+        
+        File superMetaDir = node.metaDir;
+        
+        File revisionDir = new File(superMetaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
+        this.contentFile = new File(revisionDir, CONTENT_FILE_NAME);
+        this.metaDir = revisionDir;
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
     
         if (log.isDebugEnabled()) {

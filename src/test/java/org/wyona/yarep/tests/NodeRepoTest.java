@@ -31,8 +31,24 @@ public class NodeRepoTest extends TestCase {
                 "node-fs-example/repository.xml"));
     }
     
+    protected String getCollectionTestPath() {
+        return "/hello";
+    }
+    
+    protected String getResourceTestName() {
+        return "world.txt";
+    }
+    
+    protected String getResourceTestPath() {
+        return getCollectionTestPath() + "/" + getResourceTestName();
+    }
+    
+    protected String getRevisionTestPath() {
+        return getCollectionTestPath() + "/revisiontest.txt";
+    }
+    
     public void testWriteRead() throws Exception {
-        String path = "/hello/world.txt";
+        String path = getResourceTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node = repo.getNode(path);
@@ -50,7 +66,7 @@ public class NodeRepoTest extends TestCase {
     }
     
     public void testProperties() throws Exception {
-        String path = "/hello/world.txt";
+        String path = getResourceTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node = repo.getNode(path);
@@ -75,7 +91,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testAddNode() throws Exception {
-        String path = "/hello";
+        String path = getCollectionTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node1 = repo.getNode(path);
@@ -93,7 +109,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testAddNodes() throws Exception {
-        String path = "/hello";
+        String path = getCollectionTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node1 = repo.getNode(path);
@@ -102,7 +118,7 @@ public class NodeRepoTest extends TestCase {
         // add file node:
         Node node3 = node2.addNode("sub-y", NodeType.RESOURCE);
         
-        assertTrue(repo.existsNode("/hello/sub-x/sub-y"));
+        assertTrue(repo.existsNode(path + "/sub-x/sub-y"));
         
         // add string property to node2:
         String string1 = "test " + System.currentTimeMillis();
@@ -127,7 +143,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testLastModified() throws Exception {
-        String path = "/hello/world.txt";
+        String path = getResourceTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node = repo.getNode(path);
@@ -146,7 +162,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testSize() throws Exception {
-        String path = "/hello/world.txt";
+        String path = getResourceTestPath();
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node = repo.getNode(path);
@@ -169,41 +185,51 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testParents() throws Exception {
-        String path = "/hello/world.txt";
+        String path = getResourceTestPath();
         Node node = repo.getNode(path);
         Node parent = node.getParent();
-        assertEquals(parent.getName(), "hello");
+        String[] pathTokens = path.split("/");
+        assertEquals(parent.getName(), pathTokens[pathTokens.length - 2]);
         Node grandParent = parent.getParent();
         assertEquals(grandParent.getName(), "");
         assertNull(grandParent.getParent());
     }
 
     public void testChildren() throws Exception {
-        Node parent = repo.getNode("/hello");
+        Node parent = repo.getNode(getCollectionTestPath());
         Node[] children = parent.getNodes();
         assertTrue("No children found", children.length > 0);
-        Node child = parent.getNode("world.txt");
-        assertEquals("world.txt", child.getName());
+        boolean foundChild = false;
+        for (int i = 0; i < children.length; i++) {
+            if (children[i].getName().equals(getResourceTestName())) {
+                assertEquals(getResourceTestPath(), children[i].getPath());
+                foundChild = true;
+            }
+        }
+        assertTrue("Child " +  getResourceTestName() + " not found", foundChild);
+        Node child = parent.getNode(getResourceTestName());
+        assertEquals(getResourceTestName(), child.getName());
+        assertEquals(getResourceTestPath(), child.getPath());
     }
 
     public void testResource() throws Exception {
-        Node node = repo.getNode("/hello/world.txt");
+        Node node = repo.getNode(getResourceTestPath());
         assertTrue(node.isResource());
         assertFalse(node.isCollection());
     }
 
     public void testCollection() throws Exception {
-        Node node = repo.getNode("/hello");
+        Node node = repo.getNode(getCollectionTestPath());
         assertTrue(node.isCollection());
         assertFalse(node.isResource());
         
-        node = repo.getNode("/hello/");
+        node = repo.getNode(getCollectionTestPath() + "/");
         assertTrue(node.isCollection());
         assertFalse(node.isResource());
     }
 
     public void testCheckinCheckout() throws Exception {
-        Node node = repo.getNode("/hello/world.txt");
+        Node node = repo.getNode(getResourceTestPath());
         assertFalse("Node is not supposed to be checked out", node.isCheckedOut());
         String testUser = "test-user";
         node.checkout(testUser);
@@ -216,7 +242,7 @@ public class NodeRepoTest extends TestCase {
     }
     
     public void testRevision() throws Exception {
-        Node node = repo.getNode("/hello/revisiontest.txt");
+        Node node = repo.getNode(getRevisionTestPath());
         
         node.checkout("test-user");
         String testContent = "editing...";
@@ -234,7 +260,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testRevisionTag() throws Exception {
-        Node node = repo.getNode("/hello/revisiontest.txt");
+        Node node = repo.getNode(getRevisionTestPath());
         
         node.checkout("test-user");
         String testContent = "revision label test";
@@ -249,7 +275,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testRestore() throws Exception {
-        Node node = repo.getNode("/hello/revisiontest.txt");
+        Node node = repo.getNode(getRevisionTestPath());
         
         node.checkout("test-user");
         String testContent1 = "editing... step1";
@@ -273,7 +299,7 @@ public class NodeRepoTest extends TestCase {
     }
 
     public void testCancelCheckout() throws Exception {
-        Node node = repo.getNode("/hello/revisiontest.txt");
+        Node node = repo.getNode(getRevisionTestPath());
         
         node.checkout("test-user");
         try {

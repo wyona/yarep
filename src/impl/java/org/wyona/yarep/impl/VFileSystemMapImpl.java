@@ -200,6 +200,9 @@ public class VFileSystemMapImpl implements Map {
      * Ignore all children which are matched by an ignore pattern (see repository configuration, e.g. src/test/repository/node-fs-example/repository.xml)
      */
     protected class ChildrenFilter implements FilenameFilter {
+        public ChildrenFilter() {
+        }
+        
         public boolean accept(File dir, String name) {
             
             if (VFileSystemMapImpl.this.ignorePath(name)) {

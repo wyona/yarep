@@ -75,9 +75,9 @@ public class FileSystemNode extends AbstractNode {
     protected void init() throws RepositoryException {
         
         this.contentDir = getRepository().getContentDir();
-        this.contentFile = new File(this.contentDir, this.uuid);
-        this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
-        this.metaFile = new File(this.metaDir, META_FILE_NAME);
+        this.contentFile = determineContentFile(this.uuid);
+        this.metaDir = determineMetaDir(this.uuid);
+        this.metaFile = determineMetaFile(this.uuid);
         
         if (log.isDebugEnabled()) {
             log.debug("FileSystemNode: path=" + path + " uuid=" + uuid);
@@ -92,6 +92,18 @@ public class FileSystemNode extends AbstractNode {
         }
         readProperties();
         readRevisions();
+    }
+    
+    protected File determineContentFile(String uuid) {
+        return new File(this.contentDir, uuid);
+    }
+    
+    protected File determineMetaDir(String uuid) {
+        return new File(this.contentDir, uuid + META_DIR_SUFFIX);
+    }
+    
+    protected File determineMetaFile(String uuid) {
+        return new File(this.metaDir, META_FILE_NAME);
     }
     
     protected void createMetaFile() throws RepositoryException {
@@ -188,11 +200,15 @@ public class FileSystemNode extends AbstractNode {
         }
         UID uid = getRepository().getMap().create(new Path(newPath), type);
         // create file:
-        File file = new File(this.contentDir, uid.toString());
+        File file = determineContentFile(uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
                 file.mkdirs();
             } else if (type == NodeType.RESOURCE) {
+                File parentFile = file.getParentFile(); 
+                if (!parentFile.exists()) {
+                    parentFile.mkdirs();
+                }
                 file.createNewFile();
             } else {
                 throw new RepositoryException("Unknown node type: " + type);
@@ -202,6 +218,7 @@ public class FileSystemNode extends AbstractNode {
             throw new RepositoryException("Could not access file " + file, e);
         }
     }
+
     
     /**
      * @see org.wyona.yarep.core.Node#removeProperty(java.lang.String)
@@ -358,6 +375,8 @@ public class FileSystemNode extends AbstractNode {
     }
     
     protected class RevisionDirectoryFilter implements FileFilter {
+        public RevisionDirectoryFilter() {
+        }
         public boolean accept(File pathname) {
             if (pathname.getName().matches("[0-9]+") && pathname.isDirectory()) {
                 return true;
