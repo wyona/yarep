@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<repository class="org.wyona.yarep.impl.repo.treefs.TreeFileSystemRepository">
+  <name> Tree Node Filesystem Example</name>
+  <!-- <paths class="org.wyona.yarep.impl.DefaultMapImpl" src="paths">
+    <ignore pattern=".*\.svn"/>
+  </paths> -->
+
+  <paths class="org.wyona.yarep.impl.repo.treefs.map.TreeFileSystemMap" src="content">
+    <ignore pattern=".*\.svn"/>
+    <ignore pattern=".*\.yarep"/>
+  </paths>
+  <content src="content"/>
+  <split-interval>2</split-interval>
+  <max-splits>3</max-splits>
+</repository>
+
