@@ -85,7 +85,7 @@ public class DefaultMapImpl implements Map {
         File file = new File(pathsDir + path.toString());
         File uidFile = new File(pathsDir + path.toString() + File.separator + "." + YAREP_UID_SUFFIX);
         if(log.isDebugEnabled()) log.debug("UID File: " + uidFile);
-        return uidFile.exists() || file.isFile();
+        return (uidFile.isFile() || file.isFile()) && !isCollection(path);
     }
 
     /**
@@ -125,7 +125,10 @@ public class DefaultMapImpl implements Map {
                     String existingUID = br.readLine();
                     String type = br.readLine();
                     br.close();
-                    if (type != null && type.equals("collection")) return true;
+                    if (log.isDebugEnabled()) log.debug("type: " + type);
+                    if (type != null && type.equals("collection")) {
+                        return true;
+                    }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                     throw new RepositoryException("Error reading uid of path: " + path.toString() + ": " + e.getMessage(), e);
