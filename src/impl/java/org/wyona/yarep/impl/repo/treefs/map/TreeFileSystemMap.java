@@ -93,9 +93,9 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
         }
         int splitInterval = getSplitInterval();
         int maxSplits = getMaxSplits();
-        System.out.println("map path: " + path);
-        System.out.println("map splitInterval: " + splitInterval);
-        System.out.println("map maxSplits: " + maxSplits);
+        //System.out.println("map path: " + path);
+        //System.out.println("map splitInterval: " + splitInterval);
+        //System.out.println("map maxSplits: " + maxSplits);
         String splitPath = "";
         int slashIndex = path.indexOf("/");
         String part1 = path;
@@ -121,7 +121,7 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
             splitPath = splitPath + "/" + part2;
         }
         //splitPath = "/" + splitPath;
-        System.out.println("map split path: " + splitPath);
+        //System.out.println("map split path: " + splitPath);
         return splitPath;
     }
 
@@ -159,10 +159,10 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
      *
      */
     public boolean exists(Path path) throws RepositoryException {
-        System.out.println("exists path: " + path);
+        //System.out.println("exists path: " + path);
         File file = new File(pathsDir, splitPath(path.toString()));
-        System.out.println("exists file: " + file);
-        System.out.println("exists: " + file.exists());
+        //System.out.println("exists file: " + file);
+        //System.out.println("exists: " + file.exists());
         // TODO: Get name of repository for debugging ...
         //log.debug("File: " + file);
         return file.exists() && !ignorePath(file.getPath());
