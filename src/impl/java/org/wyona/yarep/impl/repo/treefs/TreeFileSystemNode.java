@@ -44,6 +44,9 @@ public class TreeFileSystemNode extends FileSystemNode {
         //System.out.println("uuid: " + uuid);
         //System.out.println("splitInterval: " + splitInterval);
         //System.out.println("maxSplits: " + maxSplits);
+        if (uuid.startsWith("/") && uuid.length() > 1) {
+            uuid = uuid.substring(1);
+        }
         String splitId = "";
         int slashIndex = uuid.indexOf("/");
         String part1 = uuid;
