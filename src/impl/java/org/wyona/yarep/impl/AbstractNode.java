@@ -303,21 +303,36 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#getLastModified()
      */
     public long getLastModified() throws RepositoryException {
-        return getProperty(PROPERTY_LAST_MODIFIED).getLong();
+        Property lastModified = getProperty(PROPERTY_LAST_MODIFIED);
+        if (lastModified != null) {
+            return lastModified.getLong();
+        } else {
+            return 0;
+        }
     }
     
     /**
      * @see org.wyona.yarep.core.Node#getSize()
      */
     public long getSize() throws RepositoryException {
-        return getProperty(PROPERTY_SIZE).getLong();
+        Property size = getProperty(PROPERTY_SIZE);
+        if (size != null) {
+            return size.getLong();
+        } else {
+            return 0;
+        }
     }
     
     /**
      * @see org.wyona.yarep.core.Node#getMimeType()
      */
     public String getMimeType() throws RepositoryException {
-        return getProperty(PROPERTY_MIME_TYPE).getString();
+        Property mimeType = getProperty(PROPERTY_MIME_TYPE);
+        if (mimeType != null) {
+            return mimeType.getString();
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -331,7 +346,12 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#getEncoding()
      */
     public String getEncoding() throws RepositoryException {
-        return getProperty(PROPERTY_ENCODING).getString();
+        Property encoding = getProperty(PROPERTY_ENCODING);
+        if (encoding != null) {
+            return encoding.getString();
+        } else {
+            return null;
+        }
     }
     
     /**
