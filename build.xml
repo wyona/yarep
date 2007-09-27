@@ -11,7 +11,7 @@
     <property file="local.build.properties"/>
     <property file="build.properties"/>
 
-    <artifact:remoteRepository id="wyona.remote.repository" url="http://www.wyona.org/maven2/"/>
+    <artifact:remoteRepository id="wyona.remote.repository" url="http://maven2.wyona.org/"/>
 
     <artifact:dependencies pathId="maven2.classpath" filesetId="maven2.fileset">
       <remoteRepository refid="wyona.remote.repository"/>
