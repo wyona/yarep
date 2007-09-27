@@ -59,7 +59,7 @@ public abstract class AbstractNode implements Node {
 
         // TODO: Make sure that no backslashes are being used
         if (path.indexOf("\\") >= 0) {
-            RepositoryException e = new RepositoryException();
+            RepositoryException e = new RepositoryException("path contains backslashes: " + path);
             log.error(e.getMessage(), e);
             throw e;
         }
