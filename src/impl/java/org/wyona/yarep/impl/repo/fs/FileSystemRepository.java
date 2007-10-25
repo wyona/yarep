@@ -284,6 +284,9 @@ public class FileSystemRepository implements Repository {
         if (!map.exists(new Path(path))) {
             if (fallback) {
                 log.info("No UID! Fallback to : " + path);
+                if (!(new File(contentDir + path)).exists()) {
+                    throw new NoSuchNodeException(path, this);
+                }
                 uuid = new UID(path).toString();
             } else {
                 throw new NoSuchNodeException(path, this);
@@ -291,6 +294,7 @@ public class FileSystemRepository implements Repository {
         } else {
             UID uid = map.getUID(new Path(path));
             uuid = (uid == null) ? path : uid.toString();
+            
         }
         
         //String uuid = map.getUID(new Path(path)).toString();
