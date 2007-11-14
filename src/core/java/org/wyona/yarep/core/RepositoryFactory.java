@@ -63,13 +63,15 @@ public class RepositoryFactory {
                 throw new Exception("Wrong number of config parameters: " + CONFIGURATION_FILE);
             }
 
-            repositories = new Vector(tokens.length / 2);
+            repositories = new Vector();
             for (int i = 0;i < tokens.length / 2; i++) {
                 String repoID = tokens[2 * i];
                 String configFilename = tokens[2 * i + 1];
+
                 log.debug("Property File: " + propsFile.getAbsolutePath());
                 log.debug("PARENT: " + propsFile.getParentFile());
                 log.debug("Filename: " + configFilename);
+
                 File configFile;
                 if (new File(configFilename).isAbsolute()) {
                     configFile = new File(configFilename);
@@ -78,11 +80,6 @@ public class RepositoryFactory {
                 }
                 if (log.isDebugEnabled()) log.debug("Configuration File: " + configFile.getAbsolutePath());
                 Repository rt = newRepository(repoID, configFile);
-                rt.setID(repoID);
-                rt.readConfiguration(configFile);
-
-                log.debug(rt.toString());
-                repositories.addElement(rt);
             }
 
             // see src/java/org/wyona/meguni/parser/Parser.java
@@ -122,9 +119,10 @@ public class RepositoryFactory {
      * List all registered repositories
      */
     public String toString() {
-        String s = "Show all repositories listed within " + CONFIGURATION_FILE + " respectively set during runtime:";
+        String s = "\n\nShow all (" + repositories.size() + ") repositories listed within " + CONFIGURATION_FILE + " respectively set during runtime:";
         for (int i = 0;i < repositories.size(); i++) {
-            s = s + "\n" + (Repository) repositories.elementAt(i);
+            Repository repo = (Repository) repositories.elementAt(i);
+            s = s + "\nRepository (id=" + repo.getID() + "): " + (Repository) repositories.elementAt(i);
         }
         return s;
     }
