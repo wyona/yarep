@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<project name="yarep-dependencies" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+  <target name="dependencies" description="Dependencies">
+    <artifact:remoteRepository id="wyona.remote.repository" url="http://maven2.wyona.org/"/>
+
+    <artifact:dependencies pathId="maven2.classpath" filesetId="maven2.fileset">
+      <remoteRepository refid="wyona.remote.repository"/>
+      <dependency groupId="log4j" artifactId="log4j"
+                  version="1.2.8"/>
+      <dependency groupId="avalon-framework" artifactId="avalon-framework-api"
+                  version="4.1.5"/>
+      <dependency groupId="avalon-framework" artifactId="avalon-framework-impl"
+                  version="4.1.5"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-id"
+                  version="0.1-dev-lcr357257"/>
+      <dependency groupId="wyona-org-commons" artifactId="wyona-org-commons"
+                  version="1.0-dev-r26137"/>
+      <dependency groupId="svnkit" artifactId="svnkit"
+                  version="1.1.0"/>
+
+      <!-- Runtime libs -->
+      <!-- IMPORT: xerces 2.7.1 is dependent on xml-apis 1.3.02 -->
+      <dependency groupId="xerces" artifactId="xercesImpl"
+                  version="2.7.1"/>
+      <dependency groupId="xml-apis" artifactId="xml-apis"
+                  version="1.3.02"/>
+      <dependency groupId="xml-resolver" artifactId="xml-resolver"
+                  version="1.1"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-discovery"
+                  version="0.2"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging"
+                  version="1.0.4"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-io"
+                  version="1.2"/>
+      <dependency groupId="hsqldb" artifactId="hsqldb"
+                  version="1.8.0.7"/>
+      <dependency groupId="postgresql" artifactId="postgresql"
+                  version="7.4.1-jdbc3"/>
+      <dependency groupId="xindice" artifactId="xmldb"
+                  version="1.0"/>
+    </artifact:dependencies>
+    <property name="maven2.cp" refid="maven2.classpath"/>
+  </target>
+</project>
