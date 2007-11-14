@@ -36,20 +36,17 @@ public class JCRRepository implements Repository {
         try {
             javax.jcr.Repository repository = new TransientRepository();
 
-/*
-        javax.jcr.Session session;
-        try {
-            session = repository.login();
+            javax.jcr.Session session = repository.login();
+            try {
+                String user = session.getUserID();
+                String name = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
+                System.out.println( "Logged in as " + user + " to a " + name + " repository.");
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            } finally {
+                session.logout();
+            }
 
-            String user = session.getUserID();
-            String name = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
-            System.out.println( "Logged in as " + user + " to a " + name + " repository.");
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            //if (session != null) session.logout();
-        }
-*/
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -257,10 +254,10 @@ public class JCRRepository implements Repository {
     }
 
     /**
-     *
+     * Like an init() method ...
      */
     public void readConfiguration(File configFile) throws RepositoryException {
-        log.error("Not implemented yet!");
+        log.warn("Not implemented yet!");
     }
 
     /**
