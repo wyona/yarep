@@ -1,10 +1,5 @@
 <?xml version="1.0"?>
 
-<repository>
+<repository class="org.wyona.yarep.impl.repo.jcr.JCRRepository">
   <name>JCR Example</name>
-
-  <paths src="paths" fallback="false"/>
-
-  <storage class="org.wyona.yarep.impl.repo.jcr.JCRStorage">
-  </storage>
 </repository>
