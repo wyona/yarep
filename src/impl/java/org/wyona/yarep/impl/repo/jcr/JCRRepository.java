@@ -18,6 +18,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import org.apache.jackrabbit.core.TransientRepository;
+
 /**
  * JCR based repository.
  */
@@ -31,6 +33,26 @@ public class JCRRepository implements Repository {
      *
      */
     public JCRRepository() {
+        try {
+            javax.jcr.Repository repository = new TransientRepository();
+
+/*
+        javax.jcr.Session session;
+        try {
+            session = repository.login();
+
+            String user = session.getUserID();
+            String name = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
+            System.out.println( "Logged in as " + user + " to a " + name + " repository.");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            //if (session != null) session.logout();
+        }
+*/
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -253,5 +275,12 @@ public class JCRRepository implements Repository {
      */
     public void setID(String id) {
         repoId = id;
+    }
+
+    /**
+     *
+     */
+    public String toString() {
+        return "JCR Wrapper Repository: ID = " + getID();
     }
 }
