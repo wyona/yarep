@@ -76,9 +76,8 @@ public class RepositoryFactory {
                 } else {
                     configFile = FileUtil.file(propsFile.getParentFile().getAbsolutePath(), new File(configFilename).toString());
                 }
-                log.debug("Configuration File: " + configFile.getAbsolutePath());
-                //Repository rt = new DefaultRepository(repoID, configFile);
-                Repository rt = (Repository) Class.forName("org.wyona.yarep.impl.DefaultRepository").newInstance();
+                if (log.isDebugEnabled()) log.debug("Configuration File: " + configFile.getAbsolutePath());
+                Repository rt = newRepository(repoID, configFile);
                 rt.setID(repoID);
                 rt.readConfiguration(configFile);
 
