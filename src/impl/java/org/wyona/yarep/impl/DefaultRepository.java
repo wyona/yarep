@@ -98,7 +98,7 @@ public class DefaultRepository  implements Repository {
      *
      */
     public String toString() {
-        return "Repository: ID = " + id + ", Configuration-File = " + configFile + ", Name = " + name;
+        return "Default Repository Impl: ID = " + id + ", Configuration-File = " + configFile + ", Name = " + name;
     }
 
     /**
