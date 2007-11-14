@@ -394,5 +394,4 @@ public interface Node {
      * @throws RepositoryException
      */
     public void setEncoding(String encoding) throws RepositoryException;
-        
 }

@@ -230,5 +230,14 @@ public interface Repository {
      * @throws RepositoryException repository error
      */
     public void move(String srcPath, String destPath) throws RepositoryException;
-    
+
+    /**
+     * Search content
+     */
+    //public Node[] search(String query) throws RepositoryException;
+
+    /**
+     * Search values of a specific property
+     */
+    //public Node[] searchProperty(String pName, String query) throws RepositoryException;
 }
