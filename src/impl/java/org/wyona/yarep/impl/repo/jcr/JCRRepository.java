@@ -35,29 +35,14 @@ public class JCRRepository implements Repository {
     private String repoId;
     private String repoName;
     private String jcrRepoDesc;
-    private File repoConfigFile;
+    private File yarepConfigFile;
+    private File jackrabbitConfigFile;
 
     /**
      *
      */
     public JCRRepository() {
-        try {
-            javax.jcr.Repository repository = new TransientRepository();
-
-            javax.jcr.Session session = repository.login();
-            try {
-                String user = session.getUserID();
-                String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
-                System.out.println( "Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            } finally {
-                session.logout();
-            }
-
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+        log.error("DEBUG: Create new Yarep-JCR repo ...");
     }
 
     /**
@@ -249,7 +234,7 @@ public class JCRRepository implements Repository {
      *
      */
     public File getConfigFile() {
-        return repoConfigFile;
+        return yarepConfigFile;
     }
 
     /**
@@ -263,25 +248,46 @@ public class JCRRepository implements Repository {
      * Like an init() method ...
      */
     public void readConfiguration(File configFile) throws RepositoryException {
-        repoConfigFile = configFile;
+        yarepConfigFile = configFile;
         DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
         Configuration config;
 
         try {
-            config = builder.buildFromFile(repoConfigFile);
+            config = builder.buildFromFile(yarepConfigFile);
 
             // Read repo name
             repoName = config.getChild("name", false).getValue();
 
             // Read jackrabbit config file
-            File jackrabbitConfigFile = new File(config.getChild("jackrabbit-repository-config", false).getAttribute("src"));
+            jackrabbitConfigFile = new File(config.getChild("jackrabbit-repository-config", false).getAttribute("src"));
             if (!jackrabbitConfigFile.isAbsolute()) {
-                jackrabbitConfigFile = FileUtil.file(repoConfigFile.getParent(), jackrabbitConfigFile.toString());
+                jackrabbitConfigFile = FileUtil.file(yarepConfigFile.getParent(), jackrabbitConfigFile.toString());
             }
             log.error("DEBUG: Jackrabbit config: " + jackrabbitConfigFile);
+            System.setProperty("org.apache.jackrabbit.repository.conf", jackrabbitConfigFile.toString());
+            System.setProperty("org.apache.jackrabbit.repository.home", jackrabbitConfigFile.getParent());
+
         } catch (Exception e) {
             log.error(e, e);
             throw new RepositoryException("Could not read repository configuration: " + e.getMessage(), e);
+        }
+
+        try {
+            javax.jcr.Repository repository = new TransientRepository();
+
+            javax.jcr.Session session = repository.login();
+            try {
+                String user = session.getUserID();
+                String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
+                System.out.println( "Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            } finally {
+                session.logout();
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
