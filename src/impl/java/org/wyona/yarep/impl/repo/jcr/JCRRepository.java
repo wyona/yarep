@@ -279,7 +279,12 @@ public class JCRRepository implements Repository {
             try {
                 String user = session.getUserID();
                 String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
-                System.out.println( "Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
+                log.error("DEBUG: Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
+
+                javax.jcr.Node root = session.getRootNode();
+                javax.jcr.Node testNode = root.addNode("my-test-node");
+                testNode.setProperty("description", "Test Hugo");
+                session.save();
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
