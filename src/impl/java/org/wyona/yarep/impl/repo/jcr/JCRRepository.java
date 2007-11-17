@@ -7,6 +7,8 @@ import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
 
+import org.wyona.commons.io.FileUtil;
+
 import org.apache.log4j.Category;
 
 import java.io.File;
@@ -20,6 +22,9 @@ import java.io.Writer;
 
 import org.apache.jackrabbit.core.TransientRepository;
 
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
+
 /**
  * JCR based repository.
  */
@@ -28,6 +33,9 @@ public class JCRRepository implements Repository {
     private static Category log = Category.getInstance(JCRRepository.class);
 
     private String repoId;
+    private String repoName;
+    private String jcrRepoDesc;
+    private File repoConfigFile;
 
     /**
      *
@@ -39,8 +47,8 @@ public class JCRRepository implements Repository {
             javax.jcr.Session session = repository.login();
             try {
                 String user = session.getUserID();
-                String name = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
-                System.out.println( "Logged in as " + user + " to a " + name + " repository.");
+                String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
+                System.out.println( "Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
@@ -241,23 +249,40 @@ public class JCRRepository implements Repository {
      *
      */
     public File getConfigFile() {
-        log.error("Not implemented yet!");
-        return null;
+        return repoConfigFile;
     }
 
     /**
      *
      */
     public String getName() {
-        log.error("Not implemented yet!");
-        return null;
+        return repoName + "(" + jcrRepoDesc + ")";
     }
 
     /**
      * Like an init() method ...
      */
     public void readConfiguration(File configFile) throws RepositoryException {
-        log.warn("Not implemented yet!");
+        repoConfigFile = configFile;
+        DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
+        Configuration config;
+
+        try {
+            config = builder.buildFromFile(repoConfigFile);
+
+            // Read repo name
+            repoName = config.getChild("name", false).getValue();
+
+            // Read jackrabbit config file
+            File jackrabbitConfigFile = new File(config.getChild("jackrabbit-repository-config", false).getAttribute("src"));
+            if (!jackrabbitConfigFile.isAbsolute()) {
+                jackrabbitConfigFile = FileUtil.file(repoConfigFile.getParent(), jackrabbitConfigFile.toString());
+            }
+            log.error("DEBUG: Jackrabbit config: " + jackrabbitConfigFile);
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException("Could not read repository configuration: " + e.getMessage(), e);
+        }
     }
 
     /**

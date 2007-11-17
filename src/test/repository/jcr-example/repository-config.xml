@@ -3,5 +3,5 @@
 <repository class="org.wyona.yarep.impl.repo.jcr.JCRRepository">
   <name>JCR Example</name>
 
-  <jackrabbit-repository-config>jackrabbit/repository.xml</jackrabbit-repository-config>
+  <jackrabbit-repository-config src="jackrabbit/repository.xml"/>
 </repository>
