@@ -1,0 +1,20 @@
+----------------------------------------------------------------
+2007-11-17 21:46:39.807 GMT:
+ Booting Derby version The Apache Software Foundation - Apache Derby - 10.2.1.6 - (452058): instance c013800d-0116-4f93-e097-000000ca6338
+on database directory /home/michi/src/wyona-svn/public/yarep/trunk/repository/version/db  
+
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+2007-11-17 21:46:43.595 GMT:
+ Booting Derby version The Apache Software Foundation - Apache Derby - 10.2.1.6 - (452058): instance cbf5809d-0116-4f93-e097-000000ca6338
+on database directory /home/michi/src/wyona-svn/public/yarep/trunk/repository/workspaces/default/db  
+
+Database Class Loader started - derby.database.classpath=''
+
+2007-11-17 21:46:46.507 GMT:
+Shutting down instance cbf5809d-0116-4f93-e097-000000ca6338
+----------------------------------------------------------------
+
+2007-11-17 21:46:46.698 GMT:
+Shutting down instance c013800d-0116-4f93-e097-000000ca6338
+----------------------------------------------------------------
