@@ -35,6 +35,8 @@ public class JCRNode implements Node {
     private javax.jcr.Node jcrNode;
     private javax.jcr.Session session;
 
+    public static String BINARY_CONTENT_PROP_NAME = "binary-content";
+
     /**
      *
      */
@@ -332,8 +334,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public InputStream getInputStream() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            return jcrNode.getProperty(BINARY_CONTENT_PROP_NAME).getStream();
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     //public void setInputStream(InputStream inputStream) throws RepositoryException;
@@ -577,5 +582,12 @@ public class JCRNode implements Node {
      */
     public javax.jcr.Node getJCRNode() {
         return jcrNode;
+    }
+
+    /**
+     *
+     */
+    public javax.jcr.Session getJCRSession() {
+        return session;
     }
 }

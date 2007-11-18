@@ -41,8 +41,9 @@ public class JCROutputStream extends OutputStream {
      */
     public void close() throws IOException {
         try {
-            node.getJCRNode().setProperty("binary-content", new java.io.ByteArrayInputStream(out.toByteArray()));
+            node.getJCRNode().setProperty(JCRNode.BINARY_CONTENT_PROP_NAME, new java.io.ByteArrayInputStream(out.toByteArray()));
             out.close();
+            node.getJCRSession().save();
 /*
             node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
             node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
