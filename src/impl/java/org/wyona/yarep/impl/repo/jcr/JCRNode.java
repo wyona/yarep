@@ -347,8 +347,7 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public OutputStream getOutputStream() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        return new JCROutputStream(this);
     }
     
     /**
