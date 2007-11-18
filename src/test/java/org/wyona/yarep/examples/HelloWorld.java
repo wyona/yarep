@@ -91,6 +91,10 @@ public class HelloWorld {
             //Writer writerJCR = repoJCR.getWriter(worldPath);
             writerJCR.write("Hello JCR!\n...");
             writerJCR.close();
+            Reader readerJCR = repoJCR.getReader(new Path("/"));
+            BufferedReader brJCR = new BufferedReader(readerJCR);
+            System.out.println("Very first line of JCR node content: " + brJCR.readLine());
+            brJCR.close();
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
