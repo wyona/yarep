@@ -11,8 +11,10 @@ import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.NodeStateException;
 import org.wyona.yarep.core.Property;
+import org.wyona.yarep.core.PropertyType;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
+import org.wyona.yarep.impl.DefaultProperty;
 
 import org.apache.log4j.Category;
 
@@ -281,8 +283,15 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, String value) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            this.jcrNode.setProperty(name, value);
+            session.save();
+            Property p = new DefaultProperty(name, PropertyType.STRING, this);
+            p.setValue(value);
+            return p;
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     /**
