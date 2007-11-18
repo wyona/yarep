@@ -92,8 +92,15 @@ public class JCRRepository implements Repository {
      *
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        log.error("DEBUG: Path: " + path);
+        Node rootNode = getRootNode();
+        if (path.equals("/")) {
+            return rootNode;
+        } else {
+            log.error("Not implemented yet!");
+            throw new RepositoryException("Not implemented yet!");
+            //return null;
+        }
     }
    
     /**
@@ -289,18 +296,10 @@ public class JCRRepository implements Repository {
                 String user = session.getUserID();
                 jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
                 log.error("DEBUG: Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
-
-/*
-                javax.jcr.Node root = session.getRootNode();
-                javax.jcr.Node testNode = root.addNode("my-test-node");
-                testNode.setProperty("description", "Test Hugo");
-                session.save();
-*/
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
-                // TODO/TBD: How can we close the session!?
-                log.warn("The JCR session is not going to be closed!");
+                // TODO/TBD: How can we close the session!? See close() and finalize() ...
                 //session.logout();
             }
 
