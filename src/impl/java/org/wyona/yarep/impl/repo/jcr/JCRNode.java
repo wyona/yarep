@@ -188,8 +188,23 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Property getProperty(String name) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            javax.jcr.Property jcrProp = this.jcrNode.getProperty(name);
+            int type = jcrProp.getDefinition().getRequiredType();
+
+            Property p = null;
+            if (type == javax.jcr.PropertyType.STRING) {
+                p = new DefaultProperty(name, PropertyType.STRING, this);
+                p.setValue(this.jcrNode.getProperty(name).getValue().getString());
+            } else {
+                log.error("PropertyType not implemented yet: " + type);
+                log.error("javax.jcr.PropertyType.UNDEFINED: " + javax.jcr.PropertyType.UNDEFINED);
+                log.error("javax.jcr.PropertyType.STRING: " + javax.jcr.PropertyType.STRING);
+            }
+            return p;
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
@@ -284,7 +299,7 @@ public class JCRNode implements Node {
      */
     public Property setProperty(String name, String value) throws RepositoryException {
         try {
-            this.jcrNode.setProperty(name, value);
+            this.jcrNode.setProperty(name, value, javax.jcr.PropertyType.STRING);
             session.save();
             Property p = new DefaultProperty(name, PropertyType.STRING, this);
             p.setValue(value);
