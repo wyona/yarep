@@ -458,5 +458,10 @@ public class DefaultRepository  implements Repository {
         return this.storage;
     }
 
-
+    /**
+     *
+     */
+    public void close() throws RepositoryException {
+        log.warn("Not implemented!");
+    }
 }

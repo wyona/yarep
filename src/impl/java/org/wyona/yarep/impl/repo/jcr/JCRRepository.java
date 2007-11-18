@@ -66,7 +66,7 @@ public class JCRRepository implements Repository {
      */
     public Node getRootNode() throws RepositoryException {
         try {
-            return new JCRNode(session.getRootNode());
+            return new JCRNode(session.getRootNode(), session);
         } catch (Exception e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -246,7 +246,7 @@ public class JCRRepository implements Repository {
      *
      */
     public String getName() {
-        return repoName + "(" + jcrRepoDesc + ")";
+        return repoName + " (" + jcrRepoDesc + ")";
     }
 
     /**
@@ -287,13 +287,15 @@ public class JCRRepository implements Repository {
             session = repository.login(new javax.jcr.SimpleCredentials("hugo", "password".toCharArray()));
             try {
                 String user = session.getUserID();
-                String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
+                jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
                 log.error("DEBUG: Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
 
+/*
                 javax.jcr.Node root = session.getRootNode();
                 javax.jcr.Node testNode = root.addNode("my-test-node");
                 testNode.setProperty("description", "Test Hugo");
                 session.save();
+*/
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
@@ -312,8 +314,16 @@ public class JCRRepository implements Repository {
      */
     protected void finalize() throws Throwable {
         //super.finalize(); //not necessary if extending Object.
+        close();
+    }
+
+    /**
+     *
+     */
+    public void close() throws RepositoryException {
         log.error("DEBUG: The JCR session will be closed ...");
         session.logout();
+        log.error("DEBUG: The JCR session has been closed.");
     }
 
     /**

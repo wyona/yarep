@@ -31,12 +31,14 @@ public class JCRNode implements Node {
     private static Category log = Category.getInstance(JCRNode.class);
 
     private javax.jcr.Node jcrNode;
+    private javax.jcr.Session session;
 
     /**
      *
      */
-    public JCRNode(javax.jcr.Node node) {
+    public JCRNode(javax.jcr.Node node, javax.jcr.Session session) {
         this.jcrNode = node;
+        this.session = session;
     }
 
     /**
@@ -135,8 +137,13 @@ public class JCRNode implements Node {
      * @throws RepositoryException if this node is not a collection or if a repository error occurs
      */
     public Node addNode(String name, int type) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            javax.jcr.Node newNode = this.jcrNode.addNode(name);
+            this.session.save();
+            return new JCRNode(newNode, session);
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     /**

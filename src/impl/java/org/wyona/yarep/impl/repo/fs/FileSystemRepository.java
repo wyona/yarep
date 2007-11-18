@@ -338,5 +338,10 @@ public class FileSystemRepository implements Repository {
         return this.map;
     }
 
-
+    /**
+     *
+     */
+    public void close() throws RepositoryException {
+        log.warn("Not implemented!");
+    }
 }

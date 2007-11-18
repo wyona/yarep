@@ -388,4 +388,11 @@ public class VirtualFileSystemRepository implements Repository {
     public String getDirListingMimeType() {
         return dirListingMimeType;
     }
+
+    /**
+     *
+     */
+    public void close() throws RepositoryException {
+        log.warn("Not implemented!");
+    }
 }
