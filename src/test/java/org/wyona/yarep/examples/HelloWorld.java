@@ -85,7 +85,10 @@ public class HelloWorld {
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
             System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
-            Writer writerJCR = repoJCR.getWriter(worldPath);
+            repoJCR.getNode("/").setProperty("my-message", "Hello Hugo!");
+            System.out.println(repoJCR.getNode("/").getProperty("my-message"));
+            //Writer writerJCR = repoJCR.getWriter(new Path("/"));
+            //Writer writerJCR = repoJCR.getWriter(worldPath);
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
@@ -106,6 +109,9 @@ public class HelloWorld {
         } catch (Exception e) {
             System.err.println(e);
         }
+
+        // DEBUG ...
+	//if(true) return;
 
 
 
