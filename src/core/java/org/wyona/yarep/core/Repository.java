@@ -240,4 +240,9 @@ public interface Repository {
      * Search values of a specific property
      */
     //public Node[] searchProperty(String pName, String query) throws RepositoryException;
+
+    /**
+     * Closes the repository and releases any resources associated with the repository
+     */
+    public void close() throws RepositoryException;
 }
