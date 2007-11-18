@@ -87,8 +87,10 @@ public class HelloWorld {
             System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
             repoJCR.getNode("/").setProperty("my-message", "Hello Hugo!");
             System.out.println(repoJCR.getNode("/").getProperty("my-message"));
-            //Writer writerJCR = repoJCR.getWriter(new Path("/"));
+            Writer writerJCR = repoJCR.getWriter(new Path("/"));
             //Writer writerJCR = repoJCR.getWriter(worldPath);
+            writerJCR.write("Hello JCR!\n...");
+            writerJCR.close();
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
