@@ -38,6 +38,8 @@ public class JCRRepository implements Repository {
     private File yarepConfigFile;
     private File jackrabbitConfigFile;
 
+    private javax.jcr.Session session;
+
     /**
      *
      */
@@ -276,10 +278,10 @@ public class JCRRepository implements Repository {
             javax.jcr.Repository repository = new TransientRepository();
 
             // Anonymous Login (read-only)
-            //javax.jcr.Session session = repository.login();
+            //session = repository.login();
 
             // Dummy Login with write access
-            javax.jcr.Session session = repository.login(new javax.jcr.SimpleCredentials("hugo", "password".toCharArray()));
+            session = repository.login(new javax.jcr.SimpleCredentials("hugo", "password".toCharArray()));
             try {
                 String user = session.getUserID();
                 String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
@@ -292,7 +294,9 @@ public class JCRRepository implements Repository {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
-                session.logout();
+                // TODO/TBD: How can we close the session!?
+                log.warn("The JCR session is not going to be closed!");
+                //session.logout();
             }
 
         } catch (Exception e) {
