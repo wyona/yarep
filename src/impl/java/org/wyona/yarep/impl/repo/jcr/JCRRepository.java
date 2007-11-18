@@ -275,7 +275,11 @@ public class JCRRepository implements Repository {
         try {
             javax.jcr.Repository repository = new TransientRepository();
 
-            javax.jcr.Session session = repository.login();
+            // Anonymous Login (read-only)
+            //javax.jcr.Session session = repository.login();
+
+            // Dummy Login with write access
+            javax.jcr.Session session = repository.login(new javax.jcr.SimpleCredentials("hugo", "password".toCharArray()));
             try {
                 String user = session.getUserID();
                 String jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
