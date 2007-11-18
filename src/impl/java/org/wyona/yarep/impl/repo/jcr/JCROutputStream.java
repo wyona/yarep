@@ -5,7 +5,7 @@ import java.io.OutputStream;
 
 import org.apache.log4j.Category;
 
-import org.wyona.yarep.core.Node;
+import org.wyona.yarep.impl.repo.jcr.JCRNode;
 
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
@@ -18,44 +18,38 @@ public class JCROutputStream extends OutputStream {
 
     private static Category log = Category.getInstance(JCROutputStream.class);
 
-/*
-    protected OutputStream out;
-    protected Node node;
-    protected File file;
-*/
+    private java.io.ByteArrayOutputStream out;
+    private JCRNode node;
 
     /**
      * 
      */
-    public JCROutputStream(Node node) {
-/*
-        this.node  = node;
-        this.out = new FileOutputStream(file);
-        this.file = file;
-*/
+    public JCROutputStream(JCRNode node) {
+        this.node = node;
+        this.out = new java.io.ByteArrayOutputStream();
     }
     
     /**
      * 
      */
     public void write(int b) throws IOException {
-        log.error("Not implemented yet!");
-        //out.write(b);
+        out.write(b);
     }
 
     /**
      * 
      */
-/*
     public void close() throws IOException {
-        out.close();
         try {
+            node.getJCRNode().setProperty("binary-content", new java.io.ByteArrayInputStream(out.toByteArray()));
+            out.close();
+/*
             node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
             node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
-        } catch (RepositoryException e) {
+*/
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new IOException(e.getMessage());
         }
     }
-*/
 }

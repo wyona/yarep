@@ -571,4 +571,11 @@ public class JCRNode implements Node {
     public void setEncoding(String encoding) throws RepositoryException {
         log.error("Not implemented yet!");
     }
+
+    /**
+     *
+     */
+    public javax.jcr.Node getJCRNode() {
+        return jcrNode;
+    }
 }
