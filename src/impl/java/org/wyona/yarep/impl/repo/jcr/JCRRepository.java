@@ -65,8 +65,11 @@ public class JCRRepository implements Repository {
      *
      */
     public Node getRootNode() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            return new JCRNode(session.getRootNode());
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -302,6 +305,15 @@ public class JCRRepository implements Repository {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    /**
+     *
+     */
+    protected void finalize() throws Throwable {
+        //super.finalize(); //not necessary if extending Object.
+        log.error("DEBUG: The JCR session will be closed ...");
+        session.logout();
     }
 
     /**

@@ -30,6 +30,15 @@ public class JCRNode implements Node {
 
     private static Category log = Category.getInstance(JCRNode.class);
 
+    private javax.jcr.Node jcrNode;
+
+    /**
+     *
+     */
+    public JCRNode(javax.jcr.Node node) {
+        this.jcrNode = node;
+    }
+
     /**
      * Gets the name of this node, which is the last part of the path.
      * @return name
