@@ -11,10 +11,14 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import org.apache.log4j.Category;
+
 /**
  *
  */
 public class HelloWorld {
+
+    private static Category log = Category.getInstance(HelloWorld.class);
 
     /**
      *
@@ -81,7 +85,7 @@ public class HelloWorld {
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
             System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
-            //Writer writerJCR = repoJCR.getWriter(worldPath);
+            Writer writerJCR = repoJCR.getWriter(worldPath);
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
@@ -94,8 +98,16 @@ public class HelloWorld {
             writerD.close();
 */
         } catch (Exception e) {
+            log.error(e, e);
+        }
+
+        try {
+            repoJCR.close();
+        } catch (Exception e) {
             System.err.println(e);
         }
+
+
 
         // Read content from repository
         System.out.println("\nRead content from repository " + repoA.getName() + " (repoA) ...");
