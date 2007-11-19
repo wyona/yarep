@@ -2,7 +2,9 @@ package org.wyona.yarep.util;
 
 import org.apache.log4j.Category;
 
+import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Path;
+import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
@@ -48,5 +50,41 @@ public class YarepUtil {
 
         log.debug("Path (still original): " + path);
         return new RepoPath(repo, path);
+    }
+    
+    /**
+     * Copies the content of one repository into another repository.
+     * Currently copies nodes and properties, but no revisions.
+     * @param srcRepo repository to be copied
+     * @param destRepo assumed to be empty
+     * @throws RepositoryException
+     */
+    public static void copyRepository(Repository srcRepo, Repository destRepo) throws RepositoryException {
+        Node srcRootNode = srcRepo.getRootNode(); 
+        Node destRootNode = destRepo.getRootNode();
+        
+        Node[] childNodes = srcRootNode.getNodes();
+        for (int i = 0; i < childNodes.length; i++) {
+            copyNodeRec(childNodes[i], destRootNode);
+        }
+    }
+    
+    /**
+     * Adds a copy of the source node as a child of the destination node.
+     * Works recursively.
+     * @param srcNode
+     * @param destParentNode
+     * @throws RepositoryException
+     */
+    protected static void copyNodeRec(Node srcNode, Node destParentNode) throws RepositoryException {
+        Node newNode = destParentNode.addNode(srcNode.getName(), srcNode.getType());
+        Property[] properties = srcNode.getProperties();
+        for (int i = 0; i < properties.length; i++) {
+            newNode.setProperty(properties[i]);
+        }
+        Node[] childNodes = srcNode.getNodes();
+        for (int i = 0; i < childNodes.length; i++) {
+            copyNodeRec(childNodes[i], newNode);
+        }
     }
 }
