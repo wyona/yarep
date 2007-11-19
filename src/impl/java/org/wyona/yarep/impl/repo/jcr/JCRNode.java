@@ -338,7 +338,16 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public void setProperty(Property property) throws RepositoryException {
-        log.error("Not implemented yet!");
+        try {
+            if (property.getType() == PropertyType.STRING) {
+                this.jcrNode.setProperty(property.getName(), property.getString());
+                session.save();
+            } else {
+                log.error("Not implemented yet!");
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     //public Property getDefaultProperty() throws RepositoryException;
