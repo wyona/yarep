@@ -95,7 +95,7 @@ public class JCRRepository implements Repository {
      *
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        log.error("DEBUG: Path: " + path);
+        if (log.isDebugEnabled()) log.debug("Path: " + path);
         try {
             Item item = this.session.getItem(path);
             if (item.isNode()) {
