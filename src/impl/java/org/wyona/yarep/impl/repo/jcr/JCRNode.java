@@ -214,7 +214,7 @@ public class JCRNode implements Node {
             if (type == javax.jcr.PropertyType.STRING) {
                 p = new DefaultProperty(name, PropertyType.STRING, this);
                 p.setValue(this.jcrNode.getProperty(name).getValue().getString());
-	    } else if (type == javax.jcr.PropertyType.UNDEFINED) {
+            } else if (type == javax.jcr.PropertyType.UNDEFINED) {
                 log.warn("PropertyType is UNDEFINED. Trying to convert to String ...");
                 p = new DefaultProperty(name, PropertyType.STRING, this);
                 p.setValue(this.jcrNode.getProperty(name).getValue().getString());
