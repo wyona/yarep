@@ -20,6 +20,9 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import javax.jcr.Item;
+import javax.jcr.PathNotFoundException;
+
 import org.apache.jackrabbit.core.TransientRepository;
 
 import org.apache.avalon.framework.configuration.Configuration;
@@ -93,13 +96,16 @@ public class JCRRepository implements Repository {
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
         log.error("DEBUG: Path: " + path);
-        Node rootNode = getRootNode();
-        if (path.equals("/")) {
-            return rootNode;
-        } else {
-            log.error("Not implemented yet!");
-            throw new RepositoryException("Not implemented yet!");
-            //return null;
+        try {
+            Item item = this.session.getItem(path);
+            if (item.isNode()) {
+                return new JCRNode((javax.jcr.Node)item, session);
+            }
+            throw new NoSuchNodeException("not a node: " + path);
+        } catch (PathNotFoundException e) {
+            throw new NoSuchNodeException(e.getMessage(), e);
+        } catch (javax.jcr.RepositoryException e) {
+            throw new RepositoryException(e.getMessage(), e);
         }
     }
    
@@ -296,6 +302,7 @@ public class JCRRepository implements Repository {
                 String user = session.getUserID();
                 jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
                 log.error("DEBUG: Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
+                
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
@@ -344,5 +351,6 @@ public class JCRRepository implements Repository {
      */
     public String toString() {
         return "JCR Wrapper Repository: ID = " + getID();
+        //session.exportDocumentView("/", System.out, true, false);
     }
 }

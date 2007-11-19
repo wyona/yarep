@@ -10,10 +10,12 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.NodeStateException;
+import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.PropertyType;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
+import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
 
 import org.apache.log4j.Category;
@@ -51,8 +53,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public String getName() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            return jcrNode.getName();
+        } catch (javax.jcr.RepositoryException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
@@ -80,8 +85,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public String getPath() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            return jcrNode.getPath();
+        } catch (javax.jcr.RepositoryException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
@@ -90,39 +98,47 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public String getUUID() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            return jcrNode.getUUID();
+        } catch (javax.jcr.RepositoryException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
-    
+
     /**
      * Gets the type of this node (collection or resource).
      * @return type
      * @throws RepositoryException repository error
-     * @see org.wyona.yarep.core.NodeType
+     * @see org.wyona.yarep.core.Node#getType()
      */
     public int getType() throws RepositoryException {
         log.error("Not implemented yet!");
         return -1;
+        //jcrNode.getDefinition().getDeclaringNodeType()
     }
     
     /**
      * Indicates whether this node is of type "resource".
      * @return true if type is resource
      * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#isResource()
      */
     public boolean isResource() throws RepositoryException {
         log.error("Not implemented yet!");
-        return false;
+        return true;
+        //return getType() == NodeType.RESOURCE; 
     }
     
     /**
-     * Indicates whether this node is of type "collection".
+     *  Indicates whether this node is of type "collection".
      * @return true if type is collection
      * @throws RepositoryException repository error
+     * @see org.wyona.yarep.core.Node#isCollection()
      */
     public boolean isCollection() throws RepositoryException {
         log.error("Not implemented yet!");
-        return false;
+        return true;
+        //return getType() == NodeType.COLLECTION; 
     }
     
     /**
