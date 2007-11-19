@@ -53,3 +53,15 @@
      A JAR file, build/lib/yarep-LCRxxx.jar can be created by
      executing "ant jar" resp. "./build.sh jar". Take a look at the examples how YAREP
      can be used within another application.
+
+
+     How to copy a repository
+     ------------------------
+
+     copy content of repo 'foo' into repo 'bar':
+     (NOTE: this will overwrite the content of repo 'bar')
+     
+     ./build.sh jar
+     ./build.sh compile-tools
+     ./build.sh copy-repository -Dcopy.src.repo.id=foo -Dcopy.dest.repo.id=bar
+
