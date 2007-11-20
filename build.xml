@@ -191,7 +191,7 @@
 
   <target name="copy-repository" description="Copy repository" depends="init">
     <!-- <taskdef name="copyrepository" classpath="${classes.dir}" classname="org.wyona.yarep.tools.ant.CopyRepositoryTask"/> -->
-    <taskdef name="copyrepository" classpathref="classpath.impl" classname="org.wyona.yarep.tools.ant.CopyRepositoryTask"/>
+    <taskdef name="copyrepository" classpathref="classpath.run" classname="org.wyona.yarep.tools.ant.CopyRepositoryTask"/>
     <copyrepository
       srcrepoid="${copy.src.repo.id}"
       destrepoid="${copy.dest.repo.id}"
