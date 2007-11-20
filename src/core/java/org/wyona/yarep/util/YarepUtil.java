@@ -1,5 +1,9 @@
 package org.wyona.yarep.util;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Category;
 
 import org.wyona.yarep.core.Node;
@@ -23,7 +27,7 @@ public class YarepUtil {
         Repository repo = null;
 
         // Determine possible Repository ID. If such a repo ID doesn't exist, then use ROOT repository
-	String[] splittedPath = path.toString().split("/");
+        String[] splittedPath = path.toString().split("/");
         if (splittedPath != null) {
             if (splittedPath.length < 2) {
 	        log.debug("Length = " + splittedPath.length + ". Use ROOT repository.");
@@ -78,13 +82,26 @@ public class YarepUtil {
      */
     protected static void copyNodeRec(Node srcNode, Node destParentNode) throws RepositoryException {
         Node newNode = destParentNode.addNode(srcNode.getName(), srcNode.getType());
-        Property[] properties = srcNode.getProperties();
-        for (int i = 0; i < properties.length; i++) {
-            newNode.setProperty(properties[i]);
-        }
-        Node[] childNodes = srcNode.getNodes();
-        for (int i = 0; i < childNodes.length; i++) {
-            copyNodeRec(childNodes[i], newNode);
+        try {
+            // copy content:
+            if (srcNode.isResource()) {
+                OutputStream os = newNode.getOutputStream();
+                IOUtils.copy(srcNode.getInputStream(), os);
+                os.close();
+            }
+            // copy properties:
+            Property[] properties = srcNode.getProperties();
+            for (int i = 0; i < properties.length; i++) {
+                newNode.setProperty(properties[i]);
+            }
+            // recursively copy children
+            Node[] childNodes = srcNode.getNodes();
+            for (int i = 0; i < childNodes.length; i++) {
+                copyNodeRec(childNodes[i], newNode);
+            }
+        } catch (Exception e) {
+            //throw new RepositoryException(e.getMessage(), e);
+            log.error("Could not copy node: " + srcNode.getPath() + ": " + e.getMessage(), e);
         }
     }
 }
