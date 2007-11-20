@@ -36,6 +36,14 @@ public class JCROutputStream extends OutputStream {
         out.write(b);
     }
 
+    public void write(byte[] b, int off, int len) throws IOException {
+        out.write(b, off, len);
+    }
+    
+    public void write(byte[] b) throws IOException {
+        out.write(b);
+    }
+
     /**
      * 
      */
@@ -53,4 +61,5 @@ public class JCROutputStream extends OutputStream {
             throw new IOException(e.getMessage());
         }
     }
+
 }
