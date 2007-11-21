@@ -61,7 +61,8 @@
      copy content of repo 'foo' into repo 'bar':
      (NOTE: this will overwrite the content of repo 'bar')
      
-     ./build.sh jar
+     ./build.sh build-examples
+     Edit build/classes/yarep.properties resp. add "foo" and "bar" repositories
      ./build.sh compile-tools
      ./build.sh copy-repository -Dcopy.src.repo.id=foo -Dcopy.dest.repo.id=bar
 
