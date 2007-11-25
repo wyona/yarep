@@ -195,8 +195,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException if node is not a collection or if a repository error occurs
      */
     public boolean hasNode(String name) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return false;
+        try {
+            return jcrNode.hasNode(name);
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
     }
     
     /**
