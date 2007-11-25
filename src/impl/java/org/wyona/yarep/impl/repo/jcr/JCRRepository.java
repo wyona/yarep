@@ -47,7 +47,7 @@ public class JCRRepository implements Repository {
      *
      */
     public JCRRepository() {
-        log.error("DEBUG: Create new Yarep-JCR repo ...");
+        log.info("Initiate new Yarep-JCR repo ...");
     }
 
     /**
@@ -282,7 +282,7 @@ public class JCRRepository implements Repository {
             if (!jackrabbitConfigFile.isAbsolute()) {
                 jackrabbitConfigFile = FileUtil.file(yarepConfigFile.getParent(), jackrabbitConfigFile.toString());
             }
-            log.error("DEBUG: Jackrabbit config: " + jackrabbitConfigFile);
+            if (log.isDebugEnabled()) log.debug("Jackrabbit config: " + jackrabbitConfigFile);
             System.setProperty("org.apache.jackrabbit.repository.conf", jackrabbitConfigFile.toString());
             System.setProperty("org.apache.jackrabbit.repository.home", jackrabbitConfigFile.getParent());
 
@@ -302,8 +302,7 @@ public class JCRRepository implements Repository {
             try {
                 String user = session.getUserID();
                 jcrRepoDesc = repository.getDescriptor(javax.jcr.Repository.REP_NAME_DESC);
-                log.error("DEBUG: Logged in as " + user + " to a " + jcrRepoDesc + " repository.");
-                
+                log.warn("Logged in as hardcoded user " + user + " to a " + jcrRepoDesc + " repository.");
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             } finally {
