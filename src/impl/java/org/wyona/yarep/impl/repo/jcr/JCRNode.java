@@ -124,9 +124,15 @@ public class JCRNode implements Node {
      * @see org.wyona.yarep.core.Node#isResource()
      */
     public boolean isResource() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return true;
-        //return getType() == NodeType.RESOURCE; 
+        try {
+            if (jcrNode.hasProperty(BINARY_CONTENT_PROP_NAME)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
