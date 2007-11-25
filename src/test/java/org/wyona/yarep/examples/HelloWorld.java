@@ -1,5 +1,6 @@
 package org.wyona.yarep.examples;
 
+import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
@@ -100,6 +101,12 @@ public class HelloWorld {
             } else {
                 System.err.println("No such node: " + jcrNodePathExample);
             }
+            String query = "Hello";
+            Node[] result = repoJCR.search(query);
+            if (result.length == 0) System.out.println("Your search \"" + query + "\" did not match any node!");
+            for (int i = 0; i < result.length ; i++) {
+                System.out.println("Result " + i + ": " + result[i].getPath());
+            }
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
@@ -197,7 +204,7 @@ public class HelloWorld {
 
             // Delete collection
             System.out.println("\nUSECASE: Try to delete \"" + helloPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
-            org.wyona.yarep.core.Node helloNode = repoA.getNode(helloPath.toString());
+            Node helloNode = repoA.getNode(helloPath.toString());
             try {
                 helloNode.delete();
             } catch(Exception e) {
