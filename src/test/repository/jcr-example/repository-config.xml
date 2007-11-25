@@ -3,5 +3,16 @@
 <repository class="org.wyona.yarep.impl.repo.jcr.JCRRepository">
   <name>JCR Example</name>
 
+<!--
+  <jackrabbit-repository-config src="/home/michi/src/wyona-svn/public/yarep/trunk/src/test/repository/jcr-example/jackrabbit/repository.xml"/>
+  -->
   <jackrabbit-repository-config src="jackrabbit/repository.xml"/>
+
+  <!--
+
+  derby.stream.error.file System property to configure the derby.log file path
+
+  Please note that derby is implementation specific!
+
+  -->
 </repository>
