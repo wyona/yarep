@@ -85,16 +85,21 @@ public class HelloWorld {
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
             System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
-            repoJCR.getNode("/").setProperty("my-message", "Hello Hugo!");
-            System.out.println(repoJCR.getNode("/").getProperty("my-message"));
-            Writer writerJCR = repoJCR.getWriter(new Path("/"));
+            String jcrNodePathExample = "/";
+            repoJCR.getNode(jcrNodePathExample).setProperty("my-message", "Hello Hugo!");
+            System.out.println(repoJCR.getNode(jcrNodePathExample).getProperty("my-message"));
+            Writer writerJCR = repoJCR.getWriter(new Path(jcrNodePathExample));
             //Writer writerJCR = repoJCR.getWriter(worldPath);
             writerJCR.write("Hello JCR!\n...");
             writerJCR.close();
-            Reader readerJCR = repoJCR.getReader(new Path("/"));
-            BufferedReader brJCR = new BufferedReader(readerJCR);
-            System.out.println("Very first line of JCR node content: " + brJCR.readLine());
-            brJCR.close();
+            if (repoJCR.existsNode(jcrNodePathExample)) {
+                Reader readerJCR = repoJCR.getReader(new Path(jcrNodePathExample));
+                BufferedReader brJCR = new BufferedReader(readerJCR);
+                System.out.println("Very first line of JCR node content: " + brJCR.readLine());
+                brJCR.close();
+            } else {
+                System.err.println("No such node: " + jcrNodePathExample);
+            }
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
