@@ -337,9 +337,9 @@ public class JCRRepository implements Repository {
      *
      */
     public void close() throws RepositoryException {
-        log.error("DEBUG: The JCR session will be closed ...");
+        log.warn("The JCR session will be closed ...");
         session.logout();
-        log.error("DEBUG: The JCR session has been closed.");
+        log.warn("The JCR session has been closed.");
     }
 
     /**
