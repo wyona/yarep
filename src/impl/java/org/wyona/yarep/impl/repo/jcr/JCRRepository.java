@@ -76,12 +76,22 @@ public class JCRRepository implements Repository {
     }
 
     /**
-     *
+     * @param path Absolute path
      */
     public boolean existsNode(String path) throws RepositoryException {
-        log.error("Not implemented yet!");
-        log.warn("JCR seems to refer to relative paths. See http://www.day.com/maven/jsr170/javadocs/jcr-1.0/javax/jcr/Node.html#hasNode(java.lang.String)");
-        return getRootNode().hasNode(path);
+        try {
+            Item item = this.session.getItem(path);
+            if (item.isNode()) {
+                log.error("DEBUG: Path found: " + path);
+                return true;
+            }
+            throw new RepositoryException("No such path exception: " + path);
+        } catch (PathNotFoundException e) {
+            log.error("DEBUG: Path NOT found: " + path);
+            return false;
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
     }
 
     /**
