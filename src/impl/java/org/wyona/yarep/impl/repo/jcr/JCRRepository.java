@@ -80,7 +80,8 @@ public class JCRRepository implements Repository {
      */
     public boolean existsNode(String path) throws RepositoryException {
         log.error("Not implemented yet!");
-        return true;
+        log.warn("JCR seems to refer to relative paths. See http://www.day.com/maven/jsr170/javadocs/jcr-1.0/javax/jcr/Node.html#hasNode(java.lang.String)");
+        return getRootNode().hasNode(path);
     }
 
     /**
