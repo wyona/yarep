@@ -363,4 +363,21 @@ public class JCRRepository implements Repository {
         return "JCR Wrapper Repository: ID = " + getID();
         //session.exportDocumentView("/", System.out, true, false);
     }
+
+    /**
+     * Search content
+     */
+    public Node[] search(String query) throws RepositoryException {
+        log.error("Not implemented yet!");
+        try {
+            javax.jcr.query.QueryManager qm = session.getWorkspace().getQueryManager();
+            String[] qLang = qm.getSupportedQueryLanguages();
+            for (int i = 0; i < qLang.length; i++) {
+                log.error("DEBUG: Supported query lang: " + qLang[i]);
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
+        return new Node[0];
+    }
 }

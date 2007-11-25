@@ -464,4 +464,12 @@ public class DefaultRepository  implements Repository {
     public void close() throws RepositoryException {
         log.warn("Not implemented!");
     }
+
+    /**
+     * Search content
+     */
+    public Node[] search(String query) throws RepositoryException {
+        log.error("Not implemented yet!");
+        return null;
+    }
 }
