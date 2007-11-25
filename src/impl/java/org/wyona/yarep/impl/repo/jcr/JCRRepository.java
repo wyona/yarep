@@ -370,32 +370,35 @@ public class JCRRepository implements Repository {
      * Search content
      */
     public Node[] search(String query) throws RepositoryException {
-        log.error("Not implemented yet!");
+        log.error("Implementation not finished yet!");
         try {
             QueryManager qm = session.getWorkspace().getQueryManager();
             String[] qLang = qm.getSupportedQueryLanguages();
             for (int i = 0; i < qLang.length; i++) {
                 if (qLang[i].equals(Query.XPATH)) {
                     log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
-                    Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", '"+query+"')]", Query.XPATH);
+                    Query q = qm.createQuery("//*[@" + JCRNode.BINARY_CONTENT_PROP_NAME + "]", Query.XPATH);
+                    //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", 'Welcome')]", Query.XPATH);
+                    //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", '"+query+"')]", Query.XPATH);
                     log.error("DEBUG: Query: " + q.getStatement());
                     QueryResult qr = q.execute();
                     javax.jcr.NodeIterator ni = qr.getNodes();
                     while (ni.hasNext()) {
-                        log.error("Node: " + ni.next());
+                        log.error("DEBUG: Node: " + ni.next());
                     }
                     String[] qn = qr.getColumnNames();
                     log.error("Column Names Length: " + qn.length);
                     for (int k = 0; k < qn.length; k++) {
-                        log.error("Column Name: " + qn[k]);
+                        log.error("DEBUG: Column Name: " + qn[k]);
                     }
 
-                    Query aq = qm.createQuery("//*[@my-message = 'Hello Hugo']", Query.XPATH);
+                    Query aq = qm.createQuery("//*[@my-message]", Query.XPATH);
+                    //Query aq = qm.createQuery("//*[@my-message = 'Hello Hugo']", Query.XPATH);
                     log.error("DEBUG: Query: " + aq.getStatement());
                     QueryResult aqr = aq.execute();
                     javax.jcr.NodeIterator ani = aqr.getNodes();
                     while (ani.hasNext()) {
-                        log.error("Node: " + ani.next());
+                        log.error("DEBUG: Node: " + new JCRNode((javax.jcr.Node) ani.next(), session).getPath());
                     }
 		} else if (qLang[i].equals(Query.SQL)) {
                     log.error("DEBUG: Repository supports SQL queries!");
