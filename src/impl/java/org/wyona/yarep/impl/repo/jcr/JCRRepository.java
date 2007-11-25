@@ -22,6 +22,9 @@ import java.io.Writer;
 
 import javax.jcr.Item;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 
 import org.apache.jackrabbit.core.TransientRepository;
 
@@ -82,12 +85,11 @@ public class JCRRepository implements Repository {
         try {
             Item item = this.session.getItem(path);
             if (item.isNode()) {
-                log.error("DEBUG: Path found: " + path);
                 return true;
             }
             throw new RepositoryException("No such path exception: " + path);
         } catch (PathNotFoundException e) {
-            log.error("DEBUG: Path NOT found: " + path);
+            log.warn("Path not found: " + path);
             return false;
         } catch (Exception e) {
             throw new RepositoryException(e);
@@ -370,10 +372,36 @@ public class JCRRepository implements Repository {
     public Node[] search(String query) throws RepositoryException {
         log.error("Not implemented yet!");
         try {
-            javax.jcr.query.QueryManager qm = session.getWorkspace().getQueryManager();
+            QueryManager qm = session.getWorkspace().getQueryManager();
             String[] qLang = qm.getSupportedQueryLanguages();
             for (int i = 0; i < qLang.length; i++) {
-                log.error("DEBUG: Supported query lang: " + qLang[i]);
+                if (qLang[i].equals(Query.XPATH)) {
+                    log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
+                    Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", '"+query+"')]", Query.XPATH);
+                    log.error("DEBUG: Query: " + q.getStatement());
+                    QueryResult qr = q.execute();
+                    javax.jcr.NodeIterator ni = qr.getNodes();
+                    while (ni.hasNext()) {
+                        log.error("Node: " + ni.next());
+                    }
+                    String[] qn = qr.getColumnNames();
+                    log.error("Column Names Length: " + qn.length);
+                    for (int k = 0; k < qn.length; k++) {
+                        log.error("Column Name: " + qn[k]);
+                    }
+
+                    Query aq = qm.createQuery("//*[@my-message = 'Hello Hugo']", Query.XPATH);
+                    log.error("DEBUG: Query: " + aq.getStatement());
+                    QueryResult aqr = aq.execute();
+                    javax.jcr.NodeIterator ani = aqr.getNodes();
+                    while (ani.hasNext()) {
+                        log.error("Node: " + ani.next());
+                    }
+		} else if (qLang[i].equals(Query.SQL)) {
+                    log.error("DEBUG: Repository supports SQL queries!");
+                } else {
+                    log.error("DEBUG: Repository supports " + qLang[i] + " queries!");
+                }
             }
         } catch (Exception e) {
             throw new RepositoryException(e);
