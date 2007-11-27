@@ -377,6 +377,7 @@ public class JCRRepository implements Repository {
             for (int i = 0; i < qLang.length; i++) {
                 if (qLang[i].equals(Query.XPATH)) {
                     log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
+                    //Query q = qm.createQuery("//jcr:content[jcr:contains(@jcr:data, 'Hello')]", Query.XPATH);
                     Query q = qm.createQuery("//jcr:content", Query.XPATH);
                     //Query q = qm.createQuery("//*[@jcr:data]", Query.XPATH);
                     //Query q = qm.createQuery("//*[@" + JCRNode.BINARY_CONTENT_PROP_NAME + "]", Query.XPATH);
@@ -388,11 +389,13 @@ public class JCRRepository implements Repository {
                     while (ni.hasNext()) {
                         log.error("DEBUG: Node: " + new JCRNode((javax.jcr.Node) ni.next(), session).getPath());
                     }
+/*
                     String[] qn = qr.getColumnNames();
                     log.error("Column Names Length: " + qn.length);
                     for (int k = 0; k < qn.length; k++) {
                         log.error("DEBUG: Column Name: " + qn[k]);
                     }
+*/
 
                     Query aq = qm.createQuery("//*[@my-message]", Query.XPATH);
                     //Query aq = qm.createQuery("//*[@my-message = 'Hello Hugo']", Query.XPATH);
