@@ -585,6 +585,7 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public String getMimeType() throws RepositoryException {
+	// TODO: check on jcr:content/@jcr:mimeType
         try {
             if (jcrNode.hasProperty("mimeType")) {
                 jcrNode.getProperty("mimeType").getString();
@@ -602,8 +603,10 @@ public class JCRNode implements Node {
      */
     public void setMimeType(String mimeType) throws RepositoryException {
         // TODO: Use a namespace, e.g. yarep:mimeType
+	// TODO: check on jcr:content/@jcr:mimeType
         try {
             jcrNode.setProperty("mimeType", mimeType);
+            session.save();
         } catch (Exception e) {
             throw new RepositoryException(e);
         }
