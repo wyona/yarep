@@ -588,7 +588,7 @@ public class JCRNode implements Node {
 	// TODO: check on jcr:content/@jcr:mimeType
         try {
             if (jcrNode.hasProperty("mimeType")) {
-                jcrNode.getProperty("mimeType").getString();
+                return jcrNode.getProperty("mimeType").getString();
             }
         } catch (Exception e) {
             throw new RepositoryException(e);
