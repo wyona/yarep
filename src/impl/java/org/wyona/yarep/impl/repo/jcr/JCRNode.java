@@ -585,7 +585,13 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public String getMimeType() throws RepositoryException {
-        log.error("Not implemented yet!");
+        try {
+            if (jcrNode.hasProperty("mimeType")) {
+                jcrNode.getProperty("mimeType").getString();
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
         return null;
     }
     
@@ -595,7 +601,12 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public void setMimeType(String mimeType) throws RepositoryException {
-        log.error("Implementation not finished yet!");
+        // TODO: Use a namespace, e.g. yarep:mimeType
+        try {
+            jcrNode.setProperty("mimeType", mimeType);
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
     }
     
     /**
