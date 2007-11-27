@@ -378,12 +378,11 @@ public class JCRRepository implements Repository {
                 if (qLang[i].equals(Query.XPATH)) {
                     log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
 
-                    //Query q = qm.createQuery("//jcr:content[jcr:contains(@jcr:data, 'Hello')]", Query.XPATH);
-                    Query q = qm.createQuery("//jcr:content", Query.XPATH);
+                    Query q = qm.createQuery("//jcr:content[jcr:contains(@jcr:data, '" + query + "')]", Query.XPATH);
+                    //Query q = qm.createQuery("//jcr:content", Query.XPATH);
+
                     //Query q = qm.createQuery("//*[@jcr:data]", Query.XPATH);
-                    //Query q = qm.createQuery("//*[@" + JCRNode.BINARY_CONTENT_PROP_NAME + "]", Query.XPATH);
-                    //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", 'Welcome')]", Query.XPATH);
-                    //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", '"+query+"')]", Query.XPATH);
+
                     log.error("DEBUG: Query: " + q.getStatement());
 
                     QueryResult qr = q.execute();
@@ -392,6 +391,7 @@ public class JCRRepository implements Repository {
                     while (ni.hasNext()) {
                         tmp.addElement(new JCRNode(((javax.jcr.Node) ni.next()).getParent(), session));
                     }
+                    log.error("DEBUG: Result size: " + tmp.size());
                     Node[] resultNodes = new Node[tmp.size()];
                     for (int j = 0; j < resultNodes.length; j++) {
                         resultNodes[j] = (Node) tmp.elementAt(j);
