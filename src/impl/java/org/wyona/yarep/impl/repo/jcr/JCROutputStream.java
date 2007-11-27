@@ -49,13 +49,18 @@ public class JCROutputStream extends OutputStream {
      */
     public void close() throws IOException {
         try {
-            node.getJCRNode().setProperty(JCRNode.BINARY_CONTENT_PROP_NAME, new java.io.ByteArrayInputStream(out.toByteArray()));
+            //node.getJCRNode().setProperty(JCRNode.BINARY_CONTENT_PROP_NAME, new java.io.ByteArrayInputStream(out.toByteArray()));
+
+            //log.error("DEBUG: Last Modified: " + node.getJCRNode().getNode("jcr:content").getProperty("jcr:lastModified").getDate().getTimeInMillis());
+            //log.error("DEBUG: Last Modified: " + node.getJCRResourceNode().getProperty("jcr:lastModified").getDate().getTimeInMillis());
+
+            javax.jcr.Node resourceNode = node.getJCRNode().addNode("jcr:content", "nt:resource");
+            //resourceNode.setProperty("jcr:mimeType", node.getMimeType());
+            resourceNode.setProperty("jcr:mimeType", "text/plain");
+            resourceNode.setProperty("jcr:data", new java.io.ByteArrayInputStream(out.toByteArray()));
+            resourceNode.setProperty("jcr:lastModified", new java.util.GregorianCalendar());
             out.close();
             node.getJCRSession().save();
-/*
-            node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
-            node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
-*/
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new IOException(e.getMessage());
