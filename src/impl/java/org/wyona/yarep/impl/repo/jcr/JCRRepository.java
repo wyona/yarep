@@ -390,8 +390,7 @@ public class JCRRepository implements Repository {
                     javax.jcr.NodeIterator ni = qr.getNodes();
                     java.util.Vector tmp = new java.util.Vector();
                     while (ni.hasNext()) {
-                        tmp.addElement(new JCRNode((javax.jcr.Node) ni.next(), session));
-                        //log.error("DEBUG: Node: " + .getPath());
+                        tmp.addElement(new JCRNode(((javax.jcr.Node) ni.next()).getParent(), session));
                     }
                     Node[] resultNodes = new Node[tmp.size()];
                     for (int j = 0; j < resultNodes.length; j++) {
