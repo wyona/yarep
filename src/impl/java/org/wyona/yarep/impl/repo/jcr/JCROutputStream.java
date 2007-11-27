@@ -61,8 +61,10 @@ public class JCROutputStream extends OutputStream {
                 resourceNode = node.getJCRNode().addNode("jcr:content", "nt:resource");
             }
             if (node.getMimeType() != null) {
+                log.error("DEBUG: Set mime type of jcr:data property: " + node.getMimeType());
                 resourceNode.setProperty("jcr:mimeType", node.getMimeType());
             } else {
+                log.warn("No mime type set, hence use application/octet-stream");
                 resourceNode.setProperty("jcr:mimeType", "application/octet-stream");
             }
             resourceNode.setProperty("jcr:data", new java.io.ByteArrayInputStream(out.toByteArray()));
