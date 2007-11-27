@@ -80,7 +80,8 @@
         -->
         <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
             <param name="path" value="${wsp.home}/index"/>
-            <param name="textFilterClasses" value="org.apache.jackrabbit.core.query.HTMLTextFilter,org.apache.jackrabbit.core.query.XMLTextFilter"/>
+            <!-- See also http://jackrabbit.apache.org/doc/components/text-extractors.html -->
+            <param name="textFilterClasses" value="org.apache.jackrabbit.extractor.HTMLTextExtractor,org.apache.jackrabbit.extractor.XMLTextExtractor"/>
         </SearchIndex>
     </Workspace>
 
@@ -114,9 +115,7 @@
     -->
     <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
         <param name="path" value="${rep.home}/repository/index"/>
-        <param name="textFilterClasses" value="org.apache.jackrabbit.core.query.HTMLTextFilter,org.apache.jackrabbit.core.query.XMLTextFilter"/>
-	<!--
-        <param name="textFilterClasses" value="org.apache.jackrabbit.core.query.MsExcelTextFilter,org.apache.jackrabbit.core.query.MsPowerPointTextFilter,org.apache.jackrabbit.core.query.MsWordTextFilter,org.apache.jackrabbit.core.query.PdfTextFilter,org.apache.jackrabbit.core.query.HTMLTextFilter,org.apache.jackrabbit.core.query.XMLTextFilter,org.apache.jackrabbit.core.query.RTFTextFilter,org.apache.jackrabbit.core.query.OpenOfficeTextFilter"/>
-	-->
+        <!-- See also http://jackrabbit.apache.org/doc/components/text-extractors.html -->
+        <param name="textFilterClasses" value="org.apache.jackrabbit.extractor.HTMLTextExtractor,org.apache.jackrabbit.extractor.XMLTextExtractor"/>
     </SearchIndex>
 </Repository>
