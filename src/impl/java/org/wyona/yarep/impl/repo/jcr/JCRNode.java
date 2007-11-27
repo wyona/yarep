@@ -124,6 +124,8 @@ public class JCRNode implements Node {
      * @see org.wyona.yarep.core.Node#isResource()
      */
     public boolean isResource() throws RepositoryException {
+        log.error("Implementation not finished yet!");
+        // TODO: Do not use the property BINARY_CONTENT_PROP_NAME ...
         try {
             if (jcrNode.hasProperty(BINARY_CONTENT_PROP_NAME)) {
                 return true;
@@ -369,7 +371,8 @@ public class JCRNode implements Node {
      */
     public InputStream getInputStream() throws RepositoryException {
         try {
-            return jcrNode.getProperty(BINARY_CONTENT_PROP_NAME).getStream();
+            //return jcrNode.getProperty(BINARY_CONTENT_PROP_NAME).getStream();
+            return jcrNode.getNode("jcr:content").getProperty("jcr:data").getStream();
         } catch (Exception e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -559,8 +562,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public long getLastModified() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return -1;
+        try {
+            return getJCRResourceNode().getProperty("jcr:lastModified").getDate().getTimeInMillis();
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
     }
     
     /**
@@ -589,7 +595,7 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public void setMimeType(String mimeType) throws RepositoryException {
-        log.error("Not implemented yet!");
+        log.error("Implementation not finished yet!");
     }
     
     /**
@@ -616,6 +622,13 @@ public class JCRNode implements Node {
      */
     public javax.jcr.Node getJCRNode() {
         return jcrNode;
+    }
+
+    /**
+     *
+     */
+    public javax.jcr.Node getJCRResourceNode() throws Exception {
+        return jcrNode.getNode("jcr:content");
     }
 
     /**
