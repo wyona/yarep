@@ -379,6 +379,7 @@ public class JCRRepository implements Repository {
                     log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
 
                     Query q = qm.createQuery("//jcr:content[jcr:contains(@jcr:data, '" + query + "')]", Query.XPATH);
+                    //Query q = qm.createQuery("//jcr:content[jcr:data]", Query.XPATH);
                     //Query q = qm.createQuery("//jcr:content", Query.XPATH);
 
                     //Query q = qm.createQuery("//*[@jcr:data]", Query.XPATH);
