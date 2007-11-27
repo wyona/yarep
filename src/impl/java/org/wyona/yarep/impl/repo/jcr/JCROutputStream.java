@@ -60,8 +60,11 @@ public class JCROutputStream extends OutputStream {
             } else {
                 resourceNode = node.getJCRNode().addNode("jcr:content", "nt:resource");
             }
-            //resourceNode.setProperty("jcr:mimeType", node.getMimeType());
-            resourceNode.setProperty("jcr:mimeType", "text/plain");
+            if (node.getMimeType() != null) {
+                resourceNode.setProperty("jcr:mimeType", node.getMimeType());
+            } else {
+                resourceNode.setProperty("jcr:mimeType", "application/octet-stream");
+            }
             resourceNode.setProperty("jcr:data", new java.io.ByteArrayInputStream(out.toByteArray()));
             resourceNode.setProperty("jcr:lastModified", new java.util.GregorianCalendar());
             out.close();
