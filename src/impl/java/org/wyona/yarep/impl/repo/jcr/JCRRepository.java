@@ -377,14 +377,16 @@ public class JCRRepository implements Repository {
             for (int i = 0; i < qLang.length; i++) {
                 if (qLang[i].equals(Query.XPATH)) {
                     log.error("DEBUG: Repository supports XPath ("+Query.XPATH+") queries!");
-                    Query q = qm.createQuery("//*[@" + JCRNode.BINARY_CONTENT_PROP_NAME + "]", Query.XPATH);
+                    Query q = qm.createQuery("//jcr:content", Query.XPATH);
+                    //Query q = qm.createQuery("//*[@jcr:data]", Query.XPATH);
+                    //Query q = qm.createQuery("//*[@" + JCRNode.BINARY_CONTENT_PROP_NAME + "]", Query.XPATH);
                     //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", 'Welcome')]", Query.XPATH);
                     //Query q = qm.createQuery("//*[jcr:contains(@" + JCRNode.BINARY_CONTENT_PROP_NAME + ", '"+query+"')]", Query.XPATH);
                     log.error("DEBUG: Query: " + q.getStatement());
                     QueryResult qr = q.execute();
                     javax.jcr.NodeIterator ni = qr.getNodes();
                     while (ni.hasNext()) {
-                        log.error("DEBUG: Node: " + ni.next());
+                        log.error("DEBUG: Node: " + new JCRNode((javax.jcr.Node) ni.next(), session).getPath());
                     }
                     String[] qn = qr.getColumnNames();
                     log.error("Column Names Length: " + qn.length);
