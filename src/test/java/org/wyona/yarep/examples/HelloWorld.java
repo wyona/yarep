@@ -89,9 +89,11 @@ public class HelloWorld {
             String jcrNodePathExample = "/";
             repoJCR.getNode(jcrNodePathExample).setProperty("my-message", "Hello Hugo!");
             System.out.println(repoJCR.getNode(jcrNodePathExample).getProperty("my-message"));
+
+            repoJCR.getNode(jcrNodePathExample).setMimeType("text/xml");
             Writer writerJCR = repoJCR.getWriter(new Path(jcrNodePathExample));
             //Writer writerJCR = repoJCR.getWriter(worldPath);
-            writerJCR.write("Hello JCR!\n...");
+            writerJCR.write("<test>Hello (hello) JCR</test>");
             writerJCR.close();
             if (repoJCR.existsNode(jcrNodePathExample)) {
                 Reader readerJCR = repoJCR.getReader(new Path(jcrNodePathExample));
