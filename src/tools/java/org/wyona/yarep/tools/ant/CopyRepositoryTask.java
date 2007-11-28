@@ -58,6 +58,8 @@ public class CopyRepositoryTask extends Task {
             
             log.info("starting to copy...");
             YarepUtil.copyRepository(srcRepo, destRepo);
+            destRepo.close();
+            srcRepo.close();
             log.info("done.");
             
         } catch (Exception e) {
