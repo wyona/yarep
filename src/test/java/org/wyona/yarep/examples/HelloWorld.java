@@ -85,16 +85,18 @@ public class HelloWorld {
 
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
-            System.out.println("\nWrite content to repository " + repoJCR.getName() + " (repoJCR) ...");
+            System.out.println("\nRead and Write content from/to repository " + repoJCR.getName() + " (repoJCR) ...");
+            //String jcrNodePathExample = "/profiles/michael-wechner.rdf";
             String jcrNodePathExample = "/";
+
             repoJCR.getNode(jcrNodePathExample).setProperty("my-message", "Hello Hugo!");
             System.out.println(repoJCR.getNode(jcrNodePathExample).getProperty("my-message"));
 
             repoJCR.getNode(jcrNodePathExample).setMimeType("text/xml");
             Writer writerJCR = repoJCR.getWriter(new Path(jcrNodePathExample));
-            //Writer writerJCR = repoJCR.getWriter(worldPath);
             writerJCR.write("<test>Hello (hello) JCR</test>");
             writerJCR.close();
+
             if (repoJCR.existsNode(jcrNodePathExample)) {
                 Reader readerJCR = repoJCR.getReader(new Path(jcrNodePathExample));
                 BufferedReader brJCR = new BufferedReader(readerJCR);
@@ -109,6 +111,9 @@ public class HelloWorld {
             for (int i = 0; i < result.length ; i++) {
                 System.out.println("Result " + i + ": " + result[i].getPath());
             }
+
+
+
 
             System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
             Writer writerB = repoB.getWriter(worldPath);
