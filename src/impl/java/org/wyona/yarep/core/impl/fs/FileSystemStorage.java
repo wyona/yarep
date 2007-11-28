@@ -15,6 +15,7 @@ import java.io.Reader;
 import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Category;
 
 /**
@@ -98,7 +99,21 @@ public class FileSystemStorage implements Storage {
     public boolean delete(UID uid, Path path) throws RepositoryException {
         File file = new File(contentDir.getAbsolutePath() + File.separator + uid.toString());
         log.debug("Try to delete: " + file);
-        return file.delete(); 
+        try {
+            if (!file.exists()) {
+                log.warn("file " + file + " " + uid + " cannot be deleted because it does not exist.");
+                return true;
+            }
+            if (file.isDirectory()) {
+                FileUtils.deleteDirectory(file);
+                return true;
+            } else {
+                return file.delete();
+            }
+        } catch (IOException e) {
+            log.error("could not delete " + uid + " " + path + ": " + e.getMessage(), e);
+            return false;
+        }
     }
     
     /**
