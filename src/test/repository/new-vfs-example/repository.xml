@@ -18,4 +18,9 @@
 <!--
   <directory mime-type="application/xhtml+xml"/>
 -->
+
+  <search-index src="index">
+    <text-extractor mime-type="application/xml" class="org.apache.jackrabbit.extractor.XMLTextExtractor"/>
+    <text-extractor mime-type="text/html" class="org.apache.jackrabbit.extractor.HTMLTextExtractor"/>
+  </search-index>
 </repository>
