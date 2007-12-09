@@ -231,7 +231,14 @@ public class HelloWorld {
 
 
         try {
-            String query = "Hello";
+            Node node = repoNewVFS.getNode("/another-directory/index.html");
+            node.setMimeType("application/xhtml+xml");
+            Writer writer = repoNewVFS.getWriter(new Path("/another-directory/index.html"));
+            //Writer writer = repoNewVFS.getNode("/another-directory/index.html").getWriter();
+            writer.write("Hello Yarep!");
+            writer.close();
+
+            String query = "yarep";
             Node[] result = repoNewVFS.search(query);
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
