@@ -12,6 +12,11 @@ import java.io.Writer;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.search.Searcher;
+import org.apache.lucene.search.IndexSearcher;
+
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -50,6 +55,9 @@ public class VirtualFileSystemRepository implements Repository {
     private boolean fallback = false;
 
     private String alternative =  null;
+    private File searchIndexFile = null;
+    private Searcher searcher = null;
+    private Analyzer analyzer = null;
     private String dirListingMimeType = "application/xml";
 
     /**
@@ -125,7 +133,18 @@ public class VirtualFileSystemRepository implements Repository {
             log.debug("Alternative: " + alternative);
             log.debug("Mime type of directory listing: " + dirListingMimeType);
 
+            Configuration searchIndexConfig = config.getChild("search-index", false);
+            if (searchIndexConfig != null) {
+                searchIndexFile = new File(searchIndexConfig.getAttribute("src", "index"));
+            
+                if (!searchIndexFile.isAbsolute()) {
+                    searchIndexFile = FileUtil.file(configFile.getParent(), searchIndexFile.toString());
+                }
+                log.debug("Search index path: " + searchIndexFile);
 
+		searcher = new IndexSearcher(searchIndexFile.getAbsolutePath());
+		analyzer = new StandardAnalyzer();
+            }
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
@@ -400,7 +419,17 @@ public class VirtualFileSystemRepository implements Repository {
      * Search content
      */
     public Node[] search(String query) throws RepositoryException {
-        log.error("Not implemented yet!");
+        if (searcher != null) {
+            try {
+                org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("text", analyzer).parse(query);
+            } catch (Exception e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage());
+            }
+            return null;
+        } else {
+            log.warn("No search index seems to be configured!");
+        }
         return null;
     }
 }
