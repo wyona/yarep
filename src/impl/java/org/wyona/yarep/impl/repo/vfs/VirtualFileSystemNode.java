@@ -256,8 +256,8 @@ public class VirtualFileSystemNode extends AbstractNode {
      */
     public OutputStream getOutputStream() throws RepositoryException {
         try {
-            return new FileOutputStream(this.contentFile);
-            //return new VirtualFileSystemOutputStream(this, this.contentFile);
+            //return new FileOutputStream(this.contentFile);
+            return new VirtualFileSystemOutputStream(this, this.contentFile);
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
@@ -403,9 +403,11 @@ public class VirtualFileSystemNode extends AbstractNode {
     public long getSize() throws RepositoryException {
         return this.contentFile.length();
     }
-    
 
-    protected VirtualFileSystemRepository getRepository() {
+    /**
+     *
+     */
+    public VirtualFileSystemRepository getRepository() {
         return (VirtualFileSystemRepository)this.repository;
     }
 
