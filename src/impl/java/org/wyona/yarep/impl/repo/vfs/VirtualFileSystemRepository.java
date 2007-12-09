@@ -56,8 +56,8 @@ public class VirtualFileSystemRepository implements Repository {
 
     private String alternative =  null;
     private File searchIndexFile = null;
-    private Searcher searcher = null;
     private Analyzer analyzer = null;
+    private Searcher searcher = null;
     private String dirListingMimeType = "application/xml";
 
     /**
@@ -142,8 +142,10 @@ public class VirtualFileSystemRepository implements Repository {
                 }
                 log.debug("Search index path: " + searchIndexFile);
 
-		searcher = new IndexSearcher(searchIndexFile.getAbsolutePath());
 		analyzer = new StandardAnalyzer();
+
+
+		searcher = new IndexSearcher(searchIndexFile.getAbsolutePath());
             }
         } catch (Exception e) {
             log.error(e.toString());
@@ -412,7 +414,7 @@ public class VirtualFileSystemRepository implements Repository {
      *
      */
     public void close() throws RepositoryException {
-        log.warn("Not implemented!");
+        log.warn("Nothing to close!");
     }
 
     /**
@@ -433,5 +435,19 @@ public class VirtualFileSystemRepository implements Repository {
             log.warn("No search index seems to be configured!");
         }
         return null;
+    }
+
+    /**
+     *
+     */
+    public File getSearchIndexFile() {
+        return searchIndexFile;
+    }
+
+    /**
+     *
+     */
+    public Analyzer getAnalyzer() {
+        return analyzer;
     }
 }
