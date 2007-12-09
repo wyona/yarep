@@ -423,7 +423,7 @@ public class VirtualFileSystemRepository implements Repository {
     public Node[] search(String query) throws RepositoryException {
         if (searcher != null) {
             try {
-                org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("content", analyzer).parse(query);
+                org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
                 org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                 log.error("DEBUG: Number of matching documents: " + hits.length());
                 return null;
