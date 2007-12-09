@@ -11,6 +11,8 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.impl.AbstractNode;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 
 /**
@@ -56,16 +58,19 @@ public class VirtualFileSystemOutputStream extends OutputStream {
             String mimeType = node.getMimeType();
             if (mimeType != null) {
                 log.error("DEBUG: Mime type: " + mimeType);
-            VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
-            File searchIndexFile = vfsRepo.getSearchIndexFile();
+                VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
+                File searchIndexFile = vfsRepo.getSearchIndexFile();
 
-            IndexWriter indexWriter = null;
-            if (searchIndexFile.isDirectory()) {
-                indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
-            } else {
-                indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
-            }
-            indexWriter.close();
+                IndexWriter indexWriter = null;
+                if (searchIndexFile.isDirectory()) {
+                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
+                } else {
+                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
+                }
+                Document document = new Document();
+                document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                indexWriter.addDocument(document);
+                indexWriter.close();
             }
         } catch (Exception e) {
             log.error(e, e);
