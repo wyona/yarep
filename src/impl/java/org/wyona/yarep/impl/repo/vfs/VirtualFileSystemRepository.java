@@ -432,7 +432,11 @@ public class VirtualFileSystemRepository implements Repository {
                 org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
                 org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                 log.error("DEBUG: Number of matching documents: " + hits.length());
-                return null;
+                Node[] results = new Node[hits.length()];
+                for (int i = 0; i < results.length;i++) {
+                    results[i] = getNode(hits.doc(i).getField("_PATH").stringValue());
+                }
+                return results;
             } catch (Exception e) {
                 log.error(e, e);
                 throw new RepositoryException(e.getMessage());
