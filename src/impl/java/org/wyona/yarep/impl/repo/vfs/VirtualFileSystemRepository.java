@@ -14,6 +14,7 @@ import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.IndexSearcher;
 
@@ -144,6 +145,11 @@ public class VirtualFileSystemRepository implements Repository {
 
 		analyzer = new StandardAnalyzer();
 
+                // Create a lucene search index if it doesn't exist yet
+                if (!searchIndexFile.isDirectory()) {
+                    IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
+                    indexWriter.close();
+                }
 
 		searcher = new IndexSearcher(searchIndexFile.getAbsolutePath());
             }
