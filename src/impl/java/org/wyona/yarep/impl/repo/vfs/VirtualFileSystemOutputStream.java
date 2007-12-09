@@ -70,6 +70,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                     indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
                 }
                 Document document = new Document();
+                // TODO: Use Tika to extract text depending on mime type
                 document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
                 document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.NO));
                 // TODO: Re-index existing document
