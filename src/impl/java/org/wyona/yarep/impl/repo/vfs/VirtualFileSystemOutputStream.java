@@ -72,6 +72,8 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 Document document = new Document();
                 document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
                 document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.NO));
+                // TODO: Re-index existing document
+                // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 indexWriter.addDocument(document);
                 indexWriter.close();
             }
