@@ -13,6 +13,8 @@ import org.wyona.yarep.impl.AbstractNode;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexWriter;
 
 /**
@@ -69,6 +71,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 }
                 Document document = new Document();
                 document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.NO));
                 indexWriter.addDocument(document);
                 indexWriter.close();
             }
