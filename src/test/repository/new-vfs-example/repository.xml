@@ -7,6 +7,7 @@
 
   <!-- Optional elements below: -->
 
+  <!-- If the "meta" parameter below is not being set, then the meta data will also be written into the content directory configured above. -->
 <!--
   <meta src="meta"/>
 -->
@@ -19,7 +20,11 @@
   <directory mime-type="application/xhtml+xml"/>
 -->
 
+<!--
+  <search-index src="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index">
+-->
   <search-index src="index">
+    <!-- Use Tika ... -->
     <text-extractor mime-type="application/xml" class="org.apache.jackrabbit.extractor.XMLTextExtractor"/>
     <text-extractor mime-type="text/html" class="org.apache.jackrabbit.extractor.HTMLTextExtractor"/>
   </search-index>
