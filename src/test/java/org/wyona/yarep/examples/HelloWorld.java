@@ -42,10 +42,12 @@ public class HelloWorld {
         Repository repoB;
         Repository repoD;
         Repository repoJCR;
+        Repository repoNewVFS;
         try {
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
             repoJCR = repoFactory.newRepository("jcr");
+            repoNewVFS = repoFactory.newRepository("new-vfs");
     
             // Add more repositories to repository factory
             repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
@@ -225,6 +227,22 @@ public class HelloWorld {
 
         } catch (Exception e) {
             System.err.println(e);
+        }
+
+
+        try {
+            String query = "Hello";
+            Node[] result = repoNewVFS.search(query);
+            if (result == null || result.length == 0) {
+                System.out.println("Your search \"" + query + "\" did not match any node!");
+            } else {
+                for (int i = 0; i < result.length ; i++) {
+                    System.out.println("Result " + i + ": " + result[i].getPath());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            log.error(e, e);
         }
     }
 }
