@@ -11,6 +11,8 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.impl.AbstractNode;
 
+import org.apache.lucene.index.IndexWriter;
+
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
  * when the stream is closed.
@@ -48,10 +50,25 @@ public class VirtualFileSystemOutputStream extends OutputStream {
     public void close() throws IOException {
         out.close();
         try {
-            node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
-            node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
-        } catch (RepositoryException e) {
-            log.error(e.getMessage(), e);
+            //node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
+            //node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
+
+            String mimeType = node.getMimeType();
+            if (mimeType != null) {
+                log.error("DEBUG: Mime type: " + mimeType);
+            VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
+            File searchIndexFile = vfsRepo.getSearchIndexFile();
+
+            IndexWriter indexWriter = null;
+            if (searchIndexFile.isDirectory()) {
+                indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
+            } else {
+                indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
+            }
+            indexWriter.close();
+            }
+        } catch (Exception e) {
+            log.error(e, e);
             throw new IOException(e.getMessage());
         }
     }
