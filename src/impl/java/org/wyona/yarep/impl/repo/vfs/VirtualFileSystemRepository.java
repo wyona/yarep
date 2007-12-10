@@ -58,7 +58,6 @@ public class VirtualFileSystemRepository implements Repository {
     private String alternative =  null;
     private File searchIndexFile = null;
     private Analyzer analyzer = null;
-    private Searcher searcher = null;
     private String dirListingMimeType = "application/xml";
 
     /**
@@ -150,8 +149,6 @@ public class VirtualFileSystemRepository implements Repository {
                     IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
                     indexWriter.close();
                 }
-
-		searcher = new IndexSearcher(searchIndexFile.getAbsolutePath());
             }
         } catch (Exception e) {
             log.error(e.toString());
@@ -427,6 +424,8 @@ public class VirtualFileSystemRepository implements Repository {
      * Search content
      */
     public Node[] search(String query) throws RepositoryException {
+        try {
+        Searcher searcher = new IndexSearcher(getSearchIndexFile().getAbsolutePath());
         if (searcher != null) {
             try {
                 org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
@@ -443,6 +442,10 @@ public class VirtualFileSystemRepository implements Repository {
             }
         } else {
             log.warn("No search index seems to be configured!");
+        }
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException(e.getMessage());
         }
         return null;
     }
