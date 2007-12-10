@@ -63,19 +63,24 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
                 File searchIndexFile = vfsRepo.getSearchIndexFile();
 
+
                 IndexWriter indexWriter = null;
                 if (searchIndexFile.isDirectory()) {
                     indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
                 } else {
                     indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
                 }
+                // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
+                // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
+                //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
+                //log.error("DEBUG: Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
+
                 Document document = new Document();
                 // TODO: Use Tika to extract text depending on mime type
                 document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
-                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.NO));
-                // TODO: Re-index existing document
-                // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
-                indexWriter.addDocument(document);
+                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
+                indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                //indexWriter.addDocument(document);
                 indexWriter.close();
             }
         } catch (Exception e) {
