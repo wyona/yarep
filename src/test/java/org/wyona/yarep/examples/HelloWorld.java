@@ -41,12 +41,12 @@ public class HelloWorld {
         Repository repoC;
         Repository repoB;
         Repository repoD;
-        //Repository repoJCR;
+        Repository repoJCR;
         Repository repoNewVFS;
         try {
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
-            //repoJCR = repoFactory.newRepository("jcr");
+            repoJCR = repoFactory.newRepository("jcr");
             repoNewVFS = repoFactory.newRepository("new-vfs");
     
             // Add more repositories to repository factory
@@ -87,7 +87,6 @@ public class HelloWorld {
 
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
-/*
             System.out.println("\nRead and Write content from/to repository " + repoJCR.getName() + " (repoJCR) ...");
             //String jcrNodePathExample = "/profiles/michael-wechner.rdf";
             String jcrNodePathExample = "/";
@@ -114,7 +113,6 @@ public class HelloWorld {
             for (int i = 0; i < result.length ; i++) {
                 System.out.println("Result " + i + ": " + result[i].getPath());
             }
-*/
 
 
 
@@ -133,13 +131,11 @@ public class HelloWorld {
             log.error(e, e);
         }
 
-/*
         try {
             repoJCR.close();
         } catch (Exception e) {
             System.err.println(e);
         }
-*/
 
         // DEBUG ...
 	//if(true) return;
