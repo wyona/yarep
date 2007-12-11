@@ -22,12 +22,14 @@
       <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="2.2.0"/>
       <!-- WARNING: Jackrabbit uses Lucene 2.0.0 which is not compatible with Lucene 2.2.0 -->
 
-<!--
       <dependency groupId="javax.jcr" artifactId="jcr" version="1.0"/>
+      <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-core" version="1.4-SNAPSHOT"/>
+      <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-text-extractors" version="1.4-SNAPSHOT"/>
+<!--
       <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-core" version="1.3.3"/>
       <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-text-extractors" version="1.3.3"/>
-      <dependency groupId="org.slf4j" artifactId="slf4j-log4j12" version="1.3.0"/>
 -->
+      <dependency groupId="org.slf4j" artifactId="slf4j-log4j12" version="1.3.0"/>
 
       <!-- Runtime libs -->
       <!-- IMPORT: xerces 2.7.1 is dependent on xml-apis 1.3.02 -->
