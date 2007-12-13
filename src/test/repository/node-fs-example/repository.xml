@@ -1,22 +1,13 @@
 <?xml version="1.0"?>
 
-<!-- <repository>
-  <name>Node Filesystem Example</name>
-
-  <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content"/>
-
-  <storage class="org.wyona.yarep.core.impl.vfs.VFileSystemStorage">
-    <content src="content"/>
-    <directory alternative="index.html" mime-type="application/xhtml+xml"/>
-  </storage>
-</repository>
- -->  
 <repository class="org.wyona.yarep.impl.repo.fs.FileSystemRepository">
   <name>Node Filesystem Example</name>
   <paths class="org.wyona.yarep.impl.VFileSystemMapImpl" src="content">
     <ignore pattern=".*\.svn"/>
-    <ignore pattern=".*\.yarep"/>
+    <!--<ignore pattern=".*\.yarep"/>-->
   </paths>
   <content src="content"/>
-</repository>
 
+  <!-- Optional. If not specified, then the content dir from above will be used. -->
+  <meta src="yarep-meta"/>
+</repository>
