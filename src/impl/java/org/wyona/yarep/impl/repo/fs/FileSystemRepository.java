@@ -95,8 +95,18 @@ public class FileSystemRepository implements Repository {
             if (!this.contentDir.isAbsolute()) {
                 this.contentDir = FileUtil.file(configFile.getParent(), this.contentDir.toString());
             }
+            log.info("Content dir: " + this.contentDir);
 
-            log.debug("content dir: " + this.contentDir);
+            Configuration metaDirConfig = config.getChild("meta", false);
+            if (metaDirConfig != null) {
+                this.metaDir = new File(metaDirConfig.getAttribute("src"));
+
+                if (!this.metaDir.isAbsolute()) {
+                    this.metaDir = FileUtil.file(configFile.getParent(), this.metaDir.toString());
+                }
+                log.info("Meta dir: " + this.metaDir);
+            }
+
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
@@ -243,6 +253,7 @@ public class FileSystemRepository implements Repository {
     ///////////////////////////////////////////////////////////////////////////
     
     protected File contentDir;
+    protected File metaDir;
     
     /**
      * @see org.wyona.yarep.core.Repository#copy(java.lang.String, java.lang.String)
