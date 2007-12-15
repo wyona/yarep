@@ -157,7 +157,7 @@
 
   <!-- the test target executes all tests in the test directory, or alternatively
        it executes a single test which is specified by the test.class.name property -->
-  <target name="test" description="Run Tests" depends="init, build-examples">
+  <target name="test" description="Run Tests" depends="clean, init, build-examples">
     <mkdir dir="build/log"/>
     <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" failureproperty="tests.failed">
       <formatter type="plain" usefile="false" />
