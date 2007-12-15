@@ -76,6 +76,8 @@ public class FileSystemOutputStream extends OutputStream {
                 document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
                 indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
                 indexWriter.close();
+            } else {
+                log.warn("Node " + node.getPath() + " has no mime type associated with and hence will not be indexed!");
             }
         } catch (RepositoryException e) {
             log.error(e.getMessage(), e);
