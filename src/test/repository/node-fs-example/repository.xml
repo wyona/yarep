@@ -10,4 +10,11 @@
 
   <!-- Optional. If not specified, then the content dir from above will be used. -->
   <meta src="yarep-meta"/>
+
+  <search-index src="index">
+    <!-- Use Tika ... -->
+    <text-extractor mime-type="application/xml" class="org.apache.jackrabbit.extractor.XMLTextExtractor"/>
+    <text-extractor mime-type="text/html" class="org.apache.jackrabbit.extractor.HTMLTextExtractor"/>
+  </search-index>
+
 </repository>
