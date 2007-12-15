@@ -12,6 +12,12 @@ import java.io.Writer;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.search.Searcher;
+import org.apache.lucene.search.IndexSearcher;
+
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -48,6 +54,10 @@ public class FileSystemRepository implements Repository {
     protected Storage storage;
 
     private boolean fallback = false;
+
+    // Search and index
+    private File searchIndexFile = null;
+    private Analyzer analyzer = null;
 
     /**
      *
@@ -105,6 +115,23 @@ public class FileSystemRepository implements Repository {
                     this.metaDir = FileUtil.file(configFile.getParent(), this.metaDir.toString());
                 }
                 log.info("Meta dir: " + this.metaDir);
+            }
+
+            Configuration searchIndexConfig = config.getChild("search-index", false);
+            if (searchIndexConfig != null) {
+                searchIndexFile = new File(searchIndexConfig.getAttribute("src", "index"));
+            
+                if (!searchIndexFile.isAbsolute()) {
+                    searchIndexFile = FileUtil.file(configFile.getParent(), searchIndexFile.toString());
+                }
+
+		analyzer = new StandardAnalyzer();
+
+                // Create a lucene search index if it doesn't exist yet
+                if (!searchIndexFile.isDirectory()) {
+                    IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
+                    indexWriter.close();
+                }
             }
 
         } catch (Exception e) {
@@ -360,7 +387,50 @@ public class FileSystemRepository implements Repository {
      * Search content
      */
     public Node[] search(String query) throws RepositoryException {
-        log.error("Not implemented yet!");
+        try {
+            Searcher searcher = new IndexSearcher(getSearchIndexFile().getAbsolutePath());
+            if (searcher != null) {
+                try {
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
+                    org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
+                    log.info("Number of matching documents: " + hits.length());
+                    Node[] results = new Node[hits.length()];
+                    for (int i = 0; i < results.length;i++) {
+                        results[i] = getNode(hits.doc(i).getField("_PATH").stringValue());
+                    }
+                    return results;
+                } catch (Exception e) {
+                    log.error(e, e);
+                    throw new RepositoryException(e.getMessage());
+                }
+            } else {
+                log.warn("No search index seems to be configured!");
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException(e.getMessage());
+        }
         return null;
+    }
+
+    /**
+     * Get yarep meta directory
+     */
+    public File getYarepMetaDir() {
+        return this.metaDir;
+    }
+
+    /**
+     *
+     */
+    public File getSearchIndexFile() {
+        return searchIndexFile;
+    }
+
+    /**
+     *
+     */
+    public Analyzer getAnalyzer() {
+        return analyzer;
     }
 }
