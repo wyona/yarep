@@ -72,6 +72,9 @@ public class FileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * Init file system impl node
+     */
     protected void init() throws RepositoryException {
         
         this.contentDir = getRepository().getContentDir();
@@ -98,10 +101,20 @@ public class FileSystemNode extends AbstractNode {
         return new File(this.contentDir, uuid);
     }
     
+    /**
+     * Determine yarep meta directory
+     */
     protected File determineMetaDir(String uuid) {
-        return new File(this.contentDir, uuid + META_DIR_SUFFIX);
+        if (getRepository().getYarepMetaDir() != null) {
+            return new File(getRepository().getYarepMetaDir(), uuid + META_DIR_SUFFIX);
+        } else {
+            return new File(this.contentDir, uuid + META_DIR_SUFFIX);
+        }
     }
     
+    /**
+     * Determine yarep meta file of this node
+     */
     protected File determineMetaFile(String uuid) {
         return new File(this.metaDir, META_FILE_NAME);
     }
@@ -253,8 +266,8 @@ public class FileSystemNode extends AbstractNode {
      */
     public OutputStream getOutputStream() throws RepositoryException {
         try {
-            return new FileOutputStream(this.contentFile);
-            //return new FileSystemOutputStream(this, this.contentFile);
+            //return new FileOutputStream(this.contentFile);
+            return new FileSystemOutputStream(this, this.contentFile);
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
