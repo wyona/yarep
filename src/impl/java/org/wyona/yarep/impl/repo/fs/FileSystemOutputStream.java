@@ -11,6 +11,12 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.impl.AbstractNode;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.IndexWriter;
+
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
  * when the stream is closed.
@@ -50,6 +56,27 @@ public class FileSystemOutputStream extends OutputStream {
         try {
             node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
             node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
+
+            String mimeType = node.getMimeType();
+            if (mimeType != null) {
+                if(log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
+                FileSystemRepository fsRepo = ((FileSystemNode) node).getRepository();
+                File searchIndexFile = fsRepo.getSearchIndexFile();
+
+
+                IndexWriter indexWriter = null;
+                if (searchIndexFile.isDirectory()) {
+                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), false);
+                } else {
+                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), true);
+                }
+                Document document = new Document();
+                // TODO: Use Tika to extract text depending on mime type
+                document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
+                indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                indexWriter.close();
+            }
         } catch (RepositoryException e) {
             log.error(e.getMessage(), e);
             throw new IOException(e.getMessage());
