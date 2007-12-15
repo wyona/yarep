@@ -425,24 +425,24 @@ public class VirtualFileSystemRepository implements Repository {
      */
     public Node[] search(String query) throws RepositoryException {
         try {
-        Searcher searcher = new IndexSearcher(getSearchIndexFile().getAbsolutePath());
-        if (searcher != null) {
-            try {
-                org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
-                org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
-                log.error("DEBUG: Number of matching documents: " + hits.length());
-                Node[] results = new Node[hits.length()];
-                for (int i = 0; i < results.length;i++) {
-                    results[i] = getNode(hits.doc(i).getField("_PATH").stringValue());
+            Searcher searcher = new IndexSearcher(getSearchIndexFile().getAbsolutePath());
+            if (searcher != null) {
+                try {
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
+                    org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
+                    log.info("Number of matching documents: " + hits.length());
+                    Node[] results = new Node[hits.length()];
+                    for (int i = 0; i < results.length;i++) {
+                        results[i] = getNode(hits.doc(i).getField("_PATH").stringValue());
+                    }
+                    return results;
+                } catch (Exception e) {
+                    log.error(e, e);
+                    throw new RepositoryException(e.getMessage());
                 }
-                return results;
-            } catch (Exception e) {
-                log.error(e, e);
-                throw new RepositoryException(e.getMessage());
+            } else {
+                log.warn("No search index seems to be configured!");
             }
-        } else {
-            log.warn("No search index seems to be configured!");
-        }
         } catch (Exception e) {
             log.error(e, e);
             throw new RepositoryException(e.getMessage());
