@@ -1,6 +1,7 @@
 package org.wyona.yarep.examples;
 
 import org.wyona.yarep.core.Node;
+import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
@@ -47,7 +48,8 @@ public class HelloWorld {
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
             repoJCR = repoFactory.newRepository("jcr");
-            repoNewVFS = repoFactory.newRepository("new-vfs");
+            repoNewVFS = repoFactory.newRepository("fs");
+            //repoNewVFS = repoFactory.newRepository("new-vfs");
     
             // Add more repositories to repository factory
             repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
@@ -109,7 +111,11 @@ public class HelloWorld {
             }
             String query = "Hello";
             Node[] result = repoJCR.search(query);
-            if (result.length == 0) System.out.println("Your search \"" + query + "\" did not match any node!");
+            if (result.length == 0) {
+                System.out.println("Your search \"" + query + "\" did not match any node!");
+            } else {
+                System.out.println(result.length + " results have been found:");
+            }
             for (int i = 0; i < result.length ; i++) {
                 System.out.println("Result " + i + ": " + result[i].getPath());
             }
@@ -231,10 +237,14 @@ public class HelloWorld {
 
 
         try {
-            Node node = repoNewVFS.getNode("/another-directory/index.html");
+            String sampleNodePathToIndex = "/another-directory/index.html";
+            if (!repoNewVFS.existsNode(sampleNodePathToIndex)) {
+                log.warn("Node will be created: " + repoNewVFS.getRootNode().addNode("another-directory", NodeType.COLLECTION).addNode("index.html", NodeType.RESOURCE).getPath());
+            }
+            Node node = repoNewVFS.getNode(sampleNodePathToIndex);
             node.setMimeType("application/xhtml+xml");
-            Writer writer = repoNewVFS.getWriter(new Path("/another-directory/index.html"));
-            //Writer writer = repoNewVFS.getNode("/another-directory/index.html").getWriter();
+            Writer writer = repoNewVFS.getWriter(new Path(sampleNodePathToIndex));
+            //OutputStream out = repoNewVFS.getNode(sampleNodePathToIndex).getOutputStream();
             writer.write("Hello Yarep!");
             writer.close();
 
@@ -243,6 +253,7 @@ public class HelloWorld {
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
             } else {
+                System.out.println(result.length + " results have been found:");
                 for (int i = 0; i < result.length ; i++) {
                     System.out.println("Result " + i + ": " + result[i].getPath());
                 }
