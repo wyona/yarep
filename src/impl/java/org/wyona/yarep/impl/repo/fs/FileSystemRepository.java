@@ -394,11 +394,19 @@ public class FileSystemRepository implements Repository {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                     log.info("Number of matching documents: " + hits.length());
-                    Node[] results = new Node[hits.length()];
-                    for (int i = 0; i < results.length;i++) {
-                        results[i] = getNode(hits.doc(i).getField("_PATH").stringValue());
+                    java.util.Vector results = new java.util.Vector();
+                    for (int i = 0; i < hits.length(); i++) {
+                        try {
+                            results.addElement(getNode(hits.doc(i).getField("_PATH").stringValue()));
+                        } catch (NoSuchNodeException nsne) {
+                            log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
+                        }
                     }
-                    return results;
+                    Node[] res = new Node[results.size()];
+                    for (int i = 0; i < res.length; i++) {
+                        res[i] = (Node) results.elementAt(i);
+                    }
+                    return res;
                 } catch (Exception e) {
                     log.error(e, e);
                     throw new RepositoryException(e.getMessage());
