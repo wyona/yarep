@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Category;
@@ -194,12 +195,45 @@ public class FileSystemNode extends AbstractNode {
      */
     public Node[] getNodes() throws RepositoryException {
         Path[] childPaths = getRepository().getMap().getChildren(new Path(this.path));
-        
-        Node[] childNodes = new Node[childPaths.length];
-        for (int i=0; i<childPaths.length; i++) {
-            childNodes[i] = this.repository.getNode(childPaths[i].toString());
+        FileSystemRepository repo = (FileSystemRepository) this.repository;
+
+        Vector childNodes = new Vector();
+        for (int i = 0; i < childPaths.length; i++) {
+            childNodes.addElement(repo.getNode(childPaths[i].toString()));
         }
-        return childNodes;
+
+        // Also add fallback nodes if fallback is enabled
+        if (repo.isFallbackEnabled()) {
+            log.warn("Fallback is enabled for repository '" + repo.getName() + "' and hence children will also retrieved from storage without being listed within map!");
+            File contentDir = repo.contentDir;
+            String path = contentDir.getPath() + this.path;
+            File currentDir = new File(path);
+            
+            if (currentDir.isDirectory()) {
+                File[] files = null;
+                files = currentDir.listFiles(new YarepMetaDataDirectoryFilter());
+                for (int i = 0; i < files.length; i++) {
+                    String fpath = this.path + "/" + files[i].getName();
+                    boolean alreadyExists = false;
+                    for (int k = 0; k < childPaths.length; k++) {
+                        if (files[i].getName().equals(childPaths[k].getName())) {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyExists) {
+                            log.info("No UID! Fallback to : " + fpath);
+                            String uuid2 = new UID(fpath).toString();
+                            childNodes.addElement(new FileSystemNode(repo, fpath, uuid2));
+                    }
+                }
+            }
+        }
+        Node[] children = new Node[childNodes.size()];
+        for (int i = 0; i < children.length; i++) {
+            children[i] = (Node) childNodes.elementAt(i);
+        }
+        return children;
     }
     
     /**
@@ -395,6 +429,21 @@ public class FileSystemNode extends AbstractNode {
                 return true;
             } else {
                 return false;
+            }
+        }
+    }
+
+    /**
+     * Filter in order to filter ".yarep" nodes
+     */
+    protected class YarepMetaDataDirectoryFilter implements FileFilter {
+        public YarepMetaDataDirectoryFilter() {
+        }
+        public boolean accept(File pathname) {
+            if (pathname.getName().endsWith(META_DIR_SUFFIX) && pathname.isDirectory()) {
+                return false;
+            } else {
+                return true;
             }
         }
     }
