@@ -198,6 +198,9 @@ public class FileSystemRepository implements Repository {
         return existsNode(path.toString());
     }
 
+    /**
+     * Get paths of children
+     */
     public Path[] getChildren(Path path) throws RepositoryException {
         Node node = getNode(path.toString());
         Node[] childNodes = node.getNodes();
