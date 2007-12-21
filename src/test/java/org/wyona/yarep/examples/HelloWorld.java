@@ -193,13 +193,17 @@ public class HelloWorld {
         try {
 
             // List children
-            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
+            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoNewVFS.getName() + " (" + repoNewVFS.getID() + ")\" ...");
+            //System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             Path helloPath = new Path("/hello");
 
-            Path[] children = repoA.getChildren(helloPath);
+            Path[] children = repoNewVFS.getChildren(helloPath);
+            //Path[] children = repoA.getChildren(helloPath);
             for (int i = 0; i < children.length; i++) {
                 System.out.println("Child: " + children[i]);
             }
+
+	    //if (true) return;
 
             // Delete collection with deprecated method
             System.out.println("\nUSECASE: Try to delete \"" + helloPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" with deprecated method Repository.delete(Path, boolean) ...");
