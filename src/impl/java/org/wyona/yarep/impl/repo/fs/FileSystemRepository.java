@@ -441,4 +441,11 @@ public class FileSystemRepository implements Repository {
     public Analyzer getAnalyzer() {
         return analyzer;
     }
+
+    /**
+     *
+     */
+    public boolean isFallbackEnabled() {
+        return fallback;
+    }
 }
