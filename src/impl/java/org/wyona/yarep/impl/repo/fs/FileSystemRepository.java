@@ -58,6 +58,7 @@ public class FileSystemRepository implements Repository {
     // Search and index
     private File searchIndexFile = null;
     private Analyzer analyzer = null;
+    private String PROPERTIES_INDEX_DIR = "properties";
 
     /**
      *
@@ -127,11 +128,13 @@ public class FileSystemRepository implements Repository {
 
 		analyzer = new StandardAnalyzer();
 
-                // Create a lucene search index if it doesn't exist yet
+                // Create a lucene search index (for fulltext) if it doesn't exist yet
                 if (!searchIndexFile.isDirectory()) {
                     IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
                     indexWriter.close();
                 }
+                // TODO: Create properties index dir subdirectory in order to save the lucene index for searching on properties
+                //searchIndexFile.mkdir(PROPERTIES_INDEX_DIR);
             }
 
         } catch (Exception e) {
