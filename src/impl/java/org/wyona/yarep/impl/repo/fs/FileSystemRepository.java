@@ -8,15 +8,23 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.plaf.ListUI;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.log4j.Category;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Hits;
+import org.apache.lucene.queryParser.QueryParser;
 
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
@@ -56,9 +64,13 @@ public class FileSystemRepository implements Repository {
     private boolean fallback = false;
 
     // Search and index
-    private File searchIndexFile = null;
+    private File searchIndexSrcFile = null;
+    private File propertiesSearchIndexFile = null;
+    private File fulltextSearchIndexFile = null;
     private Analyzer analyzer = null;
+    private Analyzer whitespaceAnalyzer = null;
     private String PROPERTIES_INDEX_DIR = "properties";
+    private String FULLTEXT_INDEX_DIR = "fulltext";
 
     /**
      *
@@ -120,21 +132,37 @@ public class FileSystemRepository implements Repository {
 
             Configuration searchIndexConfig = config.getChild("search-index", false);
             if (searchIndexConfig != null) {
-                searchIndexFile = new File(searchIndexConfig.getAttribute("src", "index"));
+                searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
             
-                if (!searchIndexFile.isAbsolute()) {
-                    searchIndexFile = FileUtil.file(configFile.getParent(), searchIndexFile.toString());
+                if (!searchIndexSrcFile.isAbsolute()) {
+                    searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
                 }
 
-		analyzer = new StandardAnalyzer();
+                analyzer = new StandardAnalyzer();
+
+                // TODO: For search within properties the WhitespaceAnalyzer is used because the StandardAnalyzer doesn't accept resp. misinterprets escaped query strings, e.g. 03\:07\- ...
+                whitespaceAnalyzer = new WhitespaceAnalyzer();
 
                 // Create a lucene search index (for fulltext) if it doesn't exist yet
-                if (!searchIndexFile.isDirectory()) {
-                    IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
+                if (!searchIndexSrcFile.isDirectory()) {
+                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                    IndexWriter indexWriter = new IndexWriter(fulltextSearchIndexFile.getAbsolutePath(), getAnalyzer(), true);
+                    indexWriter.close();
+                } else {
+                    if (new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR).isDirectory()) {
+                        fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                    } else {
+                        fulltextSearchIndexFile = searchIndexSrcFile;
+                    }
+                }
+                
+                
+                // Create properties index dir subdirectory in order to save the lucene index for searching on properties
+                propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
+                if (!propertiesSearchIndexFile.isDirectory()) {
+                    IndexWriter indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), getWhitespaceAnalyzer(), true);
                     indexWriter.close();
                 }
-                // TODO: Create properties index dir subdirectory in order to save the lucene index for searching on properties
-                //searchIndexFile.mkdir(PROPERTIES_INDEX_DIR);
             }
 
         } catch (Exception e) {
@@ -394,11 +422,11 @@ public class FileSystemRepository implements Repository {
      */
     public Node[] search(String query) throws RepositoryException {
         try {
-            Searcher searcher = new IndexSearcher(getSearchIndexFile().getAbsolutePath());
+            Searcher searcher = new IndexSearcher(getFulltextSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
                 try {
-                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", analyzer).parse(query);
-                    org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
+                    Query luceneQuery = new QueryParser("_FULLTEXT", analyzer).parse(query);
+                    Hits hits = searcher.search(luceneQuery);
                     log.info("Number of matching documents: " + hits.length());
                     java.util.Vector results = new java.util.Vector();
                     for (int i = 0; i < hits.length(); i++) {
@@ -426,6 +454,44 @@ public class FileSystemRepository implements Repository {
         }
         return null;
     }
+    
+    /**
+     * Search properties within subtree
+     */
+    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
+        try {
+            Searcher searcher = new IndexSearcher(getPropertiesSearchIndexFile().getAbsolutePath());
+            if (searcher != null) {
+                try {
+                    Query luceneQuery = new QueryParser(pName, whitespaceAnalyzer).parse(QueryParser.escape(pValue));
+                    Hits hits = searcher.search(luceneQuery);
+                    log.info("Number of matching documents: " + hits.length());
+                    List results = new ArrayList();
+                    for (int i = 0; i < hits.length(); i++) {
+                        try {
+                            String resultPath = hits.doc(i).getField("_PATH").stringValue();
+                            
+                            // subtree filter
+                            if (resultPath.startsWith(path)) {
+                                results.add(getNode(resultPath));
+                            }
+                        } catch (NoSuchNodeException nsne) {
+                            log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
+                        }
+                    }
+                    return (Node[])results.toArray(new Node[results.size()]);
+                    
+                } catch (Exception e) {
+                    log.error(e, e);
+                    throw new RepositoryException(e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException(e.getMessage());
+        }
+        return null;
+    }
 
     /**
      * Get yarep meta directory
@@ -438,7 +504,15 @@ public class FileSystemRepository implements Repository {
      *
      */
     public File getSearchIndexFile() {
-        return searchIndexFile;
+        return searchIndexSrcFile;
+    }
+    
+    public File getPropertiesSearchIndexFile() {
+        return propertiesSearchIndexFile;
+    }
+    
+    public File getFulltextSearchIndexFile() {
+        return fulltextSearchIndexFile;
     }
 
     /**
@@ -446,6 +520,10 @@ public class FileSystemRepository implements Repository {
      */
     public Analyzer getAnalyzer() {
         return analyzer;
+    }
+    
+    public Analyzer getWhitespaceAnalyzer() {
+        return whitespaceAnalyzer;
     }
 
     /**

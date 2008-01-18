@@ -257,7 +257,20 @@ public class HelloWorld {
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
             } else {
-                System.out.println(result.length + " results have been found:");
+                System.out.println(result.length + " results have been found for '" + query + "' within fulltext:");
+                for (int i = 0; i < result.length ; i++) {
+                    System.out.println("Result " + i + ": " + result[i].getPath());
+                }
+            }
+
+            String property = "title";
+            node.setProperty(property, "Ingwer");
+            query = "Ingwer";
+            result = repoNewVFS.searchProperty("title", query, "/");
+            if (result == null || result.length == 0) {
+                System.out.println("Your search \"" + query + "\" did not match any node!");
+            } else {
+                System.out.println(result.length + " results have been found for '" + query + "' within property '" + property + "':");
                 for (int i = 0; i < result.length ; i++) {
                     System.out.println("Result " + i + ": " + result[i].getPath());
                 }

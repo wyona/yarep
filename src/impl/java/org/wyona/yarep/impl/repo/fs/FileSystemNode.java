@@ -32,6 +32,13 @@ import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.UID;
 import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
+import org.wyona.yarep.impl.repo.fs.FileSystemRepository;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.IndexWriter;
 
 /**
  * This class represents a repository node.
@@ -174,6 +181,23 @@ public class FileSystemNode extends AbstractNode {
      */
     protected void saveProperties() throws RepositoryException {
         try {
+            // get repository
+            FileSystemRepository fsRepo = getRepository();
+            
+            // the lucene index location
+            File propertiesSearchIndexFile =  fsRepo.getPropertiesSearchIndexFile();
+
+            // get lucene index writer, create the index if it does not exist yet
+            IndexWriter indexWriter = null;
+            if (propertiesSearchIndexFile.isDirectory()) {
+                indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), false);
+            } else {
+                indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), true);
+            }
+            
+            // prepare the lucene document
+            Document document = new Document();
+            
             log.debug("writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
             Iterator iterator = this.properties.values().iterator();
@@ -181,9 +205,19 @@ public class FileSystemNode extends AbstractNode {
                 Property property = (Property)iterator.next();
                 writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + 
                         ">:" + property.getValueAsString());
+                
+                // add the property to the lucene document
+                // TODO: write typed property value to index. possible?
+                document.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
             }
             writer.flush();
             writer.close();
+            
+            // store the lucene document
+            document.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), document);
+            indexWriter.close();
+            
         } catch (IOException e) {
             throw new RepositoryException("Error while reading meta file: " + metaFile + ": " 
                     + e.getMessage());

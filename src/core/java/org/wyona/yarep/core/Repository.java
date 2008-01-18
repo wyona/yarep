@@ -235,7 +235,13 @@ public interface Repository {
      * Search content
      */
     public Node[] search(String query) throws RepositoryException;
-
+    
+    
+    /**
+     * Search for properties within subtree
+     */
+    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException;
+    
     /**
      * Search content within a specific subtree
      */

@@ -423,4 +423,8 @@ public class JCRRepository implements Repository {
         }
         return new Node[0];
     }
+    
+    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
+        throw new RepositoryException("Not implemented yet!");
+    }
 }

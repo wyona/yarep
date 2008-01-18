@@ -472,4 +472,8 @@ public class DefaultRepository  implements Repository {
         log.error("Not implemented yet!");
         return null;
     }
+    
+    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
+        throw new RepositoryException("Not implemented yet!");
+    }
 }

@@ -450,6 +450,10 @@ public class VirtualFileSystemRepository implements Repository {
         return null;
     }
 
+    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
+        throw new RepositoryException("Not implemented yet!");
+    }
+    
     /**
      *
      */

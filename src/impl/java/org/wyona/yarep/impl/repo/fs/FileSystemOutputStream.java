@@ -61,14 +61,14 @@ public class FileSystemOutputStream extends OutputStream {
             if (mimeType != null) {
                 if(log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
                 FileSystemRepository fsRepo = ((FileSystemNode) node).getRepository();
-                File searchIndexFile = fsRepo.getSearchIndexFile();
+                File fulltextSearchIndexFile = fsRepo.getFulltextSearchIndexFile();
 
 
                 IndexWriter indexWriter = null;
-                if (searchIndexFile.isDirectory()) {
-                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), false);
+                if (fulltextSearchIndexFile.isDirectory()) {
+                    indexWriter = new IndexWriter(fulltextSearchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), false);
                 } else {
-                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), true);
+                    indexWriter = new IndexWriter(fulltextSearchIndexFile.getAbsolutePath(), fsRepo.getAnalyzer(), true);
                 }
                 Document document = new Document();
                 // TODO: Use Tika to extract text depending on mime type
