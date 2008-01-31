@@ -492,19 +492,4 @@ public class VirtualFileSystemNode extends AbstractNode {
         return dirListing.toString();
     }
 
-    /**
-     * @see org.wyona.yarep.core.Node#getRevisions()
-     */
-    public Revision[] getRevisions() throws RepositoryException {
-        Revision[] revisions = new Revision[1];
-        revisions[0] = new VirtualFileSystemRevision(this, "this");
-        return revisions;
-    }
-
-    /**
-     * @see org.wyona.yarep.core.Node#getRevision(java.lang.String)
-     */
-    public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException {
-        return new VirtualFileSystemRevision(this, "this");
-    }
 }

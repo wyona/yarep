@@ -36,11 +36,20 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         this.node = node;
 
         this.revisionName = revisionName;
-        this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
+        
+        File superMetaDir = node.metaDir;
+        
+        File revisionDir = new File(superMetaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
+        this.contentFile = new File(revisionDir, CONTENT_FILE_NAME);
+        this.metaDir = revisionDir;
+        this.metaFile = new File(this.metaDir, META_FILE_NAME);
+        
+        /*this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
         this.contentFile = new File(this.contentDir, CONTENT_FILE_NAME);
 
-        this.metaDir = node.metaDir;
+        this.metaDir = this.contentDir;
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
+        */
 
         if (log.isDebugEnabled()) {
             log.debug("VirtualFileSystemRevision: path=" + path + " uuid=" + uuid + " revisionName=" + revisionName);
@@ -93,7 +102,11 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getCreationDate()
      */
     public Date getCreationDate() throws RepositoryException {
-        return new Date(node.getLastModified());
+        Property property = getProperty(PROPERTY_REVISION_CREATION_DATE);
+        if (property == null) {
+            return null;
+        }
+        return property.getDate();
     }
 
     /**
@@ -109,7 +122,11 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getCreator()
      */
     public String getCreator() throws RepositoryException {
-        return "unknown";
+        Property property = getProperty(PROPERTY_REVISION_CREATOR);
+        if (property == null) {
+            return null;
+        }
+        return property.getString();
     }
 
     /**
@@ -125,7 +142,11 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      * @see org.wyona.yarep.core.Revision#getComment()
      */
     public String getComment() throws RepositoryException {
-        return "no comment";
+        Property property = getProperty(PROPERTY_REVISION_COMMENT);
+        if (property == null) {
+            return null;
+        }
+        return property.getString();
     }
 
     /**
