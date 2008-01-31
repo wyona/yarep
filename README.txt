@@ -38,6 +38,9 @@
 
      Run the tests by executing "ant test" resp.
      "./build.sh test"
+     
+     Run a particular test class:
+     ./build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRepoTest
 
 
      Configuration of repositories:
