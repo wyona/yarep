@@ -386,10 +386,10 @@ public class FileSystemNode extends AbstractNode {
         setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
         setProperty(PROPERTY_CHECKOUT_DATE, new Date());
 
-        if (getRevisions().length == 0) {
+        /*if (getRevisions().length == 0) {
             // create a backup revision
             createRevision("initial revision");
-        }
+        }*/
     }
     
     protected Revision createRevision(String comment) throws RepositoryException {
