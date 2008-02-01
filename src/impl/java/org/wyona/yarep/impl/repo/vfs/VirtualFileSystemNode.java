@@ -256,8 +256,21 @@ public class VirtualFileSystemNode extends AbstractNode {
      */
     public OutputStream getOutputStream() throws RepositoryException {
         try {
-            //return new FileOutputStream(this.contentFile);
-            return new VirtualFileSystemOutputStream(this, this.contentFile);
+            if (isCollection()) {
+                if (getRepository().getAlternative() != null) {
+                    File alternativeFile = new File(contentFile, getRepository().getAlternative());
+                    if (alternativeFile.isFile()) {
+                        return new VirtualFileSystemOutputStream(this, alternativeFile);
+                    } else {
+                        throw new RepositoryException("Is not a file: " + alternativeFile);
+                    }
+                } else {
+                    throw new RepositoryException("Is a directory: " + this.contentFile);
+                }
+            } else {
+                //return new FileOutputStream(this.contentFile);
+                return new VirtualFileSystemOutputStream(this, this.contentFile);
+            }
         } catch (FileNotFoundException e) {
             throw new RepositoryException(e.getMessage(), e);
         }
