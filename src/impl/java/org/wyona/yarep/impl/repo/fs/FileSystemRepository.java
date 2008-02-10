@@ -133,10 +133,14 @@ public class FileSystemRepository implements Repository {
             Configuration searchIndexConfig = config.getChild("search-index", false);
             if (searchIndexConfig != null) {
                 searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
+	    } else {
+                log.warn("Search index directory has not been configured! Please check " + configFile);
+                searchIndexSrcFile = new File("search-index-default");
+            }
             
-                if (!searchIndexSrcFile.isAbsolute()) {
-                    searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
-                }
+            if (!searchIndexSrcFile.isAbsolute()) {
+                searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
+            }
 
                 analyzer = new StandardAnalyzer();
 
@@ -163,8 +167,6 @@ public class FileSystemRepository implements Repository {
                     IndexWriter indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), getWhitespaceAnalyzer(), true);
                     indexWriter.close();
                 }
-            }
-
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
