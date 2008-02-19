@@ -97,6 +97,7 @@ public class VirtualFileSystemRepository implements Repository {
 
             map = (Map) Class.forName("org.wyona.yarep.impl.VFileSystemMapImpl").newInstance();
             ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setPathsDir(contentDir, configFile);
+            ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setIgnorePatterns(config.getChild("content", false).getChildren("ignore"));
 
             Configuration metaDirConfig = config.getChild("meta", false);
             if (metaDirConfig != null) {
