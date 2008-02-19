@@ -87,22 +87,6 @@ public class VirtualFileSystemRepository implements Repository {
 
             name = config.getChild("name", false).getValue();
 
-/*
-            Configuration pathConfig = config.getChild("paths", false);
-
-            fallback = pathConfig.getAttributeAsBoolean("fallback", false);
-            String pathsClassname = pathConfig.getAttribute("class", null);
-            if (pathsClassname != null) {
-                log.debug(pathsClassname);
-                Class pathsClass = Class.forName(pathsClassname);
-                map = (Map) pathsClass.newInstance();
-            } else {
-                map = (Map) Class.forName("org.wyona.yarep.impl.DefaultMapImpl").newInstance();
-                //map = new org.wyona.yarep.impl.DefaultMapImpl();
-            }
-            map.readConfig(pathConfig, configFile);
-*/
-
             this.contentDir = new File(config.getChild("content", false).getAttribute("src"));
             
             if (!this.contentDir.isAbsolute()) {
@@ -323,7 +307,6 @@ public class VirtualFileSystemRepository implements Repository {
         } else {
             return false;
         }
-        //return map.exists(new Path(path));
     }
 
     /**
@@ -335,19 +318,6 @@ public class VirtualFileSystemRepository implements Repository {
             path = path.substring(0, path.length() - 1);
         }
         String uuid;
-/*
-        if (!map.exists(new Path(path))) {
-            if (fallback) {
-                log.info("No UID! Fallback to : " + path);
-                uuid = new UID(path).toString();
-            } else {
-                throw new NoSuchNodeException(path, this);
-            }
-        } else {
-            UID uid = map.getUID(new Path(path));
-            uuid = (uid == null) ? path : uid.toString();
-        }
-*/
 
         if (map.exists(new Path(path))) {
             uuid = new UID(path).toString();
@@ -362,7 +332,6 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#getNodeByUUID(java.lang.String)
      */
     public Node getNodeByUUID(String uuid) throws NoSuchNodeException, RepositoryException {
-        //String path = map.getPath(uuid);
         //return new VirtualFileSystemNode(this, path, uuid);
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
@@ -380,7 +349,6 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#move(java.lang.String, java.lang.String)
      */
     public void move(String srcPath, String destPath) throws RepositoryException {
-        //map.move(srcPath, destPath);
         // TODO: not implemented yet
         log.warn("Not implemented yet.");
     }
