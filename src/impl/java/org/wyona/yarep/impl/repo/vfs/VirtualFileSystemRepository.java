@@ -53,8 +53,6 @@ public class VirtualFileSystemRepository implements Repository {
     protected Map map;
     protected Storage storage;
 
-    private boolean fallback = false;
-
     private String alternative =  null;
     private File searchIndexFile = null;
     private Analyzer analyzer = null;
@@ -299,15 +297,7 @@ public class VirtualFileSystemRepository implements Repository {
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        if (map.exists(new Path(path))) {
-            return true;
-        } else if (fallback) {
-            log.info("No UID! Fallback to : " + path);
-            File file = new File(contentDir + path);
-            return file.exists();
-        } else {
-            return false;
-        }
+        return map.exists(new Path(path));
     }
 
     /**
