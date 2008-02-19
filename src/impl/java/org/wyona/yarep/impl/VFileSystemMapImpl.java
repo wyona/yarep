@@ -36,15 +36,11 @@ public class VFileSystemMapImpl implements Map {
     public void readConfig(Configuration mapConfig, File repoConfigFile) throws RepositoryException {
         try {
             setPathsDir(new File(mapConfig.getAttribute("src")), repoConfigFile);
-            
-            Configuration[] ignoreElements = mapConfig.getChildren("ignore");
-            ignorePatterns = new Pattern[ignoreElements.length];
-            for (int i=0; i<ignoreElements.length; i++) {
-                String patternString = ignoreElements[i].getAttribute("pattern");
-                ignorePatterns[i] = Pattern.compile(patternString);
-                log.debug("adding ignore pattern: " + ignorePatterns[i].pattern());
-            }
 
+            if (mapConfig != null) {
+                Configuration[] ignoreElements = mapConfig.getChildren("ignore");
+                setIgnorePatterns(ignoreElements);
+            }
         } catch(Exception e) {
             log.error(e);
             throw new RepositoryException("Could not read map configuration: " 
@@ -210,6 +206,22 @@ public class VFileSystemMapImpl implements Map {
             } else {
                 return true;
             }
+        }
+    }
+
+    /**
+     * Set ignore patterns
+     */
+    public void setIgnorePatterns(Configuration[] ignoreElements) throws org.apache.avalon.framework.configuration.ConfigurationException {
+        if (ignoreElements != null) {
+            ignorePatterns = new Pattern[ignoreElements.length];
+            for (int i=0; i<ignoreElements.length; i++) {
+                String patternString = ignoreElements[i].getAttribute("pattern");
+                ignorePatterns[i] = Pattern.compile(patternString);
+                log.debug("adding ignore pattern: " + ignorePatterns[i].pattern());
+            }
+        } else {
+            ignorePatterns = null; // see ignorePath(String)
         }
     }
 }
