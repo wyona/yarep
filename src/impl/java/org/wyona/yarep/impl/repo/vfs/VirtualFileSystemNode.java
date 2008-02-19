@@ -436,9 +436,13 @@ public class VirtualFileSystemNode extends AbstractNode {
         for (int i=0; i<children.length; i++) {
             deleteRec(children[i]);
         }
-        boolean success = getRepository().getMap().delete(new Path(getPath()));
+        //boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
-            FileUtils.deleteDirectory(this.contentFile);
+            if (getRepository().getMap().isCollection(new Path(getPath()))) {
+                FileUtils.deleteDirectory(this.contentFile);
+            } else {
+                this.contentFile.delete();
+            }
             FileUtils.deleteDirectory(this.metaDir);
         } catch (IOException e) {
             throw new RepositoryException("Could not delete node: " + node.getPath() + ": " + 
