@@ -4,10 +4,9 @@
   <name>New Virtual Filesystem Example</name>
 
   <content src="content">
-<!--
+    <!-- Ignore patterns are optional -->
     <ignore pattern=".*\.svn"/>
     <ignore pattern=".*\.yarep"/>
--->
   </content>
 
   <!-- Optional elements below: -->
