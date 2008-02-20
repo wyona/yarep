@@ -365,4 +365,23 @@ public class NodeRepoTest extends TestCase {
         return line;
     }
 
+    /**
+     *
+     */
+    public void testContentSearch() throws Exception {
+        String path = getResourceTestPath();
+
+        assertTrue("Path does not exist: " + path, repo.existsNode(path));
+        
+        Node node = repo.getNode(path);
+        node.setMimeType(getMimeTypeOfTestNode());
+
+        String testContent = "Will you find Rory Stewart?";
+        writeToNode(node, testContent);
+
+	Node[] results = repo.search("Rory");
+        assertEquals(1, results.length);
+        log.info("Node found: " + results[0].getPath());
+        assertEquals(results[0].getPath(), path);
+    }
 }
