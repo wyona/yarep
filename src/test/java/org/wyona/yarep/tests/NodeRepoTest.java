@@ -285,13 +285,11 @@ public class NodeRepoTest extends TestCase {
         String contentRev1 = readFromNode(revisions[1]);
         assertFalse(testContent.equals(contentRev1));
 
-/*
-        assertEquals(newRevision, revisions[revisions.length-1]);
+        assertEquals(newRevision2, revisions[revisions.length-1]);
         assertTrue(revisions[0].getRevisionName().compareTo(revisions[revisions.length-1].getRevisionName()) < 0);
         
         String contentNewRev = readFromNode(newRevision);
         assertEquals(testContent, contentNewRev);
-*/
     }
 
     public void testRevisionTag() throws Exception {
