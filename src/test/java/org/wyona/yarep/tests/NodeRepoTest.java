@@ -18,17 +18,20 @@ import java.util.Date;
 
 import junit.framework.TestCase;
 
+import org.apache.log4j.Logger;
+
 /**
  * Test for the node based repository implementation.
  */
 public class NodeRepoTest extends TestCase {
 
     protected Repository repo;
+
+    private static Logger log = Logger.getLogger(NodeRepoTest.class);
     
     public void setUp() throws Exception {
         RepositoryFactory repoFactory = new RepositoryFactory();
-        repo = repoFactory.newRepository("node-fs-example", new File(
-                "node-fs-example/repository.xml"));
+        repo = repoFactory.newRepository("node-fs-example", new File("node-fs-example/repository.xml"));
     }
     
     protected String getCollectionTestPath() {
@@ -39,6 +42,13 @@ public class NodeRepoTest extends TestCase {
         return "world.txt";
     }
     
+    /**
+     * Get mime type of test node
+     */
+    protected String getMimeTypeOfTestNode() {
+        return "text/plain";
+    }
+    
     protected String getResourceTestPath() {
         return getCollectionTestPath() + "/" + getResourceTestName();
     }
@@ -47,19 +57,25 @@ public class NodeRepoTest extends TestCase {
         return getCollectionTestPath() + "/revisiontest.txt";
     }
     
+    /**
+     * Test write and read re node content
+     */
     public void testWriteRead() throws Exception {
         String path = getResourceTestPath();
+
+        // Asserts that a condition is true. If it isn't it throws an AssertionFailedError with the given message.
         assertTrue("Path does not exist: " + path, repo.existsNode(path));
         
         Node node = repo.getNode(path);
+        node.setMimeType(getMimeTypeOfTestNode());
 
         // Write content to repository
-        System.out.println("\nWriting content to repository " + repo.getName());
+        log.info("Writing content to repository \"" + repo.getName() + "\"");
         String testContent = "Hello World! " + System.currentTimeMillis();
         writeToNode(node, testContent);
         
         // Read content from repository
-        System.out.println("\nReading content from repository " + repo.getName());
+        log.info("Reading content from repository \"" + repo.getName() + "\"");
         String line = readFromNode(node);
         
         assertEquals(line, testContent);
@@ -241,22 +257,41 @@ public class NodeRepoTest extends TestCase {
         assertFalse("Node is not supposed to be checked out", node.isCheckedOut());
     }
     
+    /**
+     * Test revision
+     */
     public void testRevision() throws Exception {
         Node node = repo.getNode(getRevisionTestPath());
+        log.info("Revision Test Path: " + getRevisionTestPath());
         
         node.checkout("test-user");
         String testContent = "editing...";
         writeToNode(node, testContent);
         Revision newRevision = node.checkin();
         
+        node.checkout("test-user");
+        String testContent2 = "editing2...";
+        writeToNode(node, testContent2);
+        Revision newRevision2 = node.checkin();
+        
         Revision[] revisions = node.getRevisions();
+        log.info("Number of revisions: " + revisions.length);
+
         String contentRev0 = readFromNode(revisions[0]);
-        assertFalse(testContent.equals(contentRev0));
+        log.info("Content of revision 0: " + contentRev0);
+        log.info("Test content: " + testContent);
+        assertTrue(testContent.equals(contentRev0));
+
+        String contentRev1 = readFromNode(revisions[1]);
+        assertFalse(testContent.equals(contentRev1));
+
+/*
         assertEquals(newRevision, revisions[revisions.length-1]);
         assertTrue(revisions[0].getRevisionName().compareTo(revisions[revisions.length-1].getRevisionName()) < 0);
         
         String contentNewRev = readFromNode(newRevision);
         assertEquals(testContent, contentNewRev);
+*/
     }
 
     public void testRevisionTag() throws Exception {
