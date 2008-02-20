@@ -54,9 +54,13 @@ public class VirtualFileSystemRepository implements Repository {
     protected Storage storage;
 
     private String alternative =  null;
-    private File searchIndexFile = null;
+    private File fulltextSearchIndexFile = null;
+    private File propertiesSearchIndexFile = null;
     private Analyzer analyzer = null;
     private String dirListingMimeType = "application/xml";
+
+    private String FULLTEXT_INDEX_DIR = "fulltext";
+    private String PROPERTIES_INDEX_DIR = "properties";
 
     /**
      *
@@ -118,20 +122,26 @@ public class VirtualFileSystemRepository implements Repository {
 
             Configuration searchIndexConfig = config.getChild("search-index", false);
             if (searchIndexConfig != null) {
-                searchIndexFile = new File(searchIndexConfig.getAttribute("src", "index"));
+                File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
             
-                if (!searchIndexFile.isAbsolute()) {
-                    searchIndexFile = FileUtil.file(configFile.getParent(), searchIndexFile.toString());
+                if (!searchIndexSrcFile.isAbsolute()) {
+                    searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
                 }
-                log.debug("Search index path: " + searchIndexFile);
 
 		analyzer = new StandardAnalyzer();
-
-                // Create a lucene search index if it doesn't exist yet
-                if (!searchIndexFile.isDirectory()) {
-                    IndexWriter indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), getAnalyzer(), true);
+                if (!searchIndexSrcFile.exists()) {
+                     // Create a lucene search index if it doesn't exist yet
+                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+		    IndexWriter indexWriter = new IndexWriter(fulltextSearchIndexFile.getAbsolutePath(), getAnalyzer(), true); 
                     indexWriter.close();
+                } else {
+                    if (new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR).isDirectory()) {
+                        fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                    } else {
+                        fulltextSearchIndexFile = searchIndexSrcFile;
+                    }
                 }
+                log.warn("Fulltext search index path: " + fulltextSearchIndexFile);
             }
         } catch (Exception e) {
             log.error(e.toString());
@@ -417,7 +427,7 @@ public class VirtualFileSystemRepository implements Repository {
      *
      */
     public File getSearchIndexFile() {
-        return searchIndexFile;
+        return fulltextSearchIndexFile;
     }
 
     /**
