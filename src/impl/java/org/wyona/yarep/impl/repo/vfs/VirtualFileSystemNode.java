@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
@@ -37,7 +37,7 @@ import org.wyona.yarep.impl.DefaultProperty;
  * A repository node may be either a collection ("directory") or a resource ("file").
  */
 public class VirtualFileSystemNode extends AbstractNode {
-    private static Category log = Category.getInstance(VirtualFileSystemNode.class);
+    private static Logger log = Logger.getLogger(VirtualFileSystemNode.class);
 
     protected static final String META_FILE_NAME = "meta";
     protected static final String REVISIONS_BASE_DIR = "revisions";
@@ -48,6 +48,8 @@ public class VirtualFileSystemNode extends AbstractNode {
     protected File contentFile;
     protected File metaDir;
     protected File metaFile;
+    
+    protected boolean areRevisionsRead = false;
     
     protected RevisionDirectoryFilter revisionDirectoryFilter = new RevisionDirectoryFilter();
     
@@ -96,7 +98,8 @@ public class VirtualFileSystemNode extends AbstractNode {
             createMetaFile();
         }
         readProperties();
-        readRevisions();
+        // defer reading of revisions for performance reasons
+        // readRevisions();
     }
     
     protected void createMetaFile() throws RepositoryException {
@@ -329,6 +332,9 @@ public class VirtualFileSystemNode extends AbstractNode {
     }
     
     protected Revision createRevision(String comment) throws RepositoryException {
+        if (!areRevisionsRead) {
+            readRevisions();
+        }
         try {
             File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
             String revisionName = String.valueOf(System.currentTimeMillis());
@@ -368,6 +374,7 @@ public class VirtualFileSystemNode extends AbstractNode {
                 this.revisions.put(revisionName, revision);
             }
         }
+        areRevisionsRead = true;
     }
     
     /**
@@ -507,6 +514,36 @@ public class VirtualFileSystemNode extends AbstractNode {
             dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported>");
         }
         return dirListing.toString();
+    }
+
+    public Revision getRevision(String revisionName) throws NoSuchRevisionException,
+            RepositoryException {
+        if (!areRevisionsRead) {
+            readRevisions();
+        }
+        return super.getRevision(revisionName);
+    }
+
+    public Revision getRevisionByTag(String tag) throws NoSuchRevisionException,
+            RepositoryException {
+        if (!areRevisionsRead) {
+            readRevisions();
+        }
+        return super.getRevisionByTag(tag);
+    }
+
+    public Revision[] getRevisions() throws RepositoryException {
+        if (!areRevisionsRead) {
+            readRevisions();
+        }
+        return super.getRevisions();
+    }
+
+    public boolean hasRevisionWithTag(String tag) throws RepositoryException {
+        if (!areRevisionsRead) {
+            readRevisions();
+        }
+        return super.hasRevisionWithTag(tag);
     }
 
 }

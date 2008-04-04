@@ -1,9 +1,12 @@
 package org.wyona.yarep.impl.repo.vfs;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
+import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
@@ -12,20 +15,22 @@ import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 
 /**
+ * A revision will only read the data from the filesystem if needed.
  */
 public class VirtualFileSystemRevision extends VirtualFileSystemNode implements Revision {
 
-    private static Category log = Category.getInstance(VirtualFileSystemRevision.class);
+    private static Logger log = Logger.getLogger(VirtualFileSystemRevision.class);
     
     public static final String PROPERTY_REVISION_CREATION_DATE = "yarep_revisionCreationDate";
     public static final String PROPERTY_REVISION_CREATOR = "yarep_revisionCreator";
     public static final String PROPERTY_REVISION_TAG = "yarep_revisionTag";
     public static final String PROPERTY_REVISION_COMMENT = "yarep_revisionComment";
-
+    
     public static final String CONTENT_FILE_NAME = "content";
 
-    protected Node node;
+    protected VirtualFileSystemNode node;
     protected String revisionName;
+    protected boolean isInitialized = false;
     
     /**
      * Constructor
@@ -34,9 +39,12 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     public VirtualFileSystemRevision(VirtualFileSystemNode node, String revisionName) throws RepositoryException {
         super(node.getRepository(), node.getPath(), node.getUUID(), false);
         this.node = node;
-
         this.revisionName = revisionName;
-        
+        // defer the initialization until something is actually read from this
+        // revision (for performance reasons)
+    }
+    
+    protected void init() throws RepositoryException {
         File superMetaDir = node.metaDir;
         
         File revisionDir = new File(superMetaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
@@ -64,8 +72,11 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
             throw new RepositoryException("Meta file " + metaFile + " does not exist.");
         }
         readProperties();
+        
+        isInitialized = true;
     }
-    
+
+
     /**
      * @see org.wyona.yarep.impl.repo.fs.VirtualFileSystemNode#addNode(java.lang.String, int)
      */
@@ -104,7 +115,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     public Date getCreationDate() throws RepositoryException {
         Property property = getProperty(PROPERTY_REVISION_CREATION_DATE);
         if (property == null) {
-            return null;
+            return null;    
         }
         return property.getDate();
     }
@@ -200,5 +211,124 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
             s = s + e.getMessage();
         }
         return s;
+    }
+
+    public void delete() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        super.delete();
+    }
+
+    public InputStream getInputStream() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getInputStream();
+    }
+
+    public long getLastModified() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getLastModified();
+    }
+
+    public Node getNode(String name) throws NoSuchNodeException, RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getNode(name);
+    }
+
+    public Node[] getNodes() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getNodes();
+    }
+
+    public OutputStream getOutputStream() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getOutputStream();
+    }
+
+    public Property[] getProperties() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getProperties();
+    }
+
+    public Property getProperty(String name) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getProperty(name);
+    }
+
+    public long getSize() throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.getSize();
+    }
+
+    public boolean hasProperty(String name) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.hasProperty(name);
+    }
+
+    public void removeProperty(String name) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        super.removeProperty(name);
+    }
+
+    public Property setProperty(String name, boolean value) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.setProperty(name, value);
+    }
+
+    public Property setProperty(String name, Date value) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.setProperty(name, value);
+    }
+
+    public Property setProperty(String name, double value) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.setProperty(name, value);
+    }
+
+    public Property setProperty(String name, long value) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.setProperty(name, value);
+    }
+
+    public Property setProperty(String name, String value) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        return super.setProperty(name, value);
+    }
+
+    public void setProperty(Property property) throws RepositoryException {
+        if (!isInitialized) {
+            init();
+        }
+        super.setProperty(property);
     }
 }
