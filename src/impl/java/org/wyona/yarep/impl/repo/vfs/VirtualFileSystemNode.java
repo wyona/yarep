@@ -19,6 +19,13 @@ import java.util.LinkedHashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.IndexWriter;
+
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
@@ -159,16 +166,27 @@ public class VirtualFileSystemNode extends AbstractNode {
             log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
             Iterator iterator = this.properties.values().iterator();
+            Document luceneDoc = new Document();
             while (iterator.hasNext()) {
                 Property property = (Property)iterator.next();
-                writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + 
-                        ">:" + property.getValueAsString());
+                writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + ">:" + property.getValueAsString());
+
+                // add the property to the lucene document
+                // TODO: write typed property value to index. possible?
+                //log.debug("Index property '"+property.getName()+"': " + property.getValueAsString());
+                luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
             }
             writer.flush();
             writer.close();
-        } catch (IOException e) {
-            throw new RepositoryException("Error while reading meta file: " + metaFile + ": " 
-                    + e.getMessage());
+
+
+            // Index property with lucene
+            IndexWriter iw = getIndexWriter();
+            luceneDoc.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+            iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
+            iw.close();
+        } catch (Exception e) {
+            throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage());
         }
     }
     
@@ -546,4 +564,17 @@ public class VirtualFileSystemNode extends AbstractNode {
         return super.hasRevisionWithTag(tag);
     }
 
+    /**
+     *
+     */
+    private IndexWriter getIndexWriter() throws Exception {
+        IndexWriter iw = null;
+        File indexDir =  getRepository().getPropertiesSearchIndexFile();
+        if (indexDir.isDirectory()) {
+            iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), false);
+        } else {
+            iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), true);
+        }
+        return iw;
+    }
 }
