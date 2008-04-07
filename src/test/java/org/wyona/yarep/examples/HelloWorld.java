@@ -27,15 +27,11 @@ public class HelloWorld {
      */
     public static void main(String[] args) {
 
-        RepositoryFactory repoFactory;
-        try {
-            repoFactory = new RepositoryFactory();
-            //repoFactory = new RepositoryFactory("my-yarep.properties");
-        } catch (Exception e) {
-            System.err.println(e);
-            return;
-        }
+        //testRepoNewVFSFulltextSearch();
+        //testRepoNewVFSPropertySearch();
+        //if (true) return;
 
+        RepositoryFactory repoFactory = getRepositoryFactory();
         System.out.println(repoFactory);
 
         Repository repoA;
@@ -43,13 +39,13 @@ public class HelloWorld {
         Repository repoB;
         Repository repoD;
         Repository repoJCR;
-        Repository repoNewVFS;
+        Repository repoNewFS;
         try {
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
             repoJCR = repoFactory.newRepository("jcr");
-            repoNewVFS = repoFactory.newRepository("fs");
-            //repoNewVFS = repoFactory.newRepository("new-vfs");
+            repoNewFS = repoFactory.newRepository("fs");
+            //repoNewFS = repoFactory.newRepository("new-vfs");
     
             // Add more repositories to repository factory
             repoB = repoFactory.newRepository("vanya", new File("orm-example/repository-config.xml"));
@@ -193,11 +189,11 @@ public class HelloWorld {
         try {
 
             // List children
-            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoNewVFS.getName() + " (" + repoNewVFS.getID() + ")\" ...");
+            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoNewFS.getName() + " (" + repoNewFS.getID() + ")\" ...");
             //System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             Path helloPath = new Path("/hello");
 
-            Path[] children = repoNewVFS.getChildren(helloPath);
+            Path[] children = repoNewFS.getChildren(helloPath);
             //Path[] children = repoA.getChildren(helloPath);
             for (int i = 0; i < children.length; i++) {
                 System.out.println("Child: " + children[i]);
@@ -242,18 +238,18 @@ public class HelloWorld {
 
         try {
             String sampleNodePathToIndex = "/another-directory/index.html";
-            if (!repoNewVFS.existsNode(sampleNodePathToIndex)) {
-                log.warn("Node will be created: " + repoNewVFS.getRootNode().addNode("another-directory", NodeType.COLLECTION).addNode("index.html", NodeType.RESOURCE).getPath());
+            if (!repoNewFS.existsNode(sampleNodePathToIndex)) {
+                log.warn("Node will be created: " + repoNewFS.getRootNode().addNode("another-directory", NodeType.COLLECTION).addNode("index.html", NodeType.RESOURCE).getPath());
             }
-            Node node = repoNewVFS.getNode(sampleNodePathToIndex);
+            Node node = repoNewFS.getNode(sampleNodePathToIndex);
             node.setMimeType("application/xhtml+xml");
-            Writer writer = repoNewVFS.getWriter(new Path(sampleNodePathToIndex));
-            //OutputStream out = repoNewVFS.getNode(sampleNodePathToIndex).getOutputStream();
+            Writer writer = repoNewFS.getWriter(new Path(sampleNodePathToIndex));
+            //OutputStream out = repoNewFS.getNode(sampleNodePathToIndex).getOutputStream();
             writer.write("Hello Yarep!");
             writer.close();
 
             String query = "yarep";
-            Node[] result = repoNewVFS.search(query);
+            Node[] result = repoNewFS.search(query);
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
             } else {
@@ -266,7 +262,7 @@ public class HelloWorld {
             String property = "title";
             node.setProperty(property, "Ingwer");
             query = "Ingwer";
-            result = repoNewVFS.searchProperty("title", query, "/");
+            result = repoNewFS.searchProperty("title", query, "/");
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
             } else {
@@ -278,6 +274,80 @@ public class HelloWorld {
         } catch (Exception e) {
             System.err.println(e.getMessage());
             log.error(e, e);
+        }
+    }
+
+    /**
+     *
+     */
+    public static void testRepoNewVFSPropertySearch() {
+        try {
+            Repository repo = getRepositoryFactory().newRepository("new-vfs");
+
+            String property = "title";
+            repo.getNode("/hello-world.txt").setProperty(property, "Ingwer");
+
+            String query = "Ingwer";
+            Node[] result = repo.searchProperty("title", query, "/");
+            if (result == null || result.length == 0) {
+                System.out.println("Your search for \"" + query + "\" within repository '" + repo.getName() + "' did not match any node!");
+            } else {
+                System.out.println(result.length + " results have been found for '" + query + "' within property '" + property + "':");
+                for (int i = 0; i < result.length ; i++) {
+                    System.out.println("Result " + i + ": " + result[i].getPath());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            log.error(e, e);
+        }
+    }
+
+    /**
+     *
+     */
+    public static void testRepoNewVFSFulltextSearch() {
+        try {
+            Repository repo = getRepositoryFactory().newRepository("new-vfs");
+
+            String nodeName = "/hello-ezra.txt";
+            if (!repo.existsNode(nodeName)) {
+                log.warn("Node will be created: " + repo.getRootNode().addNode(nodeName, NodeType.RESOURCE).getPath());
+            }
+            Node node = repo.getNode(nodeName);
+            node.setMimeType("application/xhtml+xml");
+            Writer writer = repo.getWriter(new Path(nodeName));
+            //OutputStream out = repo.getNode(nodeName).getOutputStream();
+            writer.write("Hello Ezra, brother of Levi and Vanya!");
+            writer.close();
+
+            String query = "Ezra";
+            Node[] result = repo.search(query);
+            if (result == null || result.length == 0) {
+                System.out.println("Your search for \"" + query + "\" within repository '" + repo.getName() + "' did not match any node!");
+            } else {
+                System.out.println(result.length + " results have been found for '" + query + "' within fulltext:");
+                for (int i = 0; i < result.length ; i++) {
+                    System.out.println("Result " + i + ": " + result[i].getPath());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            log.error(e, e);
+        }
+    }
+
+    /**
+     *
+     */
+    public static RepositoryFactory getRepositoryFactory() {
+        try {
+            return new RepositoryFactory();
+            // return RepositoryFactory("my-yarep.properties");
+        } catch (Exception e) {
+            System.err.println(e);
+            log.error(e, e);
+            return null;
         }
     }
 }
