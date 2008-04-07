@@ -284,15 +284,16 @@ public class HelloWorld {
         try {
             Repository repo = getRepositoryFactory().newRepository("new-vfs");
 
-            String property = "title";
-            repo.getNode("/hello-world.txt").setProperty(property, "Ingwer");
+            String propertyName = "title";
+            String propertyValue = "Ingwer";
+            repo.getNode("/hello-world.txt").setProperty(propertyName, propertyValue);
 
-            String query = "Ingwer";
-            Node[] result = repo.searchProperty("title", query, "/");
+            String query = propertyValue;
+            Node[] result = repo.searchProperty(propertyName, query, "/");
             if (result == null || result.length == 0) {
-                System.out.println("Your search for \"" + query + "\" within repository '" + repo.getName() + "' did not match any node!");
+                System.out.println("Your search for \"" + query + "\" (Property: '" + propertyName + "') within repository '" + repo.getName() + "' did not match any node!");
             } else {
-                System.out.println(result.length + " results have been found for '" + query + "' within property '" + property + "':");
+                System.out.println(result.length + " results have been found for '" + query + "' within property '" + propertyName + "':");
                 for (int i = 0; i < result.length ; i++) {
                     System.out.println("Result " + i + ": " + result[i].getPath());
                 }
@@ -310,13 +311,14 @@ public class HelloWorld {
         try {
             Repository repo = getRepositoryFactory().newRepository("new-vfs");
 
-            String nodeName = "/hello-ezra.txt";
-            if (!repo.existsNode(nodeName)) {
+            String nodeName = "hello-ezra.txt";
+            String nodePath = "/" + nodeName;
+            if (!repo.existsNode(nodePath)) {
                 log.warn("Node will be created: " + repo.getRootNode().addNode(nodeName, NodeType.RESOURCE).getPath());
             }
             Node node = repo.getNode(nodeName);
             node.setMimeType("application/xhtml+xml");
-            Writer writer = repo.getWriter(new Path(nodeName));
+            Writer writer = repo.getWriter(new Path(nodePath));
             //OutputStream out = repo.getNode(nodeName).getOutputStream();
             writer.write("Hello Ezra, brother of Levi and Vanya!");
             writer.close();
