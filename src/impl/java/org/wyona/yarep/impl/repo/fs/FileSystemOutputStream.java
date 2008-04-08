@@ -72,9 +72,13 @@ public class FileSystemOutputStream extends OutputStream {
                 }
                 Document document = new Document();
                 // TODO: Use Tika to extract text depending on mime type
-                document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
-                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
-                indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                if (mimeType.equals("application/xhtml+xml") || mimeType.equals("application/xml") || mimeType.equals("text/plain") || mimeType.equals("text/html")) {
+                    document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                    document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
+                    indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                } else {
+                    log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
+                }
                 indexWriter.close();
             } else {
                 log.warn("Node " + node.getPath() + " has no mime type associated with and hence will not be indexed!");
