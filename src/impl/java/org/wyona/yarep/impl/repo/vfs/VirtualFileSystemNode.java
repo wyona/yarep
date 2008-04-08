@@ -171,18 +171,21 @@ public class VirtualFileSystemNode extends AbstractNode {
                 Property property = (Property)iterator.next();
                 writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + ">:" + property.getValueAsString());
 
-                // add the property to the lucene document
-                // TODO: write typed property value to index. possible?
-                //log.debug("Index property '"+property.getName()+"': " + property.getValueAsString());
-                luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                if (property.getValueAsString() != null) {
+                    // Add the property to the lucene document
+                    // TODO: write typed property value to index. Is this actually possible?
+                    //log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
+                    luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                } else {
+                    log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + this.getPath() + ")!");
+                }
             }
             writer.flush();
             writer.close();
 
-
-            // Index property with lucene
-            IndexWriter iw = getIndexWriter();
+            // Add path as field such that found properties can be related to a path
             luceneDoc.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+            IndexWriter iw = getIndexWriter();
             iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
             iw.close();
         } catch (Exception e) {
