@@ -208,7 +208,11 @@ public class FileSystemNode extends AbstractNode {
                 
                 // add the property to the lucene document
                 // TODO: write typed property value to index. possible?
-                document.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                if (property.getValueAsString() != null) {
+                    document.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                } else {
+                    log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + this.getPath() + ")!");
+                }
             }
             writer.flush();
             writer.close();
