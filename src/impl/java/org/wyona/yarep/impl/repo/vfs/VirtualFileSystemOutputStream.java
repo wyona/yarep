@@ -59,7 +59,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
             String mimeType = node.getMimeType();
             if (mimeType != null) {
-                log.error("DEBUG: Mime type: " + mimeType);
+                if (log.isDebugEnabled()) log.error("DEBUG: Mime type: " + mimeType);
                 VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
                 File searchIndexFile = vfsRepo.getSearchIndexFile();
 
@@ -77,10 +77,14 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
                 Document document = new Document();
                 // TODO: Use Tika to extract text depending on mime type
-                document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
-                document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
-                indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
-                //indexWriter.addDocument(document);
+                if (mimeType.equals("application/xhtml+xml") || mimeType.equals("application/xml") || mimeType.equals("text/plain") || mimeType.equals("text/html")) {
+                    document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                    document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
+                    indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                    //indexWriter.addDocument(document);
+                } else {
+                    log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
+                }
                 indexWriter.close();
             }
         } catch (Exception e) {
