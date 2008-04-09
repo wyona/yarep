@@ -157,6 +157,8 @@ public class VirtualFileSystemRepository implements Repository {
                 analyzer = new StandardAnalyzer();
                 // TODO: For search within properties the WhitespaceAnalyzer is used because the StandardAnalyzer doesn't accept resp. misinterprets escaped query strings, e.g. 03\:07\- ...
                 whitespaceAnalyzer = new WhitespaceAnalyzer();
+            } else {
+                log.warn("No search index dir (<search-index src=\"...\"/>) configured within: " + configFile);
             }
         } catch (Exception e) {
             log.error(e.toString());

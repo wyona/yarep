@@ -186,8 +186,13 @@ public class VirtualFileSystemNode extends AbstractNode {
             // Add path as field such that found properties can be related to a path
             luceneDoc.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
             IndexWriter iw = getIndexWriter();
-            iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
-            iw.close();
+            if (iw != null) {
+                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
+                iw.close();
+                log.error("DEBUG: Index document: " + this.getPath());
+            } else {
+                log.warn("No index configured, hence do not index: " + this.getPath());
+            }
         } catch (Exception e) {
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage());
         }
@@ -573,11 +578,14 @@ public class VirtualFileSystemNode extends AbstractNode {
     private IndexWriter getIndexWriter() throws Exception {
         IndexWriter iw = null;
         File indexDir =  getRepository().getPropertiesSearchIndexFile();
-        if (indexDir.isDirectory()) {
-            iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), false);
-        } else {
-            iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), true);
+        if (indexDir != null) {
+            if (indexDir.isDirectory()) {
+                iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), false);
+            } else {
+                iw = new IndexWriter(indexDir.getAbsolutePath(), getRepository().getWhitespaceAnalyzer(), true);
+            }
+            return iw;
         }
-        return iw;
+        return null;
     }
 }

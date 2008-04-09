@@ -59,33 +59,39 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
             String mimeType = node.getMimeType();
             if (mimeType != null) {
-                if (log.isDebugEnabled()) log.error("DEBUG: Mime type: " + mimeType);
+                if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
                 VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
+
                 File searchIndexFile = vfsRepo.getSearchIndexFile();
-
-
                 IndexWriter indexWriter = null;
-                if (searchIndexFile.isDirectory()) {
-                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
-                } else {
-                    indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
+                if (searchIndexFile != null) {
+                    if (searchIndexFile.isDirectory()) {
+                        indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), false);
+                    } else {
+                        indexWriter = new IndexWriter(searchIndexFile.getAbsolutePath(), vfsRepo.getAnalyzer(), true);
+                    }
                 }
                 // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
                 //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
                 //log.error("DEBUG: Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
 
-                Document document = new Document();
-                // TODO: Use Tika to extract text depending on mime type
-                if (mimeType.equals("application/xhtml+xml") || mimeType.equals("application/xml") || mimeType.equals("text/plain") || mimeType.equals("text/html")) {
-                    document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
-                    document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
-                    indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
-                    //indexWriter.addDocument(document);
+                if (indexWriter != null) {
+                    Document document = new Document();
+                    // TODO: Use Tika to extract text depending on mime type
+                    if (mimeType.equals("application/xhtml+xml") || mimeType.equals("application/xml") || mimeType.equals("text/plain") || mimeType.equals("text/html")) {
+                         document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
+                         document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
+                         indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                         //indexWriter.addDocument(document);
+                         log.error("DEBUG: Node will be indexed: " + node.getPath());
+                    } else {
+                        log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
+                    }
+                    indexWriter.close();
                 } else {
-                    log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
+                    log.warn("IndexWriter is null and hence node will not be indexed: " + node.getPath());
                 }
-                indexWriter.close();
             }
         } catch (Exception e) {
             log.error(e, e);
