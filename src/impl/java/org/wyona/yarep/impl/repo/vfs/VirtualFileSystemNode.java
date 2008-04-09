@@ -189,7 +189,7 @@ public class VirtualFileSystemNode extends AbstractNode {
             if (iw != null) {
                 iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
                 iw.close();
-                log.error("DEBUG: Index document: " + this.getPath());
+                if (log.isDebugEnabled()) log.debug("Index node: " + this.getPath());
             } else {
                 log.warn("No index configured, hence do not index: " + this.getPath());
             }

@@ -74,7 +74,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
                 //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
-                //log.error("DEBUG: Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
+                //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
 
                 if (indexWriter != null) {
                     Document document = new Document();
@@ -84,7 +84,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                          document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
                          indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
                          //indexWriter.addDocument(document);
-                         log.error("DEBUG: Node will be indexed: " + node.getPath());
+                         if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
                     } else {
                         log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
                     }
