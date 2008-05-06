@@ -66,6 +66,9 @@ public class VirtualFileSystemRepository implements Repository {
     private String FULLTEXT_INDEX_DIR = "fulltext";
     private String PROPERTIES_INDEX_DIR = "properties";
 
+    private IndexWriter indexWriter;
+    private IndexWriter propertiesIndexWriter;
+    
     /**
      *
      */
@@ -403,7 +406,20 @@ public class VirtualFileSystemRepository implements Repository {
      *
      */
     public void close() throws RepositoryException {
-        log.warn("Nothing to close!");
+        log.warn("Closing index writers");
+        IndexWriter iw;
+        try {
+            iw = getIndexWriter();
+            if (iw != null) {
+                iw.close();
+            }
+            iw = getPropertiesIndexWriter();
+            if (iw != null) {
+                iw.close();
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -493,6 +509,34 @@ public class VirtualFileSystemRepository implements Repository {
      */
     public Analyzer getAnalyzer() {
         return analyzer;
+    }
+    
+    public IndexWriter getIndexWriter() throws Exception {
+        if (this.indexWriter == null) {
+            this.indexWriter = createIndexWriter(getSearchIndexFile(), analyzer);
+        }
+        return this.indexWriter;
+    }
+    
+    public IndexWriter getPropertiesIndexWriter() throws Exception {
+        if (this.propertiesIndexWriter == null) {
+            this.propertiesIndexWriter = createIndexWriter(getPropertiesSearchIndexFile(), 
+                    whitespaceAnalyzer);
+        }
+        return this.propertiesIndexWriter;
+    }
+    
+    private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
+        IndexWriter iw = null;
+        if (indexDir != null) {
+            if (indexDir.isDirectory()) {
+                iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
+            } else {
+                iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
+            }
+            return iw;
+        }
+        return null;
     }
     
     /**
