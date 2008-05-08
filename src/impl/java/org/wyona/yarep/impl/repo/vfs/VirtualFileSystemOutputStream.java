@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.impl.AbstractNode;
@@ -26,7 +26,7 @@ import org.apache.lucene.index.IndexWriter;
  */
 public class VirtualFileSystemOutputStream extends OutputStream {
 
-    private static Category log = Category.getInstance(VirtualFileSystemOutputStream.class);
+    private static Logger log = Logger.getLogger(VirtualFileSystemOutputStream.class);
 
     protected OutputStream out;
     protected Node node;
@@ -45,6 +45,18 @@ public class VirtualFileSystemOutputStream extends OutputStream {
      * 
      */
     public void write(int b) throws IOException {
+        out.write(b);
+    }
+
+    public void flush() throws IOException {
+        out.flush();
+    }
+
+    public void write(byte[] b, int off, int len) throws IOException {
+        out.write(b, off, len);
+    }
+
+    public void write(byte[] b) throws IOException {
         out.write(b);
     }
 
