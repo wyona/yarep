@@ -2,15 +2,13 @@ package org.wyona.yarep.core;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.Date;
 
 /**
  * This class represents a repository node.
  * A repository node may be either a collection ("directory") or a resource ("file").
  * If it is a resource, it has an associated data content, which may be accessed by using 
- * getInputStream()/getOutputStream() or getReader()/getWriter().
+ * getInputStream()/getOutputStream().
  * To store textual data, the reader/writer methods should be used instead of the stream
  * methods to allow the implementation to handle textual data differently from binary data.
  * 
@@ -224,26 +222,6 @@ public interface Node {
      * @throws RepositoryException repository error
      */
     public OutputStream getOutputStream() throws RepositoryException;
-    
-    /**
-     * Gets a reader of the data content of this node. Use this method if the
-     * node contains character data.
-     * Useful only for nodes of type resource.
-     * @return reader
-     * @throws RepositoryException repository error
-     */
-    //public Reader getReader() throws RepositoryException;
-    
-    /**
-     * Gets a writer of the data content of this node. Use this method if the
-     * node contains character data.
-     * Useful only for nodes of type resource.
-     * Don't forget to close the writer because some implementations may
-     * require that.
-     * @return writer
-     * @throws RepositoryException repository error
-     */
-    //public Writer getWriter() throws RepositoryException;
     
     /**
      * Puts this node into checked-in state and creates a new revision.
