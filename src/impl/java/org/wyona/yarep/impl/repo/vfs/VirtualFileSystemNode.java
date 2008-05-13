@@ -191,7 +191,9 @@ public class VirtualFileSystemNode extends AbstractNode {
                 iw.flush();
                 if (log.isDebugEnabled()) log.debug("Index node: " + this.getPath());
             } else {
-                log.warn("No index configured, hence do not index: " + this.getPath());
+                if (log.isDebugEnabled()) {
+                    log.debug("No property index configured, hence do not index properties of node: " + this.getPath());
+                }
             }
         } catch (Exception e) {
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);

@@ -23,10 +23,14 @@
       <!-- WARNING: Jackrabbit uses Lucene 2.0.0 which is not compatible with Lucene 2.2.0 -->
 
       <dependency groupId="javax.jcr" artifactId="jcr" version="1.0"/>
-      <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-core" version="1.4-SNAPSHOT"/>
+      <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-core" version="1.4-SNAPSHOT">
+        <exclusion  groupId="poi" artifactId="poi"/> <!-- poi will be included in tika as org.apache.poi -->
+      </dependency>
       <dependency groupId="org.apache.jackrabbit" artifactId="jackrabbit-text-extractors" version="1.4-SNAPSHOT"/>
       <dependency groupId="org.slf4j" artifactId="slf4j-log4j12" version="1.3.0"/>
 
+      <dependency groupId="org.apache.tika" artifactId="tika" version="0.1-incubating"/>
+      
       <!-- Runtime libs -->
       <!-- IMPORT: xerces 2.7.1 is dependent on xml-apis 1.3.02 -->
       <dependency groupId="xerces" artifactId="xercesImpl"

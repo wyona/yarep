@@ -43,6 +43,33 @@ import org.wyona.yarep.core.UID;
  * </ul>
  * This directory and the meta file will be created automatically when a node is
  * accessed which does not have such a .yarep directory yet.
+ * <br/><br/>
+ * Repository configuration:
+ * <pre>
+ * &lt;repository class="org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository"&gt;
+ *   &lt;name&gt;Test Repository&lt;/name&gt;
+ *   &lt;content src="data"/&gt;
+ *   &lt;meta src="yarep-data"/&gt;
+ *   &lt;search-index src="search-index-data" index-fulltext="yes" index-properties="no"/&gt;
+ * &lt;/repository&gt;
+ * </pre>
+ * Explanation:
+ * <ul>
+ *   <li>name: name of the repository</li>
+ *   <li>content: path to the content directory, absolute or relative to the repo config file</li>
+ *   <li>meta (optional): path to the meta directory. If this element is omitted, the meta data
+ *                        will be written into the content directory.</li>
+ *   <li>search-index (optional): enable indexing/searching of repository content<br/>
+ *     Attributes:
+ *     <ul>
+ *       <li>src: path to the search index</li>
+ *       <li>index-fulltext (yes/no): do fulltext indexing (default=yes)</li>
+ *       <li>index-properties (yes/no): do indexing of properties (default=yes)</li>
+ *       <li>TODO: allow to specify tika config file</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ * 
  */
 public class VirtualFileSystemRepository implements Repository {
 
@@ -131,35 +158,39 @@ public class VirtualFileSystemRepository implements Repository {
             if (searchIndexConfig != null) {
                 File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
 
+                boolean isFulltextIndexingEnabled = searchIndexConfig.getAttributeAsBoolean(
+                        "index-fulltext", true);
+                boolean isPropertyIndexingEnabled = searchIndexConfig.getAttributeAsBoolean(
+                        "index-properties", true);
+                
                 if (!searchIndexSrcFile.isAbsolute()) {
                     searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
                 }
 
-                if (!searchIndexSrcFile.exists()) {
-                    // Create a lucene search index if it doesn't exist yet
-                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
-                    IndexWriter indexWriter = new IndexWriter(fulltextSearchIndexFile.getAbsolutePath(), getAnalyzer(), true); 
-                    indexWriter.close();
-                } else {
-                    if (new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR).isDirectory()) {
-                        fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
-                    } else {
-                        fulltextSearchIndexFile = searchIndexSrcFile;
-                    }
-                }
-                log.warn("Fulltext search index path: " + fulltextSearchIndexFile);
-
-                // Create properties index dir subdirectory in order to save the lucene index for searching on properties
-                propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
-                if (!propertiesSearchIndexFile.isDirectory()) {
-                    IndexWriter indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), getAnalyzer(), true);
-                    indexWriter.close();
-                }
-                log.warn("Properties search index path: " + propertiesSearchIndexFile);
-
                 analyzer = new StandardAnalyzer();
                 // TODO: For search within properties the WhitespaceAnalyzer is used because the StandardAnalyzer doesn't accept resp. misinterprets escaped query strings, e.g. 03\:07\- ...
                 whitespaceAnalyzer = new WhitespaceAnalyzer();
+                
+                if (isFulltextIndexingEnabled) {
+                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                    if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
+                        fulltextSearchIndexFile = searchIndexSrcFile;
+                    }
+                    log.warn("Fulltext search index path: " + fulltextSearchIndexFile);
+                    
+                    // Create a lucene search index if it doesn't exist yet
+                    this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
+                }
+
+                if (isPropertyIndexingEnabled) {
+                    // Create properties index dir subdirectory in order to save the lucene index for searching on properties
+                    propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
+                    log.warn("Properties search index path: " + propertiesSearchIndexFile);
+                    
+                    this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, 
+                            whitespaceAnalyzer);
+                }
+
             } else {
                 log.warn("No search index dir (<search-index src=\"...\"/>) configured within: " + configFile);
             }
@@ -512,17 +543,10 @@ public class VirtualFileSystemRepository implements Repository {
     }
     
     public IndexWriter getIndexWriter() throws Exception {
-        if (this.indexWriter == null) {
-            this.indexWriter = createIndexWriter(getSearchIndexFile(), analyzer);
-        }
         return this.indexWriter;
     }
     
     public IndexWriter getPropertiesIndexWriter() throws Exception {
-        if (this.propertiesIndexWriter == null) {
-            this.propertiesIndexWriter = createIndexWriter(getPropertiesSearchIndexFile(), 
-                    whitespaceAnalyzer);
-        }
         return this.propertiesIndexWriter;
     }
     

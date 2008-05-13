@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 
 import org.apache.log4j.Logger;
 import org.wyona.yarep.core.Node;
@@ -16,6 +18,11 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.sax.WriteOutContentHandler;
+import org.apache.tika.utils.ParseUtils;
 
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
@@ -83,24 +90,44 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
                 if (indexWriter != null) {
                     Document document = new Document();
-                    // TODO: Use Tika to extract text depending on mime type
-                    if (mimeType.equals("application/xhtml+xml") || mimeType.equals("application/xml") || mimeType.equals("text/plain") || mimeType.equals("text/html")) {
-                         document.add(new Field("_FULLTEXT", new java.io.FileReader(file)));
-                         document.add(new Field("_PATH", node.getPath(),Field.Store.YES,Field.Index.UN_TOKENIZED));
-                         if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
-                         indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
-                         //indexWriter.addDocument(document);
-                         indexWriter.flush();
+                    // Use Tika to extract text depending on mime type:
+                    
+                    TikaConfig tikaConfig = TikaConfig.getDefaultConfig();
+                    // extract text content:
+                    Parser parser = tikaConfig.getParser(mimeType);
+                    if (parser != null) {
+                        StringWriter writer = new StringWriter();
+                        String fullText = null;
+                        try {
+                            parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), new Metadata());
+                            fullText = writer.toString();
+                            
+                            //System.out.println("fulltext: " + fullText);
+                        } catch (Exception e) {
+                            log.error("Could not index node " + node.getPath() + ": error while extracting text: " + e, e);
+                            // don't propagate exception
+                        }
+        
+                        if (fullText != null && fullText.length() > 0) {
+                            document.add(new Field("_FULLTEXT", new StringReader(fullText)));
+                            //document.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
+                            document.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                            if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
+                            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
+                            indexWriter.flush();
+                        }
                     } else {
-                        log.warn("Indexing of mime type '" + mimeType + "' is not supported yet (path: " + node.getPath() + ")!");
+                        log.info("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
                     }
                 } else {
-                    log.warn("IndexWriter is null and hence node will not be indexed: " + node.getPath());
+                    if (log.isDebugEnabled()) {
+                        log.debug("IndexWriter is null and hence node will not be indexed: " + node.getPath());
+                    }
                 }
             }
         } catch (Exception e) {
             log.error(e, e);
-            throw new IOException(e.getMessage());
+            throw new IOException(e.toString());
         }
     }
 }
