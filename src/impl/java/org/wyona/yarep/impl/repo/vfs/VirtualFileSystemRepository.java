@@ -93,8 +93,9 @@ public class VirtualFileSystemRepository implements Repository {
     private String FULLTEXT_INDEX_DIR = "fulltext";
     private String PROPERTIES_INDEX_DIR = "properties";
 
-    private IndexWriter indexWriter;
-    private IndexWriter propertiesIndexWriter;
+    // NOTE: Do not init global IndexWriters because this can lead to problems within a cluster
+    //private IndexWriter indexWriter;
+    //private IndexWriter propertiesIndexWriter;
     
     /**
      *
@@ -179,7 +180,8 @@ public class VirtualFileSystemRepository implements Repository {
                     log.warn("Fulltext search index path: " + fulltextSearchIndexFile);
                     
                     // Create a lucene search index if it doesn't exist yet
-                    this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
+                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                    //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
                 }
 
                 if (isPropertyIndexingEnabled) {
@@ -187,8 +189,8 @@ public class VirtualFileSystemRepository implements Repository {
                     propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
                     log.warn("Properties search index path: " + propertiesSearchIndexFile);
                     
-                    this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, 
-                            whitespaceAnalyzer);
+                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                    //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
                 }
 
             } else {
@@ -437,6 +439,9 @@ public class VirtualFileSystemRepository implements Repository {
      *
      */
     public void close() throws RepositoryException {
+        log.warn("Closing repository: " + getName() + " (" + getConfigFile() + ")");
+
+/*
         log.warn("Closing index writers");
         IndexWriter iw;
         try {
@@ -451,6 +456,7 @@ public class VirtualFileSystemRepository implements Repository {
         } catch (Exception e) {
             throw new RepositoryException(e.getMessage(), e);
         }
+*/
     }
 
     /**
@@ -542,14 +548,28 @@ public class VirtualFileSystemRepository implements Repository {
         return analyzer;
     }
     
-    public IndexWriter getIndexWriter() throws Exception {
-        return this.indexWriter;
+    /**
+     *
+     */
+    public IndexWriter createFulltextIndexWriter() throws Exception {
+         return createIndexWriter(fulltextSearchIndexFile, analyzer);
+        // IMPORTANT: This doesn't work within a clustered environment!
+        //return this.indexWriter;
     }
     
-    public IndexWriter getPropertiesIndexWriter() throws Exception {
-        return this.propertiesIndexWriter;
+    /**
+     *
+     */
+    public IndexWriter createPropertiesIndexWriter() throws Exception {
+        return createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
+        // IMPORTANT: This doesn't work within a clustered environment!
+        //return this.propertiesIndexWriter;
     }
     
+    /**
+     * Init an IndexWriter
+     * @param indexDir Directory where the index is located
+     */
     private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
         IndexWriter iw = null;
         if (indexDir != null) {

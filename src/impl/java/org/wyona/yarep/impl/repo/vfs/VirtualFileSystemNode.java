@@ -185,10 +185,18 @@ public class VirtualFileSystemNode extends AbstractNode {
 
             // Add path as field such that found properties can be related to a path
             luceneDoc.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
-            IndexWriter iw = getRepository().getPropertiesIndexWriter();
+            IndexWriter iw = null;
+            try {
+                iw = getRepository().createPropertiesIndexWriter();
+            } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + this.getPath() + "' will not be indexed!");
+                return;
+            }
             if (iw != null) {
                 iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
-                iw.flush();
+                // Make sure to close the IndexWriter and release the lock!
+                iw.close();
+                //iw.flush();
                 if (log.isDebugEnabled()) log.debug("Index node: " + this.getPath());
             } else {
                 if (log.isDebugEnabled()) {

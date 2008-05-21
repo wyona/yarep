@@ -81,7 +81,13 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
                 VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
 
-                IndexWriter indexWriter = vfsRepo.getIndexWriter();
+                IndexWriter indexWriter = null;
+                try {
+                    indexWriter = vfsRepo.createFulltextIndexWriter();
+                } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                    log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + node.getPath() + "' will not be indexed!");
+                    return;
+                }
                 
                 // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
@@ -114,15 +120,21 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                             document.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
                             if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
                             indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
-                            indexWriter.flush();
+                            indexWriter.close();
+                            //indexWriter.flush();
+                        } else {
+                            log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
+                            indexWriter.close();
                         }
                     } else {
-                        log.info("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
+                        log.warn("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
+                        indexWriter.close();
                     }
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("IndexWriter is null and hence node will not be indexed: " + node.getPath());
                     }
+log.error("DEBUG: IndexWriter is null and hence node will not be indexed: " + node.getPath());
                 }
             }
         } catch (Exception e) {
