@@ -249,6 +249,7 @@ public class HelloWorld {
             writer.close();
 
             String query = "yarep";
+            System.out.println("\nUSECASE: Search for \"" + query + "\" within fulltext of repository '" + repoNewFS.getName() + " (" + repoNewFS.getConfigFile() + ")'");
             Node[] result = repoNewFS.search(query);
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
@@ -262,6 +263,7 @@ public class HelloWorld {
             String property = "title";
             node.setProperty(property, "Ingwer");
             query = "Ingwer";
+            System.out.println("\nUSECASE: Search for \"" + query + "\" within properties of repository '" + repoNewFS.getName() + " (" + repoNewFS.getConfigFile() + ")'");
             result = repoNewFS.searchProperty("title", query, "/");
             if (result == null || result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
@@ -289,6 +291,7 @@ public class HelloWorld {
             repo.getNode("/hello-world.txt").setProperty(propertyName, propertyValue);
 
             String query = propertyValue;
+            System.out.println("\nUSECASE: Search for \"" + query + "\" within properties of repository '" + repo.getName() + " (" + repo.getConfigFile() + ")'");
             Node[] result = repo.searchProperty(propertyName, query, "/");
             if (result == null || result.length == 0) {
                 System.out.println("Your search for \"" + query + "\" (Property: '" + propertyName + "') within repository '" + repo.getName() + "' did not match any node!");
@@ -324,6 +327,7 @@ public class HelloWorld {
             writer.close();
 
             String query = "Ezra";
+            System.out.println("\nUSECASE: Search for \"" + query + "\" within fulltext of repository '" + repo.getName() + " (" + repo.getConfigFile() + ")'");
             Node[] result = repo.search(query);
             if (result == null || result.length == 0) {
                 System.out.println("Your search for \"" + query + "\" within repository '" + repo.getName() + "' did not match any node!");
