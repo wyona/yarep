@@ -27,9 +27,8 @@
 <!--
   <search-index src="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index">
 -->
-  <search-index src="index" index-fulltext="yes" index-properties="yes">
+  <search-index src="index" index-fulltext="yes" index-properties="yes" local-tika-config="tika-config.xml">
+    <!-- The attribute local-tika-config is used to patch the default tika config -->
     <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
-    <!-- In order to patch the default tika config -->
-    <local-tika-config src="tika-config.xml"/>
   </search-index>
 </repository>
