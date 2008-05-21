@@ -28,8 +28,8 @@
   <search-index src="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index">
 -->
   <search-index src="index" index-fulltext="yes" index-properties="yes">
-    <!-- Also see org/apache/tika/tika-config.xml -->
-    <!-- Additional text extractors/parsers which are not registered within tika config -->
-    <text-extractor mime-type="application/xhtml+xml" class="org.apache.tika.parser.xml.XMLParser"/>
+    <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
+    <!-- In order to patch the default tika config -->
+    <local-tika-config src="tika-config.xml"/>
   </search-index>
 </repository>
