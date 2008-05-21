@@ -188,8 +188,17 @@ public class VirtualFileSystemRepository implements Repository {
 
                     String localTikaConfigSrc = searchIndexConfig.getAttribute("local-tika-config", null);
                     if (localTikaConfigSrc != null) {
-                        log.warn("Use local tika config: " + localTikaConfigSrc);
-                        tikaConfig = TikaConfig.getDefaultConfig();
+                        File localTikaConfigFile = new File(localTikaConfigSrc);
+                        if (!localTikaConfigFile.isAbsolute()) {
+                            localTikaConfigFile = FileUtil.file(configFile.getParent(), localTikaConfigFile.toString());
+                        }
+                        if (localTikaConfigFile.isFile()) {
+                            log.warn("Use local tika config: " + localTikaConfigFile.getAbsolutePath());
+                            tikaConfig = new TikaConfig(localTikaConfigFile);
+                        } else {
+                            log.error("No such file: " + localTikaConfigFile + " (Default tika config will be used)");
+                            tikaConfig = TikaConfig.getDefaultConfig();
+                        }
                     } else {
                         log.warn("Use default tika config");
                         tikaConfig = TikaConfig.getDefaultConfig();
