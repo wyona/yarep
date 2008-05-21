@@ -303,6 +303,7 @@ public class HelloWorld {
                     System.out.println("Result " + i + ": " + result[i].getPath());
                 }
             }
+            repo.close();
         } catch (Exception e) {
             System.err.println(e.getMessage());
             log.error(e, e);
@@ -322,7 +323,9 @@ public class HelloWorld {
                 log.warn("Node will be created: " + repo.getRootNode().addNode(nodeName, NodeType.RESOURCE).getPath());
             }
             Node node = repo.getNode(nodePath);
-            node.setMimeType("application/xhtml+xml");
+            //node.setMimeType("text/html");
+            node.setMimeType("text/plain");
+            //node.setMimeType("application/xhtml+xml");
             Writer writer = repo.getWriter(new Path(nodePath));
             //OutputStream out = repo.getNode(nodeName).getOutputStream();
             writer.write("Hello Ezra, brother of Levi and Vanya!");
@@ -339,6 +342,7 @@ public class HelloWorld {
                     System.out.println("Result " + i + ": " + result[i].getPath());
                 }
             }
+            repo.close();
         } catch (Exception e) {
             System.err.println(e.getMessage());
             log.error(e, e);
