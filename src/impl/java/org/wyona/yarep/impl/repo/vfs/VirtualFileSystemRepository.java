@@ -21,6 +21,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.IndexSearcher;
 
+import org.apache.tika.config.TikaConfig;
+
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -96,6 +98,8 @@ public class VirtualFileSystemRepository implements Repository {
     // NOTE: Do not init global IndexWriters because this can lead to problems within a cluster
     //private IndexWriter indexWriter;
     //private IndexWriter propertiesIndexWriter;
+
+    private TikaConfig tikaConfig;
     
     /**
      *
@@ -158,15 +162,14 @@ public class VirtualFileSystemRepository implements Repository {
             Configuration searchIndexConfig = config.getChild("search-index", false);
             if (searchIndexConfig != null) {
                 File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
+                if (!searchIndexSrcFile.isAbsolute()) {
+                    searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
+                }
 
                 boolean isFulltextIndexingEnabled = searchIndexConfig.getAttributeAsBoolean(
                         "index-fulltext", true);
                 boolean isPropertyIndexingEnabled = searchIndexConfig.getAttributeAsBoolean(
                         "index-properties", true);
-                
-                if (!searchIndexSrcFile.isAbsolute()) {
-                    searchIndexSrcFile = FileUtil.file(configFile.getParent(), searchIndexSrcFile.toString());
-                }
 
                 analyzer = new StandardAnalyzer();
                 // TODO: For search within properties the WhitespaceAnalyzer is used because the StandardAnalyzer doesn't accept resp. misinterprets escaped query strings, e.g. 03\:07\- ...
@@ -182,6 +185,15 @@ public class VirtualFileSystemRepository implements Repository {
                     // Create a lucene search index if it doesn't exist yet
                     // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
                     //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
+
+                    String localTikaConfigSrc = searchIndexConfig.getAttribute("local-tika-config", null);
+                    if (localTikaConfigSrc != null) {
+                        log.warn("Use local tika config: " + localTikaConfigSrc);
+                        tikaConfig = TikaConfig.getDefaultConfig();
+                    } else {
+                        log.warn("Use default tika config");
+                        tikaConfig = TikaConfig.getDefaultConfig();
+                    }
                 }
 
                 if (isPropertyIndexingEnabled) {
@@ -588,5 +600,12 @@ public class VirtualFileSystemRepository implements Repository {
      */
     public Analyzer getWhitespaceAnalyzer() {
         return whitespaceAnalyzer;
+    }
+
+    /**
+     *
+     */
+    public TikaConfig getTikaConfig() {
+        return tikaConfig;
     }
 }
