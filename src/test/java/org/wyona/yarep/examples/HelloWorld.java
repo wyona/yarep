@@ -324,11 +324,13 @@ public class HelloWorld {
             }
             Node node = repo.getNode(nodePath);
             //node.setMimeType("text/html");
-            node.setMimeType("text/plain");
-            //node.setMimeType("application/xhtml+xml");
+            //node.setMimeType("text/plain");
+            //node.setMimeType("application/xml");
+            node.setMimeType("application/xhtml+xml");
             Writer writer = repo.getWriter(new Path(nodePath));
             //OutputStream out = repo.getNode(nodeName).getOutputStream();
-            writer.write("Hello Ezra, brother of Levi and Vanya!");
+            //writer.write("Hello Ezra, brother of Levi and Vanya!");
+            writer.write("<html><body>Hello Ezra, brother of Levi and Vanya!</body></html>");
             writer.close();
 
             String query = "Ezra";
