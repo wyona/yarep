@@ -98,8 +98,9 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                     Document document = new Document();
                     // Use Tika to extract text depending on mime type:
                     
-                    TikaConfig tikaConfig = TikaConfig.getDefaultConfig();
-                    // extract text content:
+                    TikaConfig tikaConfig = vfsRepo.getTikaConfig();
+                    // Extract/parse text content:
+                    // TODO: Make this configurable not just on the mime type, but also on the path, etc.
                     Parser parser = tikaConfig.getParser(mimeType);
                     if (parser != null) {
                         StringWriter writer = new StringWriter();
