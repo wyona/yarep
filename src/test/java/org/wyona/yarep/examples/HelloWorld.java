@@ -27,9 +27,11 @@ public class HelloWorld {
      */
     public static void main(String[] args) {
 
-        //testRepoNewVFSFulltextSearch();
-        //testRepoNewVFSPropertySearch();
-        //if (true) return;
+        /* NOTE: When removing these comments, then also switch the configuration within src/test/java/yarep.properties
+        testRepoNewVFSFulltextSearch();
+        testRepoNewVFSPropertySearch();
+        if (true) return;
+        */
 
         RepositoryFactory repoFactory = getRepositoryFactory();
         System.out.println(repoFactory);
@@ -319,7 +321,7 @@ public class HelloWorld {
             if (!repo.existsNode(nodePath)) {
                 log.warn("Node will be created: " + repo.getRootNode().addNode(nodeName, NodeType.RESOURCE).getPath());
             }
-            Node node = repo.getNode(nodeName);
+            Node node = repo.getNode(nodePath);
             node.setMimeType("application/xhtml+xml");
             Writer writer = repo.getWriter(new Path(nodePath));
             //OutputStream out = repo.getNode(nodeName).getOutputStream();
