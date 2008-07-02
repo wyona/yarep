@@ -239,6 +239,9 @@ public interface Repository {
     
     /**
      * Search for properties within subtree
+     * @param pName Parameter name
+     * @param pValue Parameter value query
+     * @param path Scope of search (path of subtree)
      */
     public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException;
     
