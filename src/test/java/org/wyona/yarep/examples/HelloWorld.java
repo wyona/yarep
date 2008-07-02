@@ -87,9 +87,10 @@ public class HelloWorld {
 
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
-            System.out.println("\nRead and Write content from/to repository " + repoJCR.getName() + " (repoJCR) ...");
+
             //String jcrNodePathExample = "/profiles/michael-wechner.rdf";
             String jcrNodePathExample = "/";
+            System.out.println("\nUSECASE: Read and Write content (Path: " + jcrNodePathExample + ") from/to repository '" + repoJCR.getName() + " (" + repoJCR.getConfigFile() + ")':");
 
             repoJCR.getNode(jcrNodePathExample).setProperty("my-message", "Hello Hugo!");
             System.out.println(repoJCR.getNode(jcrNodePathExample).getProperty("my-message"));
@@ -107,7 +108,9 @@ public class HelloWorld {
             } else {
                 System.err.println("No such node: " + jcrNodePathExample);
             }
+
             String query = "Hello";
+            System.out.println("\nUSECASE: Search for '" + query + "' within fulltext of repository '" + repoJCR.getName() + " (" + repoJCR.getConfigFile() + ")'");
             Node[] result = repoJCR.search(query);
             if (result.length == 0) {
                 System.out.println("Your search \"" + query + "\" did not match any node!");
@@ -115,7 +118,7 @@ public class HelloWorld {
                 System.out.println(result.length + " results have been found:");
             }
             for (int i = 0; i < result.length ; i++) {
-                System.out.println("Result " + i + ": " + result[i].getPath());
+                System.out.println("Result " + (i + 1) + ": " + result[i].getPath());
             }
 
 
@@ -258,7 +261,7 @@ public class HelloWorld {
             } else {
                 System.out.println(result.length + " results have been found for '" + query + "' within fulltext:");
                 for (int i = 0; i < result.length ; i++) {
-                    System.out.println("Result " + i + ": " + result[i].getPath());
+                    System.out.println("Result " + (i + 1) + ": " + result[i].getPath());
                 }
             }
 
@@ -272,7 +275,7 @@ public class HelloWorld {
             } else {
                 System.out.println(result.length + " results have been found for '" + query + "' within property '" + property + "':");
                 for (int i = 0; i < result.length ; i++) {
-                    System.out.println("Result " + i + ": " + result[i].getPath());
+                    System.out.println("Result " + (i + 1) + ": " + result[i].getPath());
                 }
             }
         } catch (Exception e) {
@@ -300,7 +303,7 @@ public class HelloWorld {
             } else {
                 System.out.println(result.length + " results have been found for '" + query + "' within property '" + propertyName + "':");
                 for (int i = 0; i < result.length ; i++) {
-                    System.out.println("Result " + i + ": " + result[i].getPath());
+                    System.out.println("Result " + (i + 1) + ": " + result[i].getPath());
                 }
             }
             repo.close();
@@ -341,7 +344,7 @@ public class HelloWorld {
             } else {
                 System.out.println(result.length + " results have been found for '" + query + "' within fulltext:");
                 for (int i = 0; i < result.length ; i++) {
-                    System.out.println("Result " + i + ": " + result[i].getPath());
+                    System.out.println("Result " + (i + 1) + ": " + result[i].getPath());
                 }
             }
             repo.close();
