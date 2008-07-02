@@ -166,7 +166,14 @@ public class JCRNode implements Node {
      */
     public Node addNode(String name, int type) throws RepositoryException {
         try {
-            javax.jcr.Node newNode = this.jcrNode.addNode(name);
+            javax.jcr.Node newNode = this.jcrNode.addNode(name, "nt:unstructured");
+            //javax.jcr.Node newNode = this.jcrNode.addNode(name, type == NodeType.COLLECTION ? "nt:folder" : "nt:file");
+            if (type != NodeType.COLLECTION) {
+                javax.jcr.Node cNode = newNode.addNode("jcr:content", "nt:resource");
+                cNode.setProperty("jcr:data", "");
+                cNode.setProperty("jcr:mimeType", "application/xml");
+                cNode.setProperty("jcr:lastModified", java.util.Calendar.getInstance());
+            }
             this.session.save();
             return new JCRNode(newNode, session);
         } catch (Exception e) {
@@ -351,7 +358,9 @@ public class JCRNode implements Node {
     public void setProperty(Property property) throws RepositoryException {
         try {
             if (property.getType() == PropertyType.STRING) {
+                //if () {
                 this.jcrNode.setProperty(property.getName(), property.getString());
+                //}
                 session.save();
             } else {
                 log.error("Not implemented yet!");
@@ -505,7 +514,7 @@ public class JCRNode implements Node {
      */
     public Revision[] getRevisions() throws RepositoryException {
         log.error("Not implemented yet!");
-        return null;
+        return new Revision[0];
     }
     
     /**
@@ -587,8 +596,8 @@ public class JCRNode implements Node {
     public String getMimeType() throws RepositoryException {
 	// TODO: check on jcr:content/@jcr:mimeType
         try {
-            if (jcrNode.hasProperty("mimeType")) {
-                return jcrNode.getProperty("mimeType").getString();
+            if (jcrNode.getNode("jcr:content").hasProperty("jcr:mimeType")) {
+                return jcrNode.getNode("jcr:content").getProperty("jcr:mimeType").getString();
             }
         } catch (Exception e) {
             throw new RepositoryException(e);
@@ -605,8 +614,13 @@ public class JCRNode implements Node {
         // TODO: Use a namespace, e.g. yarep:mimeType
 	// TODO: check on jcr:content/@jcr:mimeType
         try {
-            jcrNode.setProperty("mimeType", mimeType);
-            session.save();
+            if (jcrNode.hasNode("jcr:content")) {
+            //if (type != NodeType.COLLECTION) {
+                jcrNode.getNode("jcr:content").setProperty("jcr:mimeType", mimeType);
+                session.save();
+            } else {
+                log.warn("Node '" + getPath() + "' seems to be a collection and hence mime type cannot be set!");
+            }
         } catch (Exception e) {
             throw new RepositoryException(e);
         }
