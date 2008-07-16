@@ -194,9 +194,9 @@ public class HelloWorld {
         try {
 
             // List children
-            System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoNewFS.getName() + " (" + repoNewFS.getID() + ")\" ...");
-            //System.out.println("\nUSECASE: List children of path \"/hello\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
             Path helloPath = new Path("/hello");
+            System.out.println("\nUSECASE: List children of path \"" + helloPath + "\" from repository \"" + repoNewFS.getName() + " (" + repoNewFS.getID() + ")\" ...");
+            //System.out.println("\nUSECASE: List children of path \"" + helloPath + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
 
             Path[] children = repoNewFS.getChildren(helloPath);
             //Path[] children = repoA.getChildren(helloPath);
