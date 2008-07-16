@@ -76,6 +76,7 @@ public class DefaultRepository  implements Repository {
             } else {
                 map = (Map) Class.forName("org.wyona.yarep.impl.DefaultMapImpl").newInstance();
                 //map = new org.wyona.yarep.impl.DefaultMapImpl();
+                log.warn("No paths class specified. Use 'org.wyona.yarep.impl.DefaultMapImpl' as fallsback!");
             }
             map.readConfig(pathConfig, configFile);
 
@@ -179,7 +180,7 @@ public class DefaultRepository  implements Repository {
      */
     public InputStream getInputStream(Path path) throws RepositoryException {
         UID uid = null;
-        if (!exists(path)) {
+        if (!existsWithinMap(path)) {
             if (fallback) {
                 log.info("No UID! Fallback to : " + path);
                 uid = new UID(path.toString());
@@ -324,7 +325,29 @@ public class DefaultRepository  implements Repository {
      *
      */
     public boolean exists(Path path) throws RepositoryException {
-       return map.exists(path);
+        return existsWithinMapAndStorage(path);
+    }
+
+    /**
+     *
+     */
+    public boolean existsWithinMap(Path path) throws RepositoryException {
+        return map.exists(path);
+    }
+
+    /**
+     *
+     */
+    public boolean existsWithinMapAndStorage(Path path) throws RepositoryException {
+       if (map.exists(path) && storage.exists(getUID(path), path)) {
+           return true;
+       } else {
+           if (fallback && storage.exists(null, path)) {
+               return true;
+           } else {
+               return false;
+           }
+       }
     }
 
     /**
@@ -366,7 +389,7 @@ public class DefaultRepository  implements Repository {
     public void addSymbolicLink(Path target, Path link) throws NoSuchNodeException, RepositoryException {
         log.debug("Target: " + target);
         UID uid = null;
-        if (!exists(target)) {
+        if (!existsWithinMap(target)) {
             if (fallback) {
                 log.warn("No UID! Fallback to : " + target);
                 uid = new UID(target.toString());
@@ -397,7 +420,7 @@ public class DefaultRepository  implements Repository {
      * @see org.wyona.yarep.core.Repository#existsNode(java.lang.String)
      */
     public boolean existsNode(String path) throws RepositoryException {
-        return exists(new Path(path));
+        return existsWithinMapAndStorage(new Path(path));
     }
 
     /**
