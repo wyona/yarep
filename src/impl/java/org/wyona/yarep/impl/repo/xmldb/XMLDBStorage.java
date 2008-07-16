@@ -19,7 +19,7 @@ import org.wyona.commons.io.FileUtil;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
@@ -38,7 +38,7 @@ import org.xmldb.api.modules.XPathQueryService;
  * @author Andreas Wuest
  */
 public class XMLDBStorage implements Storage {
-    private static Category mLog = Category.getInstance(XMLDBStorage.class);
+    private static Logger log = Logger.getLogger(XMLDBStorage.class);
 
     private Credentials mCredentials;
     private String      mDatabaseURIPrefix;
@@ -60,7 +60,7 @@ public class XMLDBStorage implements Storage {
         try {
             storageConfig = (new DefaultConfigurationBuilder()).buildFromFile(aRepoConfigFile).getChild("storage", false);
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
@@ -89,8 +89,8 @@ public class XMLDBStorage implements Storage {
         String        databaseName;
         String        databaseURIPrefix;
 
-        /* TODO: replace most mLog.error() invocations by mLog.debug().
-         * Unfortunately, mLog.debug() produces no output, even if activated
+        /* TODO: replace most log.error() invocations by log.debug().
+         * Unfortunately, log.debug() produces no output, even if activated
          * in the log4.properties. */
 
         // check if we received a storage configuration and a repo config file
@@ -100,24 +100,24 @@ public class XMLDBStorage implements Storage {
         try {
             // retrieve the database driver name (e.g. "org.apache.xindice.client.xmldb.DatabaseImpl") [mandatory]
             driverName        = aStorageConfig.getChild("driver").getValue("");
-            mLog.error("Specified driver name = \"" + driverName + "\".");
+            log.error("Specified driver name = \"" + driverName + "\".");
 
             // retrieve the database home (e.g. "../data") [optional]
             databaseHome      = aStorageConfig.getChild("db-home").getValue(null);
-            mLog.error("Specified database home = \"" + databaseHome + "\".");
+            log.error("Specified database home = \"" + databaseHome + "\".");
 
             // retrieve the root collection name (e.g. "db") [mandatory]
             rootCollection    = aStorageConfig.getChild("root").getValue("");
-            mLog.error("Specified root collection = \"" + rootCollection + "\".");
+            log.error("Specified root collection = \"" + rootCollection + "\".");
 
             // retrieve the path prefix (e.g. "some/sample/collection") [optional]
             pathPrefix        = aStorageConfig.getChild("prefix").getValue("");
             createPrefix      = aStorageConfig.getChild("prefix").getAttributeAsBoolean("createIfNotExists", false);
-            mLog.error("Specified collection prefix = \"" + pathPrefix + "\" (create if not exists: \"" + createPrefix + "\").");
+            log.error("Specified collection prefix = \"" + pathPrefix + "\" (create if not exists: \"" + createPrefix + "\").");
 
             // retrieve the name of the database host (e.g. "myhost.domain.com:8080") [optional]
             databaseAddress   = aStorageConfig.getChild("address").getValue("");
-            mLog.error("Specified database address = \"" + databaseAddress + "\".");
+            log.error("Specified database address = \"" + databaseAddress + "\".");
 
             // retrieve credentials [optional]
             credentialsConfig = aStorageConfig.getChild("credentials", false);
@@ -125,10 +125,10 @@ public class XMLDBStorage implements Storage {
             if (credentialsConfig != null) {
                 mCredentials = new Credentials(credentialsConfig.getChild("username").getValue(""),
                                                credentialsConfig.getChild("password").getValue(""));
-                mLog.error("Specified credentials read.");
+                log.error("Specified credentials read.");
             }
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
@@ -153,7 +153,7 @@ public class XMLDBStorage implements Storage {
                     databaseHomeDir = FileUtil.file(aRepoConfigFile.getParent(), databaseHomeDir.toString());
                 }
 
-                mLog.error("Resolved database home directory = \"" + databaseHomeDir + "\"");
+                log.error("Resolved database home directory = \"" + databaseHomeDir + "\"");
 
                 database.setProperty("db-home", databaseHomeDir.toString());
             }
@@ -163,7 +163,7 @@ public class XMLDBStorage implements Storage {
 
             databaseName = database.getName();
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
@@ -177,14 +177,14 @@ public class XMLDBStorage implements Storage {
                 mDatabaseURIPrefix = databaseURIPrefix + "/" + pathPrefix + "/";
             }
 
-        mLog.error("Collection base path = \"" + databaseURIPrefix + "\".");
-        mLog.error("Complete collection base path = \"" + mDatabaseURIPrefix + "\".");
+        log.error("Collection base path = \"" + databaseURIPrefix + "\".");
+        log.error("Complete collection base path = \"" + mDatabaseURIPrefix + "\".");
 
         // test drive our new database instance
         try {
             database.acceptsURI(mDatabaseURIPrefix);
         } catch (XMLDBException exception) {
-            mLog.error(exception);
+            log.error(exception);
 
             if (exception.errorCode == org.xmldb.api.base.ErrorCodes.INVALID_URI) {
                 throw new RepositoryException("The database does not accept the URI prefix \"" + mDatabaseURIPrefix + "\" as valid. Please make sure that the database host address (\"" + databaseAddress + "\") is correct. Original message: " + exception.getMessage(), exception);
@@ -192,7 +192,7 @@ public class XMLDBStorage implements Storage {
                 throw new RepositoryException(exception.getMessage(), exception);
             }
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
@@ -214,11 +214,11 @@ public class XMLDBStorage implements Storage {
                         if (getCollectionRelative(null) == null)
                             throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
                     } catch (Exception exception) {
-                        mLog.error(exception);
+                        log.error(exception);
                         throw new RepositoryException("Failed to create prefix collection (\"" + pathPrefix + "\"). Original message: " + exception.getMessage(), exception);
                     }
 
-                    mLog.error("Created new collection \"" + pathPrefix + "\".");
+                    log.error("Created new collection \"" + pathPrefix + "\".");
                 } else {
                     // the prefix collection does not exist
                     throw new RepositoryException("Specified collection prefix (\"" + pathPrefix + "\") does not exist.");
@@ -229,7 +229,7 @@ public class XMLDBStorage implements Storage {
             try {
                 DatabaseManager.deregisterDatabase(database);
             } catch (Exception databaseException) {
-                mLog.error(databaseException);
+                log.error(databaseException);
                 throw new RepositoryException(databaseException.getMessage(), databaseException);
             }
 
@@ -259,11 +259,11 @@ public class XMLDBStorage implements Storage {
     public Writer getWriter(UID aUID, Path aPath) {
         org.wyona.commons.io.Path parentPath;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
         // obviously, writing means creation of a new resource, so we have to get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         /* For whatever reasons, the Storage interface does not declare this method to throw a
          * RepositoryException, therefore we have to catch it here. */
@@ -293,11 +293,11 @@ public class XMLDBStorage implements Storage {
     public OutputStream getOutputStream(UID aUID, Path aPath) throws RepositoryException {
         org.wyona.commons.io.Path parentPath;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
         // obviously, writing means creation of a new resource, so we have to get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         return (new XMLDBStorageOutputStream(this, parentPath.toString(), null, BinaryResource.RESOURCE_TYPE));
     }
@@ -318,11 +318,11 @@ public class XMLDBStorage implements Storage {
     public Reader getReader(UID aUID, Path aPath) {
         org.wyona.commons.io.Path parentPath;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
         // get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         /* For whatever reasons, the Storage interface does not declare this method to throw a
          * RepositoryException, therefore we have to catch it here. */
@@ -351,11 +351,11 @@ public class XMLDBStorage implements Storage {
     public InputStream getInputStream(UID aUID, Path aPath) throws RepositoryException {
         org.wyona.commons.io.Path parentPath;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
         // get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         return (new XMLDBStorageInputStream(this, parentPath.toString(), aPath.getName()));
     }
@@ -364,8 +364,8 @@ public class XMLDBStorage implements Storage {
      * This repository does not support modification dates.
      */
     public long getLastModified(UID aUID, Path aPath) throws RepositoryException {
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
-        mLog.warn("This repository does not support modification dates.");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.warn("This repository does not support modification dates.");
         return 0;
     }
 
@@ -383,11 +383,11 @@ public class XMLDBStorage implements Storage {
         org.wyona.commons.io.Path parentPath;
         Resource                  resource;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
          // get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         if ((collection = getCollectionRelative(parentPath.toString())) == null)
             throw new RepositoryException("Requested resource \"" + aPath + "\" does not exist.");
@@ -430,11 +430,11 @@ public class XMLDBStorage implements Storage {
         org.wyona.commons.io.Path parentPath;
         Resource                  resource;
 
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
 
         // get the parent collection
         parentPath = aPath.getParent();
-        mLog.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
+        log.error("Path to the parent collection = \"" + parentPath.toString() + "\".");
 
         if ((collection = getCollectionRelative(parentPath.toString())) == null)
             throw new RepositoryException("Requested resource \"" + aPath + "\" does not exist.");
@@ -461,8 +461,8 @@ public class XMLDBStorage implements Storage {
      * This repository does not support versioning.
      */
     public String[] getRevisions(UID aUID, Path aPath) throws RepositoryException {
-        mLog.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
-        mLog.warn("This repository does not support versioning.");
+        log.error("UID = \"" + aUID + "\", path = \"" + aPath + "\".");
+        log.warn("This repository does not support versioning.");
         return null;
     }
 
@@ -490,7 +490,7 @@ public class XMLDBStorage implements Storage {
         ResourceSet       resultSet;
         XPathQueryService queryService;
 
-        mLog.error("Path = \"" + aPath + "\", query = \"" + aQuery + "\".");
+        log.error("Path = \"" + aPath + "\", query = \"" + aQuery + "\".");
 
         collection = getCollectionRelative((aPath != null ? aPath.toString() : null));
 
@@ -518,7 +518,7 @@ public class XMLDBStorage implements Storage {
                 queryResult.add(resultSetIter.nextResource().getId());
             }
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
 
@@ -557,7 +557,7 @@ public class XMLDBStorage implements Storage {
                 return DatabaseManager.getCollection(aCollectionURI);
             }
         } catch (Exception exception) {
-            mLog.error(exception);
+            log.error(exception);
             throw new RepositoryException(exception.getMessage(), exception);
         }
     }
@@ -583,5 +583,13 @@ public class XMLDBStorage implements Storage {
         public String getPassword() {
             return mPassword;
         }
+    }
+
+    /**
+     *
+     */
+    public boolean exists(UID uid, Path path) {
+        log.error("NOT implemented yet!");
+        return false;
     }
 }
