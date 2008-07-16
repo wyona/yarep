@@ -87,15 +87,16 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
         }
     }
     
+    /**
+     * Split path
+     */
     protected String splitPath(String path) {
-        if (path.startsWith("/")) {
-            path = path.substring(1); //  strip leading /
-        }
+        path = stripLeadingSlash(path);
         int splitInterval = getSplitInterval();
         int maxSplits = getMaxSplits();
-        //System.out.println("map path: " + path);
-        //System.out.println("map splitInterval: " + splitInterval);
-        //System.out.println("map maxSplits: " + maxSplits);
+        //log.debug("map path: " + path);
+        //log.debug("map splitInterval: " + splitInterval);
+        //log.debug("map maxSplits: " + maxSplits);
         String splitPath = "";
         int slashIndex = path.indexOf("/");
         String part1 = path;
@@ -111,8 +112,8 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
             }
             splitPath = splitPath + part1.substring(0, splitInterval);
             part1 = part1.substring(splitInterval);
-            //System.out.println("splitLevel: " + splitLevel);
-            //System.out.println("part1: " + part1);
+            //log.debug("splitLevel: " + splitLevel);
+            //log.debug("part1: " + part1);
         }
         if (part1.length() > 0) {
             splitPath = splitPath + "/" + part1;
@@ -121,7 +122,7 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
             splitPath = splitPath + "/" + part2;
         }
         //splitPath = "/" + splitPath;
-        //System.out.println("map split path: " + splitPath);
+        //log.debug("map split path: " + splitPath);
         return splitPath;
     }
 
@@ -159,12 +160,10 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
      *
      */
     public boolean exists(Path path) throws RepositoryException {
-        //System.out.println("exists path: " + path);
+        //log.debug("Check if path exists: " + path);
         File file = new File(pathsDir, splitPath(path.toString()));
-        //System.out.println("exists file: " + file);
-        //System.out.println("exists: " + file.exists());
+        //log.debug("Check if file exists: " + file);
         // TODO: Get name of repository for debugging ...
-        //log.debug("File: " + file);
         return file.exists() && !ignorePath(file.getPath());
     }
 
@@ -224,34 +223,50 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
      * Get UID
      */
     public synchronized UID getUID(Path path) throws RepositoryException {
+/*
         String p = path.toString();
         if (p.startsWith("/")) {
             p = p.substring(1);
         }
         return new UID(p);
+*/
+        return new UID(splitPath(path.toString()));
     }
 
     /**
-     * Create UID
+     * Create UID (and node within map!)
      */
     public synchronized UID create(Path path, int type) throws RepositoryException {
+        log.debug("Create new node: " + path);
+
         // TODO: Check if leading slash should be removed ...
         File parent = new File(pathsDir, splitPath(path.getParent().toString()));
         if (!parent.exists()) {
             log.warn("Directory will be created: " + parent);
             parent.mkdirs();
+        } else {
+            log.debug("Seems to exist already: " + parent);
         }
+
         if (type == org.wyona.yarep.core.NodeType.COLLECTION) {
-            new File(parent, path.getName()).mkdir();
+            //new File(parent, path.getName()).mkdir();
+            new File(parent, splitPath(path.getName())).mkdirs();
+            log.warn("Directory will be created: " + new File(parent, splitPath(path.getName())));
+            //log.debug("New UUID of collection: " + new UID(splitPath(path.getName())));
+            return new UID(splitPath(path.getName()));
         } else {
             try {
-                if(!new File(parent, path.getName()).createNewFile()) log.warn("File has not been created: " + new File(parent, path.getName()));
+                if(!new File(parent, path.getName()).createNewFile()) {
+                    log.error("File has NOT been created: " + new File(parent, path.getName()));
+                } else {
+                    log.warn("File has been created: " + new File(parent, path.getName()));
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
+            //log.debug("New UUID of resource: " + new UID(path.toString()));
+            return new UID(path.toString());
         }
-        
-        return new UID(path.toString());
     }
 
     /**
@@ -275,6 +290,18 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
             } else {
                 return true;
             }
+        }
+    }
+    
+    /**
+     * Strip leading forward slash
+     */
+    private String stripLeadingSlash(String path) {
+        if (path.startsWith("/")) {
+            String pathWithoutLeadingSlash = path.substring(1); //  strip leading slash
+            return stripLeadingSlash(pathWithoutLeadingSlash);
+        } else {
+            return path;
         }
     }
 }
