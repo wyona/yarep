@@ -124,4 +124,17 @@ public class FileSystemStorage implements Storage {
         return null;
     }
 
+    /**
+     *
+     */
+    public boolean exists(UID uid, Path path) {
+        if (uid != null) {
+            return new File(contentDir.getAbsolutePath() + File.separator + uid.toString()).exists();
+        } else if (path != null) {
+            log.warn("No UUID specified (fallback probably enabled), hence check path: " + path + " (Content dir: " + contentDir + ")");
+            return new File(contentDir.getAbsolutePath() + File.separator + path.toString()).exists();
+        } else {
+            return false;
+        }
+    }
 }
