@@ -182,11 +182,16 @@ public class HelloWorld {
             System.out.println("Very first line: " + br.readLine());
             readerD.close();
 
-            System.out.println("\nUSECASE: Read content from node without a UID \"/no/uid/example.txt\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
-            readerA = repoA.getReader(new Path("/no/uid/example.txt"));
-            br = new BufferedReader(readerA);
-            System.out.println("Very first line: " + br.readLine());
-            readerA.close();
+            Path pathWithoutUUID = new Path("/no/uid/example.txt");
+            System.out.println("\nUSECASE: Read content from node without a UID \"" + pathWithoutUUID + "\" from repository \"" + repoA.getName() + " (" + repoA.getID() + ")\" ...");
+            if (repoA.existsNode(pathWithoutUUID.toString())) {
+                readerA = repoA.getReader(pathWithoutUUID);
+                br = new BufferedReader(readerA);
+                System.out.println("Very first line: " + br.readLine());
+                readerA.close();
+            } else {
+                System.err.println("No such node without UUID: " + pathWithoutUUID);
+            }
         } catch (Exception e) {
             System.err.println(e);
         }
