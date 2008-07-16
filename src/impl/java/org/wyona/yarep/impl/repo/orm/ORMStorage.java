@@ -106,4 +106,11 @@ public class ORMStorage implements Storage {
         return null;
     }
 
+    /**
+     *
+     */
+    public boolean exists(UID uid, Path path) {
+        log.error("NOT implemented yet!");
+        return false;
+    }
 }
