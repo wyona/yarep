@@ -599,6 +599,8 @@ public class VirtualFileSystemRepository implements Repository {
             } else {
                 iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
             }
+            // TODO: iw.setWriteLockTimeout(long ms)
+            //log.debug("Max write.lock timeout: " + iw.getDefaultWriteLockTimeout() + " milliseconds");
             return iw;
         }
         return null;
