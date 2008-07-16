@@ -192,5 +192,12 @@ public class SVNStorage implements Storage {
     protected File getFile(UID uid) {
         return new File(svnWorkingDir.getAbsolutePath() + File.separator + uid.toString());
     }
-    
+
+    /**
+     *
+     */
+    public boolean exists(UID uid, Path path) {
+        log.error("NOT implemented yet!");
+        return false;
+    }
 }
