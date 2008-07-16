@@ -59,4 +59,8 @@ public interface Storage {
      */
     public String[] getRevisions(UID uid, Path path) throws RepositoryException;
 
+    /**
+     *
+     */
+    public boolean exists(UID uid, Path path);
 }
