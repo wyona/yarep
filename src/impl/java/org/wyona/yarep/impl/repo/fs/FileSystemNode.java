@@ -189,11 +189,15 @@ public class FileSystemNode extends AbstractNode {
 
             // get lucene index writer, create the index if it does not exist yet
             IndexWriter indexWriter = null;
-            if (propertiesSearchIndexFile.isDirectory()) {
-                indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), false);
+            if (propertiesSearchIndexFile != null) {
+                if (propertiesSearchIndexFile.isDirectory()) {
+                    indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), false);
+                } else {
+                    indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), true);
+                }
             } else {
-                indexWriter = new IndexWriter(propertiesSearchIndexFile.getAbsolutePath(), fsRepo.getWhitespaceAnalyzer(), true);
-            }
+                log.warn("Directory of search index for properties is not set!");
+	    }
             
             // prepare the lucene document
             Document document = new Document();
@@ -219,8 +223,12 @@ public class FileSystemNode extends AbstractNode {
             
             // store the lucene document
             document.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
-            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), document);
-            indexWriter.close();
+            if (indexWriter != null) {
+                indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), document);
+                indexWriter.close();
+            } else {
+                log.warn("Index writer for properties search is null!");
+            }
             
         } catch (IOException e) {
             throw new RepositoryException("Error while reading meta file: " + metaFile + ": " 
@@ -279,8 +287,9 @@ public class FileSystemNode extends AbstractNode {
      */
     public Node addNode(String name, int type) throws RepositoryException {
         String newPath = getPath() + "/" + name;
-        log.debug("adding node: " + newPath);
+        log.debug("Adding node: " + newPath);
         if (this.repository.existsNode(newPath)) {
+            log.warn("Node already exists: " + newPath);
             throw new RepositoryException("Node exists already: " + newPath);
         }
         UID uid = getRepository().getMap().create(new Path(newPath), type);
