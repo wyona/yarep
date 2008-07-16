@@ -84,12 +84,18 @@ public class HelloWorld {
             Writer writerA = repoA.getWriter(worldPath);
             writerA.write("Hello World!\n...");
             writerA.close();
-
             repoA.addSymbolicLink(worldPath, new Path("/hello-world-link.txt"));
 
 
-            //String jcrNodePathExample = "/profiles/michael-wechner.rdf";
-            String jcrNodePathExample = "/";
+
+
+            String jcrNodePathExample = "/profiles/michael-wechner.rdf";
+            //String jcrNodePathExample = "/";
+            if (!repoJCR.existsNode(jcrNodePathExample)) {
+                System.out.println("Node does not exist: " + jcrNodePathExample);
+                repoJCR.getRootNode().addNode("profiles", NodeType.COLLECTION).addNode("michael-wechner.rdf", NodeType.RESOURCE);
+                System.out.println("Node has been created: " + jcrNodePathExample);
+            }
             System.out.println("\nUSECASE: Read and Write content (Path: " + jcrNodePathExample + ") from/to repository '" + repoJCR.getName() + " (" + repoJCR.getConfigFile() + ")':");
 
             repoJCR.getNode(jcrNodePathExample).setProperty("my-message", "Hello Hugo!");
