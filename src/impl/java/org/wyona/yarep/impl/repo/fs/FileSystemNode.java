@@ -127,11 +127,15 @@ public class FileSystemNode extends AbstractNode {
         return new File(this.metaDir, META_FILE_NAME);
     }
     
+    /**
+     *
+     */
     protected void createMetaFile() throws RepositoryException {
-        log.debug("creating new meta file in dir: " + metaDir);
         if (!metaDir.exists()) {
             metaDir.mkdirs();
+            log.warn("Creating new meta directory: " + metaDir);
         }
+        log.debug("Set node type property ...");
         this.properties = new HashMap();
         if (this.contentFile.isDirectory()) {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_COLLECTION);
@@ -298,6 +302,7 @@ public class FileSystemNode extends AbstractNode {
         try {
             if (type == NodeType.COLLECTION) {
                 file.mkdirs();
+                log.warn("Directory created: " + file);
             } else if (type == NodeType.RESOURCE) {
                 File parentFile = file.getParentFile(); 
                 if (!parentFile.exists()) {
