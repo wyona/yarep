@@ -76,7 +76,7 @@ public class DefaultRepository  implements Repository {
             } else {
                 map = (Map) Class.forName("org.wyona.yarep.impl.DefaultMapImpl").newInstance();
                 //map = new org.wyona.yarep.impl.DefaultMapImpl();
-                log.warn("No paths class specified. Use 'org.wyona.yarep.impl.DefaultMapImpl' as fallsback!");
+                log.info("No paths class specified. Use 'org.wyona.yarep.impl.DefaultMapImpl' as fallback!");
             }
             map.readConfig(pathConfig, configFile);
 
