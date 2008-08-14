@@ -180,7 +180,7 @@ public class VirtualFileSystemRepository implements Repository {
                     if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
                         fulltextSearchIndexFile = searchIndexSrcFile;
                     }
-                    log.warn("Fulltext search index path: " + fulltextSearchIndexFile);
+                    log.info("Fulltext search index path: " + fulltextSearchIndexFile);
                     
                     // Create a lucene search index if it doesn't exist yet
                     // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
@@ -200,7 +200,7 @@ public class VirtualFileSystemRepository implements Repository {
                             tikaConfig = TikaConfig.getDefaultConfig();
                         }
                     } else {
-                        log.warn("Use default tika config");
+                        log.info("Use default tika config");
                         tikaConfig = TikaConfig.getDefaultConfig();
                     }
                 }
