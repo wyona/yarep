@@ -135,7 +135,6 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                     if (log.isDebugEnabled()) {
                         log.debug("IndexWriter is null and hence node will not be indexed: " + node.getPath());
                     }
-log.error("DEBUG: IndexWriter is null and hence node will not be indexed: " + node.getPath());
                 }
             }
         } catch (Exception e) {
