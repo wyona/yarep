@@ -106,7 +106,9 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                         StringWriter writer = new StringWriter();
                         String fullText = null;
                         try {
-                            parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), new Metadata());
+                            Metadata metaData = new Metadata();
+                            metaData.set("yarep-path", node.getPath());
+                            parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), metaData);
                             fullText = writer.toString();
                             
                             //System.out.println("fulltext: " + fullText);
