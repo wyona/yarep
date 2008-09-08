@@ -27,8 +27,14 @@
 <!--
   <search-index src="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index">
 -->
-  <search-index src="index" index-fulltext="yes" index-properties="yes" local-tika-config="tika-config.xml" write-lock-timeout="3000">
+  <search-index src="index" index-fulltext="yes" index-properties="yes" local-tika-config="tika-config.xml" write-lock-timeout="3000" auto="true">
     <!-- The attribute local-tika-config is used to patch the default tika config -->
     <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
+
+<!--
+    <indexer class="org.wyona.yarep.impl.search.lucene.LuceneIndexer">
+      <lucene:analyzer xmlns:lucene="http://lucene.apache.org/1.0" class=""/>
+    </indexer>
+-->
   </search-index>
 </repository>
