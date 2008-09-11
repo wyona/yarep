@@ -31,4 +31,21 @@
     <!-- The attribute local-tika-config is used to patch the default tika config -->
     <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
   </search-index>
+
+  <s:search-index xmlns:s="http://www.wyona.com/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
+    <auto-indexing boolean="true"/>
+    <index-location file="index"/>
+    <index-fulltext boolean="true"/>
+    <index-properties boolean="true"/>
+    <lucene>
+      <!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
+      <local-tika-config file="tika-config.xml"/>
+      <!-- if fulltext-analyzer/class is not set it will use org.apache.lucene.analysis.standard.StandardAnalyzer-->
+      <fulltext-analyzer class="org.apache.lucene.analysis.standard.StandardAnalyzer"/>
+      <!-- if property-analyzer/class is not set it will use org.apache.lucene.analysis.WhitespaceAnalyzer-->
+      <property-analyzer class="org.apache.lucene.analysis.WhitespaceAnalyzer"/>
+      <write-lock-timeout ms="3000"/>
+    </lucene>
+  </s:search-index>
+
 </repository>
