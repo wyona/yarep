@@ -27,7 +27,7 @@ import org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository;
 public class LuceneIndexer implements Indexer {
     
     static Logger log = Logger.getLogger(LuceneIndexer.class);
-    private LuceneConfig config;
+    protected LuceneConfig config;
     
     public void configure(Configuration searchIndexConfig, File configFile, Repository repo) throws SearchException {
         this.config = new LuceneConfig(searchIndexConfig, configFile.getParent(), repo);

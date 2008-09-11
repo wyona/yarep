@@ -43,7 +43,7 @@ public class LuceneConfig {
     public void configure(Configuration searchConfig, String configParent) throws SearchException {
         try {
             if (searchConfig != null) {
-                if(searchConfig.getName().equals("search-index")) {
+                if(searchConfig.getNamespace() == null) {
                     deprecatedConfigure(searchConfig, configParent);
                     return;
                 }
@@ -191,11 +191,11 @@ public class LuceneConfig {
         }
     }
     
-    protected File getFulltextSearchIndexFile() {
+    public File getFulltextSearchIndexFile() {
         return fulltextSearchIndexFile;
     }
 
-    protected File getPropertiesSearchIndexFile() {
+    public File getPropertiesSearchIndexFile() {
         return propertiesSearchIndexFile;
     }
 
@@ -203,39 +203,39 @@ public class LuceneConfig {
         return fulltextAnalyzer;
     }
 
-    protected Analyzer getPropertyAnalyzer() {
+    public Analyzer getPropertyAnalyzer() {
         return propertyAnalyzer;
     }
 
-    protected String getFULLTEXT_INDEX_DIR() {
+    public String getFULLTEXT_INDEX_DIR() {
         return FULLTEXT_INDEX_DIR;
     }
 
-    protected String getPROPERTIES_INDEX_DIR() {
+    public String getPROPERTIES_INDEX_DIR() {
         return PROPERTIES_INDEX_DIR;
     }
 
-    protected Indexer getIndexer() {
+    public Indexer getIndexer() {
         return indexer;
     }
 
-    protected TikaConfig getTikaConfig() {
+    public TikaConfig getTikaConfig() {
         return tikaConfig;
     }
 
-    protected boolean isFulltextIndexingEnabled() {
+    public boolean isFulltextIndexingEnabled() {
         return isFulltextIndexingEnabled;
     }
 
-    protected boolean isPropertyIndexingEnabled() {
+    public boolean isPropertyIndexingEnabled() {
         return isPropertyIndexingEnabled;
     }
     
-    protected int getWriteLockTimeout() {
+    public int getWriteLockTimeout() {
         return writeLockTimeout;
     }
 
-    protected Repository getRepo() {
+    public Repository getRepo() {
         return repo;
     }
 }
