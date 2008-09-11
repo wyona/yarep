@@ -32,7 +32,7 @@
     <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
   </search-index>
 
-  <s:search-index xmlns:s="http://www.wyona.com/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
+  <s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
     <auto-indexing boolean="true"/>
     <index-location file="index"/>
     <index-fulltext boolean="true"/>
