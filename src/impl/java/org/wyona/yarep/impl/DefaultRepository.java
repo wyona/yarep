@@ -499,4 +499,21 @@ public class DefaultRepository  implements Repository {
     public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
         throw new RepositoryException("Not implemented yet!");
     }
+    
+    
+    /**
+     * TODO: not implemented yet.
+     */
+    public org.wyona.yarep.core.search.Indexer getIndexer() {
+        log.warn("TODO: not implemented yet.");
+        return null;
+    }
+    
+    /**
+     * TODO: not implemented yet.
+     */
+    public org.wyona.yarep.core.search.Searcher getSearcher() {
+        log.warn("TODO: not implemented yet.");
+        return null;
+    }  
 }
