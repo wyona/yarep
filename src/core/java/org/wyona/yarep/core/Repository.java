@@ -6,6 +6,9 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 
+import org.wyona.yarep.core.search.Indexer;
+import org.wyona.yarep.core.search.Searcher;
+
 /**
  * The repository interface has two sets of methods for historical reasons:
  * <ul>
@@ -233,6 +236,7 @@ public interface Repository {
 
     /**
      * Search content
+     * @deprecated (2008.09.11) Use getSearcher()
      */
     public Node[] search(String query) throws RepositoryException;
     
@@ -242,6 +246,7 @@ public interface Repository {
      * @param pName Parameter name
      * @param pValue Parameter value query
      * @param path Scope of search (path of subtree)
+     * @deprecated (2008.09.11) Use getSearcher()
      */
     public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException;
     
@@ -264,4 +269,16 @@ public interface Repository {
      * Closes the repository and releases any resources associated with the repository
      */
     public void close() throws RepositoryException;
+    
+    /**
+     * @return Indexer. Allows to add nodes to a search index
+     * @throws RepositoryException
+     */
+    public Indexer getIndexer() throws RepositoryException;
+
+    /**
+     * @return Searcher. Allows to search within index
+     * @throws RepositoryException
+     */
+    public Searcher getSearcher() throws RepositoryException;
 }
