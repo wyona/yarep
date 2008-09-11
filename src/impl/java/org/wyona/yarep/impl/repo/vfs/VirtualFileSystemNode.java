@@ -165,44 +165,15 @@ public class VirtualFileSystemNode extends AbstractNode {
         try {
             log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
+            
             Iterator iterator = this.properties.values().iterator();
-            Document luceneDoc = new Document();
             while (iterator.hasNext()) {
                 Property property = (Property)iterator.next();
                 writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + ">:" + property.getValueAsString());
-
-                if (property.getValueAsString() != null) {
-                    // Add the property to the lucene document
-                    // TODO: write typed property value to index. Is this actually possible?
-                    //log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
-                    luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
-                } else {
-                    log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + this.getPath() + ")!");
-                }
+                repository.getIndexer().index(this, property);
             }
             writer.flush();
             writer.close();
-
-            // Add path as field such that found properties can be related to a path
-            luceneDoc.add(new Field("_PATH", this.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
-            IndexWriter iw = null;
-            try {
-                iw = getRepository().createPropertiesIndexWriter();
-            } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + this.getPath() + "' will not be indexed!");
-                return;
-            }
-            if (iw != null) {
-                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", this.getPath()), luceneDoc);
-                // Make sure to close the IndexWriter and release the lock!
-                iw.close();
-                //iw.flush();
-                if (log.isDebugEnabled()) log.debug("Index node: " + this.getPath());
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("No property index configured, hence do not index properties of node: " + this.getPath());
-                }
-            }
         } catch (Exception e) {
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);
         }
