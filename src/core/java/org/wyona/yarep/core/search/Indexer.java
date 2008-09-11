@@ -5,6 +5,8 @@ import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.Repository;
 
+import java.io.File;
+
 /**
  *  Search indexer interface
  */
@@ -14,10 +16,10 @@ public interface Indexer {
      * Configure indexer
      *
      * @param searchIndexConfig The part of the yarep repository configuration containing the search/index configuration
-     * @param configParent The directory where the yarep repository configuration is located (useful when resolving relative paths of references files, for example Tika config). TODO: Maybe replace later with a resolver!
+     * @param configFile The file where the yarep repository configuration is located (useful when resolving relative paths of referenced files, for example Tika config). TODO: Maybe replace later with a resolver!
      * @param repo Yarep Repository which contains content to be indexed
      */
-    public void configure(Configuration searchIndexConfig, String configParent, Repository repo) throws SearchException;
+    public void configure(Configuration searchIndexConfig, File configFile, Repository repo) throws SearchException;
     
     /**
      * (Re-)Index content of node
