@@ -1,0 +1,96 @@
+package org.wyona.yarep.impl.search.lucene;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.log4j.Logger;
+import org.apache.lucene.search.IndexSearcher;
+import org.wyona.yarep.core.NoSuchNodeException;
+import org.wyona.yarep.core.Node;
+import org.wyona.yarep.core.Repository;
+import org.wyona.yarep.core.search.SearchException;
+import org.wyona.yarep.core.search.Searcher;
+
+import java.io.File;
+
+/**
+ * Lucene implementation of searcher
+ */
+public class LuceneSearcher implements Searcher {
+    
+    static Logger log = Logger.getLogger(LuceneSearcher.class);
+    private LuceneConfig config;
+    
+    public void configure(Configuration searchIndexConfig, File configFile, Repository repo) throws SearchException {
+        this.config = new LuceneConfig(searchIndexConfig, configFile.getParent(), repo);
+    }
+    
+    /**
+     * Search content
+     */
+    public Node[] search(String query) throws SearchException {
+        try {
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
+            if (searcher != null) {
+                try {
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", config.getFulltextAnalyzer()).parse(query);
+                    org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
+                    log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
+                    Node[] results = new Node[hits.length()];
+                    for (int i = 0; i < results.length;i++) {
+                        results[i] = config.getRepo().getNode(hits.doc(i).getField("_PATH").stringValue());
+                    }
+                    return results;
+                } catch (Exception e) {
+                    log.error(e, e);
+                    throw new SearchException(e.getMessage(),e);
+                }
+            } else {
+                log.warn("No search index seems to be configured!");
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new SearchException(e.getMessage(),e);
+        }
+        return null;
+    }
+
+    /**
+     * Search property
+     */
+    public Node[] searchProperty(String pName, String pValue, String path) throws SearchException {
+        try {
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
+            if (searcher != null) {
+                try {
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(pName, config.getPropertyAnalyzer()).parse(pValue);
+                    org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
+                    log.info("Number of matching documents: " + hits.length());
+                    List results = new ArrayList();
+                    for (int i = 0; i < hits.length(); i++) {
+                        try {
+                            String resultPath = hits.doc(i).getField("_PATH").stringValue();
+                            
+                            // subtree filter
+                            if (resultPath.startsWith(path)) {
+                                results.add(config.getRepo().getNode(resultPath));
+                            }
+                        } catch (NoSuchNodeException nsne) {
+                            log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
+                        }
+                    }
+                    return (Node[])results.toArray(new Node[results.size()]);
+                    
+                } catch (Exception e) {
+                    log.error(e, e);
+                    throw new SearchException(e.getMessage(),e);
+                }
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new SearchException(e.getMessage(),e);
+        }
+        return null;
+    }
+}
