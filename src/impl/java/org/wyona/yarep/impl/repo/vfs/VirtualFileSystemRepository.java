@@ -165,25 +165,29 @@ public class VirtualFileSystemRepository implements Repository {
             log.debug("Alternative: " + alternative);
             log.debug("Mime type of directory listing: " + dirListingMimeType);
 
-            Configuration searchConfig = config.getChild("search", false);
-            if(searchConfig == null) {
-                //DEPRECATED
+            Configuration searchConfig = config.getChild("search-index", false);
+            if(searchConfig != null && searchConfig.getNamespace() != null && searchConfig.getNamespace().equals("http://www.wyona.org/yarep/search/2.0")) {
+                log.info("Use index/search configuration version 2.0!");
+            } else {
+                log.warn("Use deprecated configuration version 1.0!");
                 searchConfig = config.getChild("search-index", false);
+                if (searchConfig == null) {
+                    autoIndexer = false;
+                }
             }
             
-            String indexerClass = searchConfig.getAttribute("indexer-class","org.wyona.yarep.impl.search.lucene.LuceneIndexer");
+            String indexerClass = "org.wyona.yarep.impl.search.lucene.LuceneIndexer"; // Default
+            String searcherClass = "org.wyona.yarep.impl.search.lucene.LuceneSearcher"; // Default
+            if (searchConfig != null) {
+                indexerClass = searchConfig.getAttribute("indexer-class","org.wyona.yarep.impl.search.lucene.LuceneIndexer");
+                searcherClass = searchConfig.getAttribute("searcher-class","org.wyona.yarep.impl.search.lucene.LuceneSearcher");
+            }
+
             indexer = (Indexer) Class.forName(indexerClass).newInstance();
             indexer.configure(searchConfig, configFile, this);
             
-            String searcherClass = searchConfig.getAttribute("searcher-class","org.wyona.yarep.impl.search.lucene.LuceneSearcher");
             searcher = (Searcher) Class.forName(searcherClass).newInstance();
             searcher.configure(searchConfig, configFile, this);
-            
-            if (searchConfig != null) {
-                autoIndexer = searchConfig.getChild("auto-indexing").getAttributeAsBoolean("boolean", true);
-            } else {
-                autoIndexer = false;
-            }
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
