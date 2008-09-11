@@ -36,6 +36,7 @@ import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
+import org.wyona.yarep.core.search.Indexer;
 
 /**
  * Node based file system repository.
@@ -534,4 +535,20 @@ public class FileSystemRepository implements Repository {
     public boolean isFallbackEnabled() {
         return fallback;
     }
+    
+    /**
+     * TODO: not implemented yet.
+     */
+    public org.wyona.yarep.core.search.Indexer getIndexer() {
+        log.warn("TODO: not implemented yet.");
+        return null;
+    }
+    
+    /**
+     * TODO: not implemented yet.
+     */
+    public org.wyona.yarep.core.search.Searcher getSearcher() {
+        log.warn("TODO: not implemented yet.");
+        return null;
+    }    
 }
