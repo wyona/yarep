@@ -168,6 +168,7 @@ public class VirtualFileSystemRepository implements Repository {
             Configuration searchConfig = config.getChild("search-index", false);
             if(searchConfig != null && searchConfig.getNamespace() != null && searchConfig.getNamespace().equals("http://www.wyona.org/yarep/search/2.0")) {
                 log.info("Use index/search configuration version 2.0!");
+                autoIndexer = searchConfig.getChild("auto-indexing",false).getAttributeAsBoolean("boolean",false);
             } else {
                 log.warn("Use deprecated configuration version 1.0!");
                 searchConfig = config.getChild("search-index", false);
