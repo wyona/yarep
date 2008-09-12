@@ -1,6 +1,7 @@
 package org.wyona.yarep.impl.search.lucene;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -152,8 +153,15 @@ public class LuceneIndexer implements Indexer {
    private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
        IndexWriter iw = null;
        if (indexDir != null) {
+           //TODO: if (indexDir.isDirectory()) is probably not needed, try catch (FileNotFoundException e) should be enough
            if (indexDir.isDirectory()) {
-               iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
+               try {
+                   iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
+               } catch (FileNotFoundException e) {
+                   //probably it got an instance of the writer and didn't index anything so it's missing the segemnts files. 
+                   //create a new index  
+                   iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
+               }
            } else {
                iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
            }
