@@ -82,7 +82,7 @@ import org.wyona.yarep.core.search.Searcher;
  *       <li>TODO: allow to specify tika config file</li>
  *     </ul>
  *   </li>
- *   <li>search (optional): enable indexing/searching of repository content<br/>
+ *   <li>search (optional) (ns = http://www.wyona.org/yarep/search/2.0): enable indexing/searching of repository content<br/>
  *     Element/Attributes:
  *     <ul>
  *       <li>search/indexer-class: class of yarep Indexer implementation</li>
