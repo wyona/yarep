@@ -47,20 +47,24 @@ import org.wyona.yarep.core.search.Searcher;
  *   &lt;name&gt;Test Repository&lt;/name&gt;
  *   &lt;content src="data"/&gt;
  *   &lt;meta src="yarep-data"/&gt;
- *   &lt;search indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
- *     &lt;auto-indexing boolean="true"/>
- *     &lt;index-location file="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index"/>
- *     &lt;index-fulltext boolean="true"/>
- *     &lt;index-properties boolean="true"/>
- *     &lt;!-- lucene configuration, just in case the default implementation (Lucene) is used -->
- *     &lt;lucene xmlns:lucene="http://lucene.apache.org/1.0">
- *       &lt;!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
- *       &lt;lucene:local-tika-config file="tika-config.xml"/>
- *       &lt;lucene:fulltext-analyzer class=""/>
- *       &lt;lucene:property-analyzer class=""/>
- *       &lt;lucene:write-lock-timeout ms="3000"/>
- *     &lt;/lucene>
- *   &lt;/search>
+ *     &lt;s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
+ *       &lt;auto-indexing boolean="true"/>
+ *       &lt;index-location file="index"/>
+ *       &lt;index-fulltext boolean="true"/>
+ *       &lt;index-properties boolean="true"/>
+ *       &lt;lucene>
+ *         &lt;!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
+ *         &lt;local-tika-config file="tika-config.xml"/>
+
+ *         &lt;!-- if fulltext-analyzer/class is not set it will use org.apache.lucene.analysis.standard.StandardAnalyzer-->
+ *         &lt;fulltext-analyzer class="org.apache.lucene.analysis.standard.StandardAnalyzer"/>
+
+ *         &lt;!-- if property-analyzer/class is not set it will use org.apache.lucene.analysis.WhitespaceAnalyzer-->
+ *         &lt;property-analyzer class="org.apache.lucene.analysis.WhitespaceAnalyzer"/>
+
+ *         &lt;write-lock-timeout ms="3000"/>
+ *       &lt;/lucene>
+ * &lt;/s:search-index>
  * &lt;/repository&gt;
  * </pre>
  * Explanation:
