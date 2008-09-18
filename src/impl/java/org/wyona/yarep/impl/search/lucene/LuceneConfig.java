@@ -69,6 +69,8 @@ public class LuceneConfig {
                 
                 if (isFulltextIndexingEnabled) {
                     fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                    //TODO: As far as i understand it, lucene indexWriter and indexSearcher want a directory not a file
+                    //and if i understand the following if statement right searchIndexSrcFile could be a file and will become fulltextSearchIndexFile
                     if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
                         fulltextSearchIndexFile = searchIndexSrcFile;
                     }
