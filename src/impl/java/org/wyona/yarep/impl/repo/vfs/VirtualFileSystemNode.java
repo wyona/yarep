@@ -170,7 +170,9 @@ public class VirtualFileSystemNode extends AbstractNode {
             while (iterator.hasNext()) {
                 Property property = (Property)iterator.next();
                 writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + ">:" + property.getValueAsString());
-                repository.getIndexer().index(this, property);
+                if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
+                    repository.getIndexer().index(this, property);
+                }
             }
             writer.flush();
             writer.close();

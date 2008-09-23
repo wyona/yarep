@@ -65,7 +65,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
             VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
             
-            if(vfsRepo.isAutoIndexer()) {
+            if(vfsRepo.isAutoFulltextIndexingEnabled()) {
                 vfsRepo.getIndexer().index(node);
             }
         } catch (Exception e) {

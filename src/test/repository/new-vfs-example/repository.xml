@@ -36,10 +36,9 @@
 -->
 
   <s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
-    <auto-indexing boolean="true"/>
     <index-location file="index"/>
-    <index-fulltext boolean="true"/>
-    <index-properties boolean="true"/>
+    <repo-auto-index-fulltext boolean="true"/>
+    <repo-auto-index-properties boolean="true"/>
     <lucene>
       <!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
       <local-tika-config file="tika-config.xml"/>

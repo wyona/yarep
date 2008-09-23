@@ -27,8 +27,6 @@ public class LuceneConfig {
     private Analyzer propertyAnalyzer = null;
     private String FULLTEXT_INDEX_DIR = "fulltext";
     private String PROPERTIES_INDEX_DIR = "properties";
-    private boolean isFulltextIndexingEnabled = false;
-    private boolean isPropertyIndexingEnabled = false;
     private TikaConfig tikaConfig;
     private int writeLockTimeout = 0;
     private Repository repo;
@@ -43,7 +41,7 @@ public class LuceneConfig {
     public void configure(Configuration searchConfig, String configParent) throws SearchException {
         try {
             if (searchConfig != null) {
-                if(searchConfig.getNamespace() == null) {
+                if(searchConfig.getNamespace() == "" || searchConfig.getNamespace() == null) {
                     deprecatedConfigure(searchConfig, configParent);
                     return;
                 }
@@ -52,9 +50,6 @@ public class LuceneConfig {
                 if (!searchIndexSrcFile.isAbsolute()) {
                     searchIndexSrcFile = FileUtil.file(configParent, searchIndexSrcFile.toString());
                 }
-
-                isFulltextIndexingEnabled = searchConfig.getChild("index-fulltext").getAttributeAsBoolean("boolean", true);
-                isPropertyIndexingEnabled = searchConfig.getChild("index-properties").getAttributeAsBoolean("boolean", true);
 
                 Configuration luceneConfig = searchConfig.getChild("lucene");
                 
@@ -65,48 +60,44 @@ public class LuceneConfig {
                 String propertyAnalyzerClass = luceneConfig.getChild("property-analyzer").getAttribute("class","org.apache.lucene.analysis.WhitespaceAnalyzer");
                 propertyAnalyzer = (Analyzer) Class.forName(propertyAnalyzerClass).newInstance();
 
-                writeLockTimeout = 14;//luceneConfig.getChild("write-lock-timeout").getAttributeAsInteger("ms");
                 
-                if (isFulltextIndexingEnabled) {
-                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
-                    //TODO: As far as i understand it, lucene indexWriter and indexSearcher want a directory not a file
-                    //and if i understand the following if statement right searchIndexSrcFile could be a file and will become fulltextSearchIndexFile
-                    if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
-                        fulltextSearchIndexFile = searchIndexSrcFile;
+                fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                //TODO: As far as i understand it, lucene indexWriter and indexSearcher want a directory not a file
+                //and if i understand the following if statement right searchIndexSrcFile could be a file and will become fulltextSearchIndexFile
+                if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
+                    fulltextSearchIndexFile = searchIndexSrcFile;
+                }
+                log.info("Fulltext search index path: " + fulltextSearchIndexFile);
+                
+                // Create a lucene search index if it doesn't exist yet
+                // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
+                
+                String localTikaConfigSrc = luceneConfig.getChild("local-tika-config").getAttribute("file", null);
+                if (localTikaConfigSrc != null) {
+                    File localTikaConfigFile = new File(localTikaConfigSrc);
+                    if (!localTikaConfigFile.isAbsolute()) {
+                        localTikaConfigFile = FileUtil.file(configParent, localTikaConfigFile.toString());
                     }
-                    log.info("Fulltext search index path: " + fulltextSearchIndexFile);
-                    
-                    // Create a lucene search index if it doesn't exist yet
-                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
-                    //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
-
-                    String localTikaConfigSrc = luceneConfig.getChild("local-tika-config").getAttribute("file", null);
-                    if (localTikaConfigSrc != null) {
-                        File localTikaConfigFile = new File(localTikaConfigSrc);
-                        if (!localTikaConfigFile.isAbsolute()) {
-                            localTikaConfigFile = FileUtil.file(configParent, localTikaConfigFile.toString());
-                        }
-                        if (localTikaConfigFile.isFile()) {
-                            log.warn("Use local tika config: " + localTikaConfigFile.getAbsolutePath());
-                            tikaConfig = new TikaConfig(localTikaConfigFile);
-                        } else {
-                            log.error("No such file: " + localTikaConfigFile + " (Default tika config will be used)");
-                            tikaConfig = TikaConfig.getDefaultConfig();
-                        }
+                    if (localTikaConfigFile.isFile()) {
+                        log.warn("Use local tika config: " + localTikaConfigFile.getAbsolutePath());
+                        tikaConfig = new TikaConfig(localTikaConfigFile);
                     } else {
-                        log.info("Use default tika config");
+                        log.error("No such file: " + localTikaConfigFile + " (Default tika config will be used)");
                         tikaConfig = TikaConfig.getDefaultConfig();
                     }
+                } else {
+                    log.info("Use default tika config");
+                    tikaConfig = TikaConfig.getDefaultConfig();
                 }
-
-                if (isPropertyIndexingEnabled) {
-                    // Create properties index dir subdirectory in order to save the lucene index for searching on properties
-                    propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
-                    log.warn("Properties search index path: " + propertiesSearchIndexFile);
-                    
-                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
-                    //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
-                }
+                
+                // Create properties index dir subdirectory in order to save the lucene index for searching on properties
+                propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
+                log.warn("Properties search index path: " + propertiesSearchIndexFile);
+                
+                // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
+                writeLockTimeout = 14;//luceneConfig.getChild("write-lock-timeout").getAttributeAsInteger("ms");
 
             } else {
                 log.warn("No search index dir (<search-index src=\"...\"/>) configured within: " + configParent);
@@ -126,7 +117,6 @@ public class LuceneConfig {
      */
     public void deprecatedConfigure(Configuration searchIndexConfig, String configParent) throws SearchException {
         log.warn("this config schema is deprecated! use the new schema TODO: add config Example.");
-        
         try {
             if (searchIndexConfig != null) {
                 File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
@@ -145,45 +135,41 @@ public class LuceneConfig {
                 
                 indexer = new LuceneIndexer();
                 
-                if (isFulltextIndexingEnabled) {
-                    fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
-                    if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
-                        fulltextSearchIndexFile = searchIndexSrcFile;
+                fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
+                if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
+                    fulltextSearchIndexFile = searchIndexSrcFile;
+                }
+                log.info("Fulltext search index path: " + fulltextSearchIndexFile);
+                
+                // Create a lucene search index if it doesn't exist yet
+                // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
+                
+                String localTikaConfigSrc = searchIndexConfig.getAttribute("local-tika-config", null);
+                if (localTikaConfigSrc != null) {
+                    File localTikaConfigFile = new File(localTikaConfigSrc);
+                    if (!localTikaConfigFile.isAbsolute()) {
+                        localTikaConfigFile = FileUtil.file(configParent, localTikaConfigFile.toString());
                     }
-                    log.info("Fulltext search index path: " + fulltextSearchIndexFile);
-                    
-                    // Create a lucene search index if it doesn't exist yet
-                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
-                    //this.indexWriter = createIndexWriter(fulltextSearchIndexFile, analyzer);
-                    
-                    String localTikaConfigSrc = searchIndexConfig.getAttribute("local-tika-config", null);
-                    if (localTikaConfigSrc != null) {
-                        File localTikaConfigFile = new File(localTikaConfigSrc);
-                        if (!localTikaConfigFile.isAbsolute()) {
-                            localTikaConfigFile = FileUtil.file(configParent, localTikaConfigFile.toString());
-                        }
-                        if (localTikaConfigFile.isFile()) {
-                            log.warn("Use local tika config: " + localTikaConfigFile.getAbsolutePath());
-                            tikaConfig = new TikaConfig(localTikaConfigFile);
-                        } else {
-                            log.error("No such file: " + localTikaConfigFile + " (Default tika config will be used)");
-                            tikaConfig = TikaConfig.getDefaultConfig();
-                        }
+                    if (localTikaConfigFile.isFile()) {
+                        log.warn("Use local tika config: " + localTikaConfigFile.getAbsolutePath());
+                        tikaConfig = new TikaConfig(localTikaConfigFile);
                     } else {
-                        log.info("Use default tika config");
+                        log.error("No such file: " + localTikaConfigFile + " (Default tika config will be used)");
                         tikaConfig = TikaConfig.getDefaultConfig();
                     }
+                } else {
+                    log.info("Use default tika config");
+                    tikaConfig = TikaConfig.getDefaultConfig();
                 }
                 
-                if (isPropertyIndexingEnabled) {
-                    // Create properties index dir subdirectory in order to save the lucene index for searching on properties
-                    propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
-                    log.warn("Properties search index path: " + propertiesSearchIndexFile);
-                    
-                    // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
-                    //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
-                }
+                // Create properties index dir subdirectory in order to save the lucene index for searching on properties
+                propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
+                log.warn("Properties search index path: " + propertiesSearchIndexFile);
                 
+                // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
+                //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
+                writeLockTimeout = 14;//searchIndexConfig.getAttribute("write-lock-timeout", 14);
             } else {
                 log.warn("No search index dir (<search-index src=\"...\"/>) configured.");
             }
@@ -223,14 +209,6 @@ public class LuceneConfig {
 
     public TikaConfig getTikaConfig() {
         return tikaConfig;
-    }
-
-    public boolean isFulltextIndexingEnabled() {
-        return isFulltextIndexingEnabled;
-    }
-
-    public boolean isPropertyIndexingEnabled() {
-        return isPropertyIndexingEnabled;
     }
     
     public int getWriteLockTimeout() {

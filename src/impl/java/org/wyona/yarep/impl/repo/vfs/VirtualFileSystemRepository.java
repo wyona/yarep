@@ -48,10 +48,9 @@ import org.wyona.yarep.core.search.Searcher;
  *   &lt;content src="data"/&gt;
  *   &lt;meta src="yarep-data"/&gt;
  *     &lt;s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
- *       &lt;auto-indexing boolean="true"/>
  *       &lt;index-location file="index"/>
- *       &lt;index-fulltext boolean="true"/>
- *       &lt;index-properties boolean="true"/>
+ *       &lt;repo-auto-index-fulltext boolean="true"/>
+ *       &lt;repo-auto-index-properties boolean="true"/>
  *       &lt;lucene>
  *         &lt;!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
  *         &lt;local-tika-config file="tika-config.xml"/>
@@ -107,7 +106,8 @@ public class VirtualFileSystemRepository implements Repository {
     protected Storage storage;
     private String alternative =  null;
     private String dirListingMimeType = "application/xml";
-    private boolean autoIndexer = true;
+    private boolean isFulltextIndexingEnabled = false;
+    private boolean isPropertyIndexingEnabled = false;
     private Indexer indexer = null;
     private Searcher searcher = null;
     
@@ -172,12 +172,17 @@ public class VirtualFileSystemRepository implements Repository {
             Configuration searchConfig = config.getChild("search-index", false);
             if(searchConfig != null && searchConfig.getNamespace() != null && searchConfig.getNamespace().equals("http://www.wyona.org/yarep/search/2.0")) {
                 log.info("Use index/search configuration version 2.0!");
-                autoIndexer = searchConfig.getChild("auto-indexing",false).getAttributeAsBoolean("boolean",false);
+                isFulltextIndexingEnabled = searchConfig.getChild("repo-auto-index-fulltext").getAttributeAsBoolean("boolean", true);
+                isPropertyIndexingEnabled = searchConfig.getChild("repo-auto-index-properties").getAttributeAsBoolean("boolean", true);
             } else {
                 log.warn("Use deprecated configuration version 1.0!");
                 searchConfig = config.getChild("search-index", false);
-                if (searchConfig == null) {
-                    autoIndexer = false;
+                if (searchConfig != null) {
+                    isFulltextIndexingEnabled = searchConfig.getAttributeAsBoolean("index-fulltext", true);
+                    isPropertyIndexingEnabled = searchConfig.getAttributeAsBoolean("index-properties", true);
+                } else {
+                    isFulltextIndexingEnabled = false;
+                    isPropertyIndexingEnabled = false;
                 }
             }
             
@@ -488,7 +493,11 @@ public class VirtualFileSystemRepository implements Repository {
         return searcher;
     }
 
-    protected boolean isAutoIndexer() {
-        return autoIndexer;
+    public boolean isAutoFulltextIndexingEnabled() {
+        return isFulltextIndexingEnabled;
     }
+
+    public boolean isAutoPropertyIndexingEnabled() {
+        return isPropertyIndexingEnabled;
+    }    
 }
