@@ -31,6 +31,9 @@ public class LuceneSearcher implements Searcher {
      */
     public Node[] search(String query) throws SearchException {
         try {
+            //TODO: this is not really nice re performance, it reads the index form the file-system for each search
+            //it would be nice to initialize IndexSearcher at startup and reuse the IndexSearcher 
+            //but in this case the IndexSearcher then uses the index as it was at startup and not reloading it when the index has changed at runtime
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
                 try {
@@ -41,12 +44,15 @@ public class LuceneSearcher implements Searcher {
                     for (int i = 0; i < results.length;i++) {
                         results[i] = config.getRepo().getNode(hits.doc(i).getField("_PATH").stringValue());
                     }
+                    searcher.close();
                     return results;
                 } catch (Exception e) {
+                    searcher.close();
                     log.error(e, e);
                     throw new SearchException(e.getMessage(),e);
                 }
             } else {
+                searcher.close();
                 log.warn("No search index seems to be configured!");
             }
         } catch (Exception e) {
@@ -61,6 +67,9 @@ public class LuceneSearcher implements Searcher {
      */
     public Node[] searchProperty(String pName, String pValue, String path) throws SearchException {
         try {
+            //TODO: this is not really nice re performance, it reads the index form the file-system for each search
+            //it would be nice to initialize IndexSearcher at startup and reuse the IndexSearcher 
+            //but in this case the IndexSearcher then uses the index as it was at startup and not reloading it when the index has changed at runtime            
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
                 try {
@@ -80,6 +89,7 @@ public class LuceneSearcher implements Searcher {
                             log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
                         }
                     }
+                    searcher.close();
                     return (Node[])results.toArray(new Node[results.size()]);
                     
                 } catch (Exception e) {
