@@ -527,10 +527,7 @@ public class VirtualFileSystemNode extends AbstractNode {
 
     public Revision getRevision(String revisionName) throws NoSuchRevisionException,
             RepositoryException {
-        if (!areRevisionsRead) {
-            readRevisions();
-        }
-        return super.getRevision(revisionName);
+        return new VirtualFileSystemRevision(this, revisionName);
     }
 
     public Revision getRevisionByTag(String tag) throws NoSuchRevisionException,
