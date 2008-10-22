@@ -1,6 +1,7 @@
 package org.wyona.yarep.impl.repo.vfs;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -11,6 +12,7 @@ import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Category;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -506,20 +508,36 @@ public class VirtualFileSystemRepository implements Repository {
      */
     public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
         try {
+            // Copy content of node
             Node srcNode = srcRepository.getNode(srcPath);
             if (existsNode(destPath)) {
                 log.warn("Node '" + destPath + "' already exists and will be overwritten!");
             }
             Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
             OutputStream os = destNode.getOutputStream();
-            org.apache.commons.io.IOUtils.copy(srcNode.getInputStream(), os);
+            IOUtils.copy(srcNode.getInputStream(), os);
             os.close();
 
             log.warn("TODO: Implement import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
+
+            // Copy revisions of node
             Revision[] revisions = srcNode.getRevisions();
             for (int i = 0; i < revisions.length; i++) {
-                log.warn("DEBUG: Revision: " + revisions[i].getRevisionName());
+                log.warn("DEBUG: Copy revision: " + revisions[i].getRevisionName());
+                File revisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(revisions[i].getRevisionName());
+                if (!new File(revisionContentFile.getParent()).exists())
+                    new File(revisionContentFile.getParent()).mkdirs();
+                FileOutputStream out = new FileOutputStream(revisionContentFile);
+                IOUtils.copy(revisions[i].getInputStream(), out);
+                out.close();
+
+                File revisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(revisions[i].getRevisionName());
+                log.warn("DEBUG: Copy revision meta file: " + revisionMetaFile);
             }
+
+            // Copy meta/properties of node
+            File metaFile = ((VirtualFileSystemNode) destNode).getMetaFile();
+            log.warn("DEBUG: Copy meta file: " + metaFile);
             org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
             for (int i = 0; i < properties.length; i++) {
                 log.warn("DEBUG: Property: " + properties[i].getName());
