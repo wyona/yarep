@@ -505,8 +505,28 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#importNode(String, String, Repository)
      */
     public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
-        // TODO: Implement importNode
-        log.warn("Not implemented yet!");
-        return false;
+        try {
+            Node srcNode = srcRepository.getNode(srcPath);
+            if (existsNode(destPath)) {
+                log.warn("Node '" + destPath + "' already exists and will be overwritten!");
+            }
+            Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
+            OutputStream os = destNode.getOutputStream();
+            org.apache.commons.io.IOUtils.copy(srcNode.getInputStream(), os);
+            os.close();
+
+            log.warn("TODO: Implement import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
+            Revision[] revisions = srcNode.getRevisions();
+            for (int i = 0; i < revisions.length; i++) {
+                log.warn("DEBUG: Revision: " + revisions[i].getRevisionName());
+            }
+            org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
+            for (int i = 0; i < properties.length; i++) {
+                log.warn("DEBUG: Property: " + properties[i].getName());
+            }
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
+        return true;
     }
 }
