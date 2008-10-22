@@ -281,4 +281,14 @@ public interface Repository {
      * @throws RepositoryException
      */
     public Searcher getSearcher() throws RepositoryException;
+
+    /**
+     * Import node from another (source) repository without modifying meta data (for example last modified).
+     * @param destPath Absolute destination path of node
+     * @param srcPath Absolute source path of node
+     * @param srcRepository Source repository from where node shall be exported/imported
+     * @return true if node was successfully imported
+     * @throws RepositoryException repository error
+     */
+    public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException;
 }

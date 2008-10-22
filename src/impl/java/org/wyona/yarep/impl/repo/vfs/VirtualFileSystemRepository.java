@@ -499,5 +499,14 @@ public class VirtualFileSystemRepository implements Repository {
 
     public boolean isAutoPropertyIndexingEnabled() {
         return isPropertyIndexingEnabled;
-    }    
+    }
+
+    /**
+     * @see org.wyona.yarep.core.Repository#importNode(String, String, Repository)
+     */
+    public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
+        // TODO: Implement importNode
+        log.warn("Not implemented yet!");
+        return false;
+    }
 }

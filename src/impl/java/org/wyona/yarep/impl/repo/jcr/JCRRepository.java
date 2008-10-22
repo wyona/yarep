@@ -443,5 +443,14 @@ public class JCRRepository implements Repository {
     public org.wyona.yarep.core.search.Searcher getSearcher() {
         log.warn("TODO: not implemented yet.");
         return null;
-    }  
+    }
+
+    /**
+     * @see org.wyona.yarep.core.Repository#importNode(String, String, Repository)
+     */
+    public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
+        // TODO: Implement importNode
+        log.warn("Not implemented yet!");
+        return false;
+    }
 }
