@@ -116,7 +116,7 @@ public class LuceneConfig {
      * @param configParent
      */
     public void deprecatedConfigure(Configuration searchIndexConfig, String configParent) throws SearchException {
-        log.warn("this config schema is deprecated! use the new schema TODO: add config Example.");
+        log.warn("This config schema is deprecated (" + repo.getConfigFile() + ")! Use the new schema described at http://svn.wyona.com/repos/public/yarep/trunk/src/test/repository/new-vfs-example/repository.xml");
         try {
             if (searchIndexConfig != null) {
                 File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
