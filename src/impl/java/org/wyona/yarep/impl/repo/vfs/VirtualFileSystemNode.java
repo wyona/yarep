@@ -82,6 +82,9 @@ public class VirtualFileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * Init repository
+     */
     protected void init() throws RepositoryException {
         
         this.contentDir = getRepository().getContentDir();
@@ -340,19 +343,21 @@ public class VirtualFileSystemNode extends AbstractNode {
         }*/
     }
     
+    /**
+     * Create revision of this node
+     * @param comment Comment re this new revision
+     */
     protected Revision createRevision(String comment) throws RepositoryException {
         if (!areRevisionsRead) {
             readRevisions();
         }
         try {
-            File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
             String revisionName = String.valueOf(System.currentTimeMillis());
-            File revisionDir = new File(revisionsBaseDir, revisionName);
-            
-            File destContentFile = new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
+
+            File destContentFile = getRevisionContentFile(revisionName);
             FileUtils.copyFile(this.contentFile, destContentFile);
         
-            File destMetaFile = new File(revisionDir, META_FILE_NAME);
+            File destMetaFile = getRevisionMetaFile(revisionName);
             FileUtils.copyFile(this.metaFile, destMetaFile);
         
             Revision revision = new VirtualFileSystemRevision(this, revisionName);
@@ -552,4 +557,30 @@ public class VirtualFileSystemNode extends AbstractNode {
         return super.hasRevisionWithTag(tag);
     }
 
+    /**
+     * Get revision content file
+     */
+    public File getRevisionContentFile(String revisionName) {
+        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        File revisionDir = new File(revisionsBaseDir, revisionName);
+            
+        return new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
+    }
+
+    /**
+     * Get revision meta file
+     */
+    public File getRevisionMetaFile(String revisionName) {
+        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        File revisionDir = new File(revisionsBaseDir, revisionName);
+            
+        return new File(revisionDir, META_FILE_NAME);
+    }
+
+    /**
+     * Get meta file
+     */
+    public File getMetaFile() {
+        return metaFile;
+    }
 }
