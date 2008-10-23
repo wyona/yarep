@@ -523,7 +523,7 @@ public class VirtualFileSystemRepository implements Repository {
             // Copy revisions of node
             Revision[] revisions = srcNode.getRevisions();
             for (int i = 0; i < revisions.length; i++) {
-                log.warn("DEBUG: Copy revision: " + revisions[i].getRevisionName());
+                log.info("Copy revision: " + revisions[i].getRevisionName());
                 File revisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(revisions[i].getRevisionName());
                 if (!new File(revisionContentFile.getParent()).exists())
                     new File(revisionContentFile.getParent()).mkdirs();
@@ -553,11 +553,10 @@ public class VirtualFileSystemRepository implements Repository {
     private boolean copyProperties(Node srcNode, File destMetaFile) throws Exception {
         if (!new File(destMetaFile.getParent()).exists())
             new File(destMetaFile.getParent()).mkdirs();
-        log.warn("DEBUG: Copy properties: " + destMetaFile);
+        log.info("Copy properties: " + destMetaFile);
         java.io.PrintWriter writer = new java.io.PrintWriter(new FileOutputStream(destMetaFile));
         org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
         for (int i = 0; i < properties.length; i++) {
-            log.warn("DEBUG: Property: " + properties[i].getName());
             writer.println(properties[i].getName() + "<" + org.wyona.yarep.core.PropertyType.getTypeName(properties[i].getType()) + ">:" + properties[i].getValueAsString());
         }
         writer.flush();
