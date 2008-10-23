@@ -518,7 +518,7 @@ public class VirtualFileSystemRepository implements Repository {
             IOUtils.copy(srcNode.getInputStream(), os);
             os.close();
 
-            log.warn("TODO: Implement import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
+            log.info("Import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
 
             // Copy revisions of node
             Revision[] revisions = srcNode.getRevisions();
