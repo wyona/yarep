@@ -531,20 +531,37 @@ public class VirtualFileSystemRepository implements Repository {
                 IOUtils.copy(revisions[i].getInputStream(), out);
                 out.close();
 
-                File revisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(revisions[i].getRevisionName());
-                log.warn("DEBUG: Copy revision meta file: " + revisionMetaFile);
+                // Copy meta/properties of revision
+                File destRevisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(revisions[i].getRevisionName());
+                copyProperties(revisions[i], destRevisionMetaFile);
             }
 
             // Copy meta/properties of node
             File metaFile = ((VirtualFileSystemNode) destNode).getMetaFile();
-            log.warn("DEBUG: Copy meta file: " + metaFile);
-            org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
-            for (int i = 0; i < properties.length; i++) {
-                log.warn("DEBUG: Property: " + properties[i].getName());
-            }
+            copyProperties(srcNode, metaFile);
         } catch (Exception e) {
             throw new RepositoryException(e);
         }
+        return true;
+    }
+
+    /**
+     * Copy properties of source node to destination meta file (also see VirtualFileSystemNode#saveProperties())
+     * @param srcNode Source node containing properties
+     * @param destMetaFile Destination meta file where properties of source node shall be copied to
+     */
+    private boolean copyProperties(Node srcNode, File destMetaFile) throws Exception {
+        if (!new File(destMetaFile.getParent()).exists())
+            new File(destMetaFile.getParent()).mkdirs();
+        log.warn("DEBUG: Copy properties: " + destMetaFile);
+        java.io.PrintWriter writer = new java.io.PrintWriter(new FileOutputStream(destMetaFile));
+        org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
+        for (int i = 0; i < properties.length; i++) {
+            log.warn("DEBUG: Property: " + properties[i].getName());
+            writer.println(properties[i].getName() + "<" + org.wyona.yarep.core.PropertyType.getTypeName(properties[i].getType()) + ">:" + properties[i].getValueAsString());
+        }
+        writer.flush();
+        writer.close();
         return true;
     }
 }
