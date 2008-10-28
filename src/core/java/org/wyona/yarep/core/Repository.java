@@ -100,7 +100,7 @@ public interface Repository {
     
     /**
      * @return true if node has been deleted, otherwise false
-     * @deprecated
+     * @deprecated Use Node.delete()
      */
     public boolean delete(Path path) throws RepositoryException;
     
@@ -108,7 +108,7 @@ public interface Repository {
      * In order to allow deleting collections
      *
      * @return true if node has been deleted, otherwise false
-     * @deprecated
+     * @deprecated Use Node.delete()
      */
     public boolean delete(Path path, boolean recursive) throws RepositoryException;
 
