@@ -24,13 +24,13 @@
   <directory mime-type="application/xhtml+xml"/>
 -->
 
-<!--
+<!-- DEPRECATED (please see below)
   <search-index src="/home/michi/src/nutch/build/crawl_mailing_list_yanel_usage/index">
 -->
 
 <!-- The attribute local-tika-config is used to patch the default tika config -->
 <!-- Also see org/apache/tika/tika-config.xml within Tika jar -->
-<!--
+<!-- DEPRECATED (please see below)
   <search-index src="index" index-fulltext="yes" index-properties="yes" local-tika-config="tika-config.xml" write-lock-timeout="3000" auto="true">
   </search-index>
 -->
