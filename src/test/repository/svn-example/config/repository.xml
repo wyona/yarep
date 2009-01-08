@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 
 <repository>
+<!-- NOTE: If no class attribute is specified, then the DefaultRepository implementation is used.
+<repository class="org.wyona.yarep.impl.DefaultRepository">
+-->
   <name>SVN Example</name>
 
   <!-- <paths src="../paths" fallback="true"/> -->
