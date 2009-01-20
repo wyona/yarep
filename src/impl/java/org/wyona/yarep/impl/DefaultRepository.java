@@ -22,7 +22,9 @@ import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
 
 /**
- *
+ * Historically the interfaces {@link org.wyona.yarep.core.Map Map} and {@link org.wyona.yarep.core.Storage Storage} existed before the Repository interface.
+ * The Repository interface does not require a Map and Storage interface specifically, but in 
+ * order to guarantee backwards compatibility the DefaultRepository has been introduced.
  */
 public class DefaultRepository  implements Repository {
 
