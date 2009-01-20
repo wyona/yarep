@@ -513,6 +513,14 @@ public class VirtualFileSystemRepository implements Repository {
             if (existsNode(destPath)) {
                 log.warn("Node '" + destPath + "' already exists and will be overwritten!");
             }
+
+            if (srcNode.isCollection()) {
+                log.warn("This seems to be a collection and hence no data will be imported: " + srcNode.getPath());
+                Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.COLLECTION);
+                // TODO: What about properties?!
+                return true;
+            }
+
             Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
             OutputStream os = destNode.getOutputStream();
             IOUtils.copy(srcNode.getInputStream(), os);
