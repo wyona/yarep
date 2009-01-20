@@ -55,6 +55,12 @@ public class RepositoryFactory {
         try {
             props.load(propertiesURL.openStream());
 
+            repositories = new Vector();
+            if (props.getProperty("configurations").equals("")) {
+                log.warn("There seems to be no repositories configured within " + CONFIGURATION_FILE);
+                return;
+            }
+
             String separator = ",";
             String[] tokens = props.getProperty("configurations").split(separator);
             if (tokens.length % 2 != 0) {
@@ -63,7 +69,6 @@ public class RepositoryFactory {
                 throw new Exception("Wrong number of config parameters: " + CONFIGURATION_FILE);
             }
 
-            repositories = new Vector();
             for (int i = 0;i < tokens.length / 2; i++) {
                 String repoID = tokens[2 * i];
                 String configFilename = tokens[2 * i + 1];
