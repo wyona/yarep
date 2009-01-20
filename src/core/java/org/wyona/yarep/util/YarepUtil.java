@@ -69,8 +69,7 @@ public class YarepUtil {
         
         Node[] childNodes = srcRootNode.getNodes();
         for (int i = 0; i < childNodes.length; i++) {
-            //importNodeRec(childNodes[i], srcRepo, destRepo);
-            copyNodeRec(childNodes[i], destRootNode);
+            importNodeRec(childNodes[i], srcRepo, destRepo);
         }
     }
     
@@ -93,38 +92,6 @@ public class YarepUtil {
         } catch (Exception e) {
             //throw new RepositoryException(e.getMessage(), e);
             log.error("Could not import node: " + srcNode.getPath() + ": " + e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Adds a copy of the source node as a child of the destination node.
-     * Works recursively.
-     * @param srcNode
-     * @param destParentNode
-     * @throws RepositoryException
-     */
-    protected static void copyNodeRec(Node srcNode, Node destParentNode) throws RepositoryException {
-        Node newNode = destParentNode.addNode(srcNode.getName(), srcNode.getType());
-        try {
-            // copy content:
-            if (srcNode.isResource()) {
-                OutputStream os = newNode.getOutputStream();
-                IOUtils.copy(srcNode.getInputStream(), os);
-                os.close();
-            }
-            // copy properties:
-            Property[] properties = srcNode.getProperties();
-            for (int i = 0; i < properties.length; i++) {
-                newNode.setProperty(properties[i]);
-            }
-            // recursively copy children
-            Node[] childNodes = srcNode.getNodes();
-            for (int i = 0; i < childNodes.length; i++) {
-                copyNodeRec(childNodes[i], newNode);
-            }
-        } catch (Exception e) {
-            //throw new RepositoryException(e.getMessage(), e);
-            log.error("Could not copy node: " + srcNode.getPath() + ": " + e.getMessage(), e);
         }
     }
 
