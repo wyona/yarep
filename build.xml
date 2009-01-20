@@ -221,8 +221,8 @@
     <!-- <taskdef name="copyrepository" classpath="${classes.dir}" classname="org.wyona.yarep.tools.ant.CopyRepositoryTask"/> -->
     <taskdef name="copyrepository" classpathref="classpath.run" classname="org.wyona.yarep.tools.ant.CopyRepositoryTask"/>
     <copyrepository
-      srcrepoid="${copy.src.repo.id}"
-      destrepoid="${copy.dest.repo.id}"
+      srcrepoconfigpath="${copy.src.repo.config}"
+      destrepoconfigpath="${copy.dest.repo.config}"
     />
   </target>
 
