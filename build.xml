@@ -207,7 +207,7 @@
     </javadoc>
   </target>
 
-  <target name="compile-tools" description="Build tools" depends="init">
+  <target name="compile-tools" description="Build tools" depends="compile-examples, compile-impl">
     <javac srcdir="src/tools/java" destdir="${classes.dir}"
            classpathref="classpath.impl"
            debug="true"
