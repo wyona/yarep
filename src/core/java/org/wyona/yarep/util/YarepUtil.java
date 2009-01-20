@@ -69,7 +69,30 @@ public class YarepUtil {
         
         Node[] childNodes = srcRootNode.getNodes();
         for (int i = 0; i < childNodes.length; i++) {
+            //importNodeRec(childNodes[i], srcRepo, destRepo);
             copyNodeRec(childNodes[i], destRootNode);
+        }
+    }
+    
+    /**
+     * Imports nodes recursively
+     * @param srcNode Source node
+     * @param srcRepo Source repository
+     * @param destRepo Destination repository
+     * @throws RepositoryException
+     */
+    protected static void importNodeRec(Node srcNode, Repository srcRepo, Repository destRepo) throws RepositoryException {
+        try {
+            String destPath = srcNode.getPath();
+            destRepo.importNode(destPath, srcNode.getPath(), srcRepo);
+            // recursively import children
+            Node[] childNodes = srcNode.getNodes();
+            for (int i = 0; i < childNodes.length; i++) {
+                importNodeRec(childNodes[i], srcRepo, destRepo);
+            }
+        } catch (Exception e) {
+            //throw new RepositoryException(e.getMessage(), e);
+            log.error("Could not import node: " + srcNode.getPath() + ": " + e.getMessage(), e);
         }
     }
     
