@@ -1,14 +1,8 @@
 package org.wyona.yarep.util;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Category;
-
+import org.apache.log4j.Logger;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Path;
-import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
@@ -18,7 +12,7 @@ import org.wyona.yarep.core.RepositoryFactory;
  */
 public class YarepUtil {
 
-    private static Category log = Category.getInstance(YarepUtil.class);
+    private static Logger log = Logger.getLogger(YarepUtil.class);
 
     /**
      *
@@ -65,7 +59,6 @@ public class YarepUtil {
      */
     public static void copyRepository(Repository srcRepo, Repository destRepo) throws RepositoryException {
         Node srcRootNode = srcRepo.getRootNode(); 
-        Node destRootNode = destRepo.getRootNode();
         
         Node[] childNodes = srcRootNode.getNodes();
         for (int i = 0; i < childNodes.length; i++) {
@@ -83,6 +76,7 @@ public class YarepUtil {
     protected static void importNodeRec(Node srcNode, Repository srcRepo, Repository destRepo) throws RepositoryException {
         try {
             String destPath = srcNode.getPath();
+            if (log.isInfoEnabled()) log.info("Importing node to "+destPath+"...");
             destRepo.importNode(destPath, srcNode.getPath(), srcRepo);
             // recursively import children
             Node[] childNodes = srcNode.getNodes();
