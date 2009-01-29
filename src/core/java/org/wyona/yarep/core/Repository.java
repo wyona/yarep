@@ -147,11 +147,6 @@ public interface Repository {
     /**
      * @deprecated
      */
-    public boolean exists(Path path) throws RepositoryException;
-
-    /**
-     * @deprecated
-     */
     public Path[] getChildren(Path path) throws RepositoryException;
 
     /**
@@ -208,6 +203,11 @@ public interface Repository {
      * @throws RepositoryException repository error
      */
     public boolean existsNode(String path) throws RepositoryException;
+
+    /**
+     * @deprecated Because at some point it was decided that it is easier to deal with a string representation of a path instead an object
+     */
+    public boolean exists(Path path) throws RepositoryException;
     
     /**
      * Gets the root node of this repository.
