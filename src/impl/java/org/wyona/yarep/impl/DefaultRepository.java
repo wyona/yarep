@@ -1,6 +1,7 @@
 package org.wyona.yarep.impl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -11,6 +12,7 @@ import java.io.Writer;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Category;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -73,7 +75,7 @@ public class DefaultRepository  implements Repository {
             String pathsClassname = pathConfig.getAttribute("class", null);
             if (pathsClassname != null) {
                 log.debug(pathsClassname);
-                Class pathsClass = Class.forName(pathsClassname);
+                Class<?> pathsClass = Class.forName(pathsClassname);
                 map = (Map) pathsClass.newInstance();
             } else {
                 map = (Map) Class.forName("org.wyona.yarep.impl.DefaultMapImpl").newInstance();
@@ -86,7 +88,7 @@ public class DefaultRepository  implements Repository {
 
             String storageClassname = storageConfig.getAttribute("class", null);
             log.debug(storageClassname);
-            Class storageClass = Class.forName(storageClassname);
+            Class<?> storageClass = Class.forName(storageClassname);
             storage = (Storage) storageClass.newInstance();
             storage.readConfig(storageConfig, configFile);
             log.debug(storage.getClass().getName());
@@ -523,8 +525,94 @@ public class DefaultRepository  implements Repository {
      * @see org.wyona.yarep.core.Repository#importNode(String, String, Repository)
      */
     public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
-        // TODO: Implement importNode
-        log.warn("Not implemented yet!");
-        return false;
+        try {
+            // Copy content of node
+            Node srcNode = srcRepository.getNode(srcPath);
+            if (existsNode(destPath)) {
+                log.warn("Node '" + destPath + "' already exists and will be overwritten!");
+            }
+
+            if (srcNode.isCollection()) {
+                log.warn("This seems to be a collection: " + srcNode.getPath());
+                Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.COLLECTION);
+
+                copyCollectionIntrinsicData(srcNode, destNode);
+
+                // TODO: What about properties?!
+                return true;
+            }
+
+            Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
+            OutputStream os = destNode.getOutputStream();
+            IOUtils.copy(srcNode.getInputStream(), os);
+            os.close();
+
+            log.info("Import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
+
+            /*
+            // Copy revisions of node
+            Revision[] revisions = srcNode.getRevisions();
+            for (int i = 0; i < revisions.length; i++) {
+                log.info("Copy revision: " + revisions[i].getRevisionName());
+                File revisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(revisions[i].getRevisionName());
+                if (!new File(revisionContentFile.getParent()).exists())
+                    new File(revisionContentFile.getParent()).mkdirs();
+                FileOutputStream out = new FileOutputStream(revisionContentFile);
+                IOUtils.copy(revisions[i].getInputStream(), out);
+                out.close();
+
+                // Copy meta/properties of revision
+                File destRevisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(revisions[i].getRevisionName());
+                copyProperties(revisions[i], destRevisionMetaFile);
+            }
+
+            // Copy meta/properties of node
+            File metaFile = ((VirtualFileSystemNode) destNode).getMetaFile();
+            copyProperties(srcNode, metaFile);
+            */
+        } catch (Exception e) {
+            throw new RepositoryException(e);
+        }
+        return true;
+    }
+
+    /**
+     * Copy properties of source node to destination meta file (also see VirtualFileSystemNode#saveProperties())
+     * @param srcNode Source node containing properties
+     * @param destMetaFile Destination meta file where properties of source node shall be copied to
+    private boolean copyProperties(Node srcNode, File destMetaFile) throws Exception {
+        if (!new File(destMetaFile.getParent()).exists())
+            new File(destMetaFile.getParent()).mkdirs();
+        log.info("Copy properties: " + destMetaFile);
+        java.io.PrintWriter writer = new java.io.PrintWriter(new FileOutputStream(destMetaFile));
+        org.wyona.yarep.core.Property[] properties = srcNode.getProperties();
+        for (int i = 0; i < properties.length; i++) {
+            writer.println(properties[i].getName() + "<" + org.wyona.yarep.core.PropertyType.getTypeName(properties[i].getType()) + ">:" + properties[i].getValueAsString());
+        }
+        writer.flush();
+        writer.close();
+        return true;
+    }
+     */
+
+    private boolean copyCollectionIntrinsicData(Node srcNode, Node destNode) throws Exception {
+        //XXX: ugly but we have to cope with implementations that do not allow to get the OutputStream from a collection
+        OutputStream os = null;
+        try {
+            os = destNode.getOutputStream();
+        } catch (RepositoryException e) {
+            if (e.getCause() instanceof FileNotFoundException) {
+                if (! destNode.isCollection()) {
+                    throw e;
+                }
+                log.warn(e.getMessage()); // we log the message as there may as well be a real problem with the directory there
+            }
+        }
+        if (os != null) {
+            // no need to copy anything from collections' data streams themselves as of now, but
+            //  we need to at least close the stream for save-related side-effects to happen:
+            os.close();
+        }
+        return true;
     }
 }

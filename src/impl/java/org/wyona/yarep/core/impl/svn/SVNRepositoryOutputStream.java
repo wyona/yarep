@@ -19,7 +19,7 @@ public class SVNRepositoryOutputStream extends OutputStream {
 
     private static Category log = Category.getInstance(SVNRepositoryOutputStream.class);
 
-    private FileOutputStream out;
+    private OutputStream out;
 
     private SVNClient svnClient;
 
@@ -28,7 +28,7 @@ public class SVNRepositoryOutputStream extends OutputStream {
     /**
      * 
      */
-    public SVNRepositoryOutputStream(File file, SVNClient svnClient) throws RepositoryException {
+    public SVNRepositoryOutputStream(final File file, SVNClient svnClient) throws RepositoryException {
         this.svnClient = svnClient;
         try {
             this.file = file;
@@ -41,6 +41,15 @@ public class SVNRepositoryOutputStream extends OutputStream {
             }
 
             log.debug(file.toString());
+            if (file.isDirectory()) {
+                out = new OutputStream() {
+                    @Override
+                    public void write(int arg0) throws IOException {
+                        throw new IOException("Cannot write stream data to directory: " + file);
+                    }
+                };
+                return;
+            }
             out = new FileOutputStream(file);
         } catch (Exception e) {
             log.error(e);
@@ -60,17 +69,27 @@ public class SVNRepositoryOutputStream extends OutputStream {
      */
     public void close() throws IOException {
         out.close();
+        save();
+    }
 
+    private void save() throws IOException {
         try {
             SVNStatusType status = svnClient.getStatus(file);
 
             if (status == SVNStatusType.STATUS_UNVERSIONED) {
                 log.debug("adding new file: " + file.getAbsolutePath());
                 svnClient.addFile(file);
-                ArrayList pathsList = getPathsToCommit(file);
+                ArrayList<File> pathsList = getPathsToCommit(file);
                 File[] paths = new File[pathsList.size()];
-                paths = (File[]) pathsList.toArray(paths);
+                paths = pathsList.toArray(paths);
                 svnClient.commit(paths, "yarep automated commit");
+            } else if (status == SVNStatusType.STATUS_ADDED) {
+                ArrayList<File> pathsList = getPathsToCommit(file);
+                File[] paths = new File[pathsList.size()];
+                paths = pathsList.toArray(paths);
+                svnClient.commit(paths, "yarep automated commit");
+            } else if (status == SVNStatusType.STATUS_NORMAL) {
+                // nothing to do, file has already been added and committed
             } else if (status == SVNStatusType.STATUS_MODIFIED) {
                 log.debug("checking in modified file: " + file.getAbsolutePath());
                 svnClient.commit(file, "yarep automated commit");
@@ -84,15 +103,15 @@ public class SVNRepositoryOutputStream extends OutputStream {
         }
     }
 
-    protected ArrayList getPathsToCommit(File file) throws SVNException {
+    private ArrayList<File> getPathsToCommit(File file) throws SVNException {
         SVNStatusType status = svnClient.getStatus(file);
         if (status == SVNStatusType.STATUS_ADDED) {
             File parent = file.getParentFile();
-            ArrayList list = getPathsToCommit(parent);
+            ArrayList<File> list = getPathsToCommit(parent);
             list.add(file);
             return list;
         }
-        return new ArrayList();
+        return new ArrayList<File>();
 
     }
 }
