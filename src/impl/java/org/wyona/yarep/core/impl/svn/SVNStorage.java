@@ -13,6 +13,7 @@ import org.apache.log4j.Category;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc.SVNStatusType;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Path;
@@ -123,6 +124,13 @@ public class SVNStorage implements Storage {
     public long getLastModified(UID uid, Path path) throws RepositoryException {
         File file = getFile(uid);
         try {
+            SVNStatusType status = svnClient.getStatus(file);
+            if (log.isDebugEnabled()) log.debug("SVN status: " + status);
+            if (status == SVNStatusType.STATUS_UNVERSIONED
+             || status == SVNStatusType.STATUS_ADDED
+            ) {
+                return file.lastModified();
+            }
             Date date = svnClient.getCommittedDate(file);
             return date.getTime();
         } catch (SVNException e) {
@@ -136,8 +144,8 @@ public class SVNStorage implements Storage {
      *
      */
     public long getSize(UID uid, Path path) throws RepositoryException {
-    	log.warn("Not implemented yet!");
-    	return 0;
+        File file = getFile(uid);
+        return file.length();
     }
 
     /**
@@ -197,7 +205,19 @@ public class SVNStorage implements Storage {
      *
      */
     public boolean exists(UID uid, Path path) {
-        log.error("NOT implemented yet!");
-        return false;
+        File file = getFile(uid);
+        try {
+            SVNStatusType status = svnClient.getStatus(file);
+            if (log.isDebugEnabled()) log.debug("SVN status: " + status);
+            return status != SVNStatusType.STATUS_DELETED
+             && status != SVNStatusType.STATUS_IGNORED
+             && status != SVNStatusType.STATUS_NONE
+             && status != SVNStatusType.STATUS_UNVERSIONED
+             ;
+        } catch (SVNException e) {
+            log.error(e);
+            throw new RuntimeException("Could not get status of " + file.getAbsolutePath()
+                    + ": " + e.getMessage(), e);
+        }
     }
 }
