@@ -10,10 +10,11 @@ import org.apache.log4j.Category;
 
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNStatusType;
+//import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.RepositoryException;
 
 /**
- * 
+ * TODO: add working property support (see commented out code)!
  */
 public class SVNRepositoryOutputStream extends OutputStream {
 
@@ -25,10 +26,16 @@ public class SVNRepositoryOutputStream extends OutputStream {
 
     private File file;
 
+    //private Property[] properties;
+
     /**
      * 
      */
     public SVNRepositoryOutputStream(final File file, SVNClient svnClient) throws RepositoryException {
+    /*    this(file, null, svnClient);
+    }
+
+    public SVNRepositoryOutputStream(File file, Property[] properties, SVNClient svnClient) throws RepositoryException {*/
         this.svnClient = svnClient;
         try {
             this.file = file;
@@ -55,6 +62,8 @@ public class SVNRepositoryOutputStream extends OutputStream {
             log.error(e);
             throw new RepositoryException(e.getMessage(), e);
         }
+        //writer.println(properties[i].getName() + "<" + org.wyona.yarep.core.PropertyType.getTypeName(properties[i].getType()) + ">:" + properties[i].getValueAsString());
+        //this.properties = properties;
     }
 
     /**
@@ -74,6 +83,8 @@ public class SVNRepositoryOutputStream extends OutputStream {
 
     private void save() throws IOException {
         try {
+            //svnClient.setProperties(file, properties);
+
             SVNStatusType status = svnClient.getStatus(file);
 
             if (status == SVNStatusType.STATUS_UNVERSIONED) {
