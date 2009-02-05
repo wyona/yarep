@@ -1,40 +1,30 @@
 package org.wyona.yarep.core.impl.svn;
 
-import org.wyona.commons.io.FileUtil;
-import org.wyona.yarep.core.NoSuchNodeException;
-import org.wyona.yarep.core.Path;
-import org.wyona.yarep.core.Storage;
-import org.wyona.yarep.core.UID;
-
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.log4j.Category;
-
 import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
-import org.tmatesoft.svn.core.internal.util.SVNPathUtil;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
+import org.tmatesoft.svn.core.wc.ISVNPropertyHandler;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
+import org.tmatesoft.svn.core.wc.SVNPropertyData;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc.SVNStatusType;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
-import org.tmatesoft.svn.core.wc.ISVNEventHandler;
-import org.tmatesoft.svn.core.wc.SVNStatus;
-import org.tmatesoft.svn.core.wc.SVNStatusType;
+import org.wyona.yarep.core.Property;
+import org.wyona.yarep.core.RepositoryException;
 
 /**
  * The SVNClient provides standard svn methods for commit, checkout, update,
@@ -168,6 +158,38 @@ public class SVNClient {
             revStrings[i] = String.valueOf(revisions[i]) + "|" + dateFormat.format(dates[i]);
         }
         return revStrings;
+    }
+
+    //TODO: this is alpha-quality incomplete code, please do not use as is or rely on the exact interface yet.
+    public Map<String, String> getProperties(File file) throws SVNException {
+        final Map<String, String> properties = new HashMap<String, String>();
+        ISVNPropertyHandler handler = new ISVNPropertyHandler() {
+            public void handleProperty(File arg0, SVNPropertyData data)
+                    throws SVNException {
+                properties.put(data.getName(), data.getValue());
+            }
+            public void handleProperty(SVNURL arg0, SVNPropertyData arg1)
+                    throws SVNException {
+                throw new RuntimeException("Not implemented!");
+            }
+            public void handleProperty(long arg0, SVNPropertyData arg1)
+                    throws SVNException {
+                throw new RuntimeException("Not implemented!");
+            }
+        };
+        clientManager.getWCClient().doGetProperty(file, null, null, null, false, handler);
+        return properties;
+    }
+
+    //TODO: this is alpha-quality incomplete code, please do not use as is or rely on the exact interface yet.
+    public void setProperties(File file, Property[] properties) throws SVNException {
+        for (Property property : properties) {
+            try {
+                clientManager.getWCClient().doSetProperty(file, property.getName(), property.getValueAsString(), true, false, null);
+            } catch (RepositoryException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 
 }
