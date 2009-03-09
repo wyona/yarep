@@ -21,8 +21,9 @@ fi
 # ----- Set Environment Variables
 ORIGINAL_ANT_HOME=$ANT_HOME
 unset ANT_HOME
-ANT_HOME=$PWD/tools/apache-ant-1.6.2
+ANT_HOME=$PWD/tools/apache-ant
 #echo $ANT_HOME
+OUR_ANT="ant -lib tools/apache-ant_extras"
 
 ORIGINAL_PATH=$PATH
 PATH=$PWD/tools/maven-2.0.4/bin:$ANT_HOME/bin:$PATH
@@ -30,8 +31,8 @@ PATH=$PWD/tools/maven-2.0.4/bin:$ANT_HOME/bin:$PATH
 
 # ----- Build Yarep ...
 #mvn --version
-ant -version
-ant -f build.xml $@
+$OUR_ANT -version
+$OUR_ANT -f build.xml $@
 
 # ----- Reset Environment Variables
 ANT_HOME=$ORIGINAL_ANT_HOME
