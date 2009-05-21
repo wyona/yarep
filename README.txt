@@ -7,7 +7,7 @@
      Prerequisites:
      --------------
 
-     - JDK 1.4.X or higher
+     - JDK 1.5.X or higher
 
 
      Building YAREP:
@@ -15,13 +15,13 @@
 
      Before running the examples, you need to build YAREP 
      and the examples by executing "ant build-examples" in
-     resp. "./build.sh build-examples" in the current directory.
+     or rather "./build.sh build-examples" in the current directory.
 
 
      Running the examples:
      ---------------------
 
-     Run the examples by executing "ant run-examples" resp.
+     Run the examples by executing "ant run-examples" or rather
      "./build.sh run-examples"
      
      OPTIONAL: Run the hsqldb server: java -cp /home/USER/.m2/repository/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar org.hsqldb.Server
@@ -36,7 +36,7 @@
 
      of the storage.
 
-     Run the tests by executing "ant test" resp.
+     Run the tests by executing "ant test" or rather
      "./build.sh test"
      
      Run a particular test class:
@@ -54,7 +54,7 @@
      ---------------------------------------
 
      A JAR file, build/lib/yarep-LCRxxx.jar can be created by
-     executing "ant jar" resp. "./build.sh jar". Take a look at the examples how YAREP
+     executing "ant jar" or rather "./build.sh jar". Take a look at the examples how YAREP
      can be used within another application.
 
 
