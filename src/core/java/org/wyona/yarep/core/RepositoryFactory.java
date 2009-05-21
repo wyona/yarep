@@ -9,19 +9,21 @@ import java.util.Vector;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 
 import org.wyona.commons.io.FileUtil;
 
 /**
- *
+ * Repository factory, which returns the various repository implementations
  */
 public class RepositoryFactory {
 
-    private static Category log = Category.getInstance(RepositoryFactory.class);
+    private static Logger log = Logger.getLogger(RepositoryFactory.class);
 
     public static final String DEFAULT_CONFIGURATION_FILE = "yarep.properties";
     public static String CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
+
+    private static String DEFAULT_REPOSITORY_IMPL = "org.wyona.yarep.impl.DefaultRepository";
 
     private Vector repositories;
 
@@ -186,7 +188,8 @@ public class RepositoryFactory {
                 Class repoClass = Class.forName(className);
                 repository = (Repository) repoClass.newInstance();
             } else {
-                repository = (Repository) Class.forName("org.wyona.yarep.impl.DefaultRepository").newInstance();
+                log.warn("No implementation class specified within '" + configFile + "' and hence '" + DEFAULT_REPOSITORY_IMPL + "' will be used!");
+                repository = (Repository) Class.forName(DEFAULT_REPOSITORY_IMPL).newInstance();
             }
             repository.setID(rid);
             repository.readConfiguration(configFile);
