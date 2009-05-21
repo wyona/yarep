@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 
+<!-- If no 'repository/@class' attribute is specified, then the class 'org.wyona.yarep.impl.DefaultRepository' will be used (see src/core/java/org/wyona/yarep/core/RepositoryFactory.java) -->
 <repository>
   <name>File System Example</name>
 
