@@ -62,12 +62,16 @@ public class LuceneConfig {
 
                 
                 fulltextSearchIndexFile = new File(searchIndexSrcFile, FULLTEXT_INDEX_DIR);
-                //TODO: As far as i understand it, lucene indexWriter and indexSearcher want a directory not a file
-                //and if i understand the following if statement right searchIndexSrcFile could be a file and will become fulltextSearchIndexFile
+                // Because of backwards compatibility the source directory is used as fulltext directory
                 if (!fulltextSearchIndexFile.isDirectory() && searchIndexSrcFile.exists()) {
+                    log.warn("Because '" + fulltextSearchIndexFile + "' does not exist, the source directory is used as fulltext directory: " + searchIndexSrcFile);
                     fulltextSearchIndexFile = searchIndexSrcFile;
                 }
-                log.info("Fulltext search index path: " + fulltextSearchIndexFile);
+                if (!fulltextSearchIndexFile.exists()) {
+                    log.warn("No such 'fulltext' search index path: " + fulltextSearchIndexFile);
+                } else {
+                    log.info("Fulltext search index path: " + fulltextSearchIndexFile);
+                }
                 
                 // Create a lucene search index if it doesn't exist yet
                 // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
@@ -93,7 +97,11 @@ public class LuceneConfig {
                 
                 // Create properties index dir subdirectory in order to save the lucene index for searching on properties
                 propertiesSearchIndexFile = new File(searchIndexSrcFile, PROPERTIES_INDEX_DIR);
-                log.warn("Properties search index path: " + propertiesSearchIndexFile);
+                if (!propertiesSearchIndexFile.exists()) {
+                    log.warn("No such 'properties' search index path: " + propertiesSearchIndexFile);
+                } else {
+                    log.info("Properties search index path: " + propertiesSearchIndexFile);
+                }
                 
                 // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
                 //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
