@@ -38,14 +38,16 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node)
      */
     public void index(Node node) throws SearchException {
+        //log.warn("DEBUG: ...");
         index(node, (Metadata)null);
     }
     
     /**
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Metadata)
      */
-    public void index(Node node, Metadata metaData) throws SearchException{
+    public void index(Node node, Metadata metaData) throws SearchException {
         try {
+            //log.warn("DEBUG: Index fulltext of node: " + node.getPath());
             org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
             if (metaData != null) {
                 log.warn("TODO: Copy name/value pairs");
@@ -101,10 +103,10 @@ public class LuceneIndexer implements Indexer {
                         indexWriter.close();
                     }
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("IndexWriter is null and hence node will not be indexed: " + node.getPath());
-                    }
+                    log.warn("IndexWriter is null and hence node will not be indexed: " + node.getPath());
                 }
+            } else {
+                log.warn("Node '" + node.getPath() + "' has no mime-type set and hence will not be added to fulltext index.");
             }
         } catch (Exception e) {
             log.error(e, e);
@@ -135,9 +137,10 @@ public class LuceneIndexer implements Indexer {
     }
     
     /**
-     *
+     * Get index writer
      */
    public IndexWriter createFulltextIndexWriter() throws Exception {
+        //log.warn("DEBUG: fulltext search index directory: " + config.getFulltextSearchIndexFile());
         return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.indexWriter;
@@ -152,11 +155,11 @@ public class LuceneIndexer implements Indexer {
        //return this.propertiesIndexWriter;
    }
    
-   /**
-    * Init an IndexWriter
-    * @param indexDir Directory where the index is located
-    */
-   private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
+    /**
+     * Init an IndexWriter
+     * @param indexDir Directory where the index is located
+     */
+    private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
        IndexWriter iw = null;
        if (indexDir != null) {
            //TODO: if (indexDir.isDirectory()) is probably not needed, try catch (FileNotFoundException e) should be enough
@@ -176,20 +179,27 @@ public class LuceneIndexer implements Indexer {
            return iw;
        }
        return null;
-   }
+    }
 
     /**
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
-   public void index(Node node, Property property) throws SearchException {
-       index(node, property, (Metadata)null);
-   }
+    public void index(Node node, Property property) throws SearchException {
+        //log.warn("DEBUG: ...");
+        try {
+            index(node, (Metadata)null);
+            indexProperty(node.getPath(), property, (Metadata)null);
+        } catch(Exception e) {
+            throw new SearchException(e.getMessage(), e);
+        }
+    }
 
-   /**
-    *
-    */
-   private void index(Node node, Property property, Metadata metadata) throws SearchException {
-       try {
+    /**
+     * @path Repository path of node
+     */
+    private void indexProperty(String path, Property property, Metadata metadata) throws SearchException {
+        //log.warn("DEBUG: ...");
+        try {
            Document luceneDoc = new Document();
            if (property.getValueAsString() != null) {
                // Add the property to the lucene document
@@ -197,27 +207,27 @@ public class LuceneIndexer implements Indexer {
                //log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
                luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
            } else {
-               log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + node.getPath() + ")!");
+               log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + path + ")!");
            }
 
            // Add path as field such that found properties can be related to a path
-           luceneDoc.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+           luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
            IndexWriter iw = null;
            try {
                iw = createPropertiesIndexWriter();
            } catch(org.apache.lucene.store.LockObtainFailedException e) {
-               log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + node.getPath() + "' will not be indexed!");
+               log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
                return;
            }
            if (iw != null) {
-               iw.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), luceneDoc);
+               iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
                // Make sure to close the IndexWriter and release the lock!
                iw.close();
                //iw.flush();
-               if (log.isDebugEnabled()) log.debug("Index node: " + node.getPath());
+               if (log.isDebugEnabled()) log.debug("Index node: " + path);
            } else {
                if (log.isDebugEnabled()) {
-                   log.debug("No property index configured, hence do not index properties of node: " + node.getPath());
+                   log.debug("No property index configured, hence do not index properties of node: " + path);
                }
            }
        } catch (Exception e) {
@@ -226,6 +236,9 @@ public class LuceneIndexer implements Indexer {
        }
    }
    
+   /**
+    * Remove node from index
+    */
    public void removeFromIndex(Node node, Property property) throws SearchException {
        log.warn("TODO: Not implemented yet.");
    }
