@@ -34,10 +34,16 @@ public class LuceneIndexer implements Indexer {
         this.config = new LuceneConfig(searchIndexConfig, configFile.getParent(), repo);
     }
     
+    /**
+     * @see org.wyona.yarep.core.search.Indexer#index(Node)
+     */
     public void index(Node node) throws SearchException {
         index(node, (Metadata)null);
     }
     
+    /**
+     * @see org.wyona.yarep.core.search.Indexer#index(Node, Metadata)
+     */
     public void index(Node node, Metadata metaData) throws SearchException{
         try {
             org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
@@ -172,11 +178,17 @@ public class LuceneIndexer implements Indexer {
        return null;
    }
 
+    /**
+     * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
+     */
    public void index(Node node, Property property) throws SearchException {
        index(node, property, (Metadata)null);
    }
-   
-   public void index(Node node, Property property, Metadata metadata) throws SearchException {
+
+   /**
+    *
+    */
+   private void index(Node node, Property property, Metadata metadata) throws SearchException {
        try {
            Document luceneDoc = new Document();
            if (property.getValueAsString() != null) {
