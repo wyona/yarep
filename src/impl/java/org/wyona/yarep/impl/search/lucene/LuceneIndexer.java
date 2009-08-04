@@ -79,6 +79,7 @@ public class LuceneIndexer implements Indexer {
                         String fullText = null;
                         try {
                             tikaMetaData.set("yarep-path", node.getPath());
+                            // The WriteOutContentHandler writes all character content out to the writer. Please note that Tika also contains various other utility classes to extract content, such as for example the BodyContentHandler (see http://lucene.apache.org/tika/apidocs/org/apache/tika/sax/package-summary.html)
                             parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
                             fullText = writer.toString();
                         } catch (Exception e) {
