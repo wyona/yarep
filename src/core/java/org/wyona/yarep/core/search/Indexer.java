@@ -37,8 +37,8 @@ public interface Indexer {
 
     /**
      * (Re-)Index content of node. Meta data can be useful for parser selection or additional content to be indexed which is not contained by the node itself
-     * @param node
-     * @param metadata
+     * @param node Yarep content node
+     * @param metadata Meta data containing additional information which might be useful for indexing, but is not contained by the node itself
      */
     public void index(Node node, Metadata metadata) throws SearchException;
 
