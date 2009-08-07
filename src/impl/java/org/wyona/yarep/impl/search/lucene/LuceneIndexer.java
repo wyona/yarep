@@ -38,7 +38,7 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node)
      */
     public void index(Node node) throws SearchException {
-        //log.warn("DEBUG: ...");
+        log.debug("Index fulltext of node");
         index(node, (Metadata)null);
     }
     
@@ -47,10 +47,10 @@ public class LuceneIndexer implements Indexer {
      */
     public void index(Node node, Metadata metaData) throws SearchException {
         try {
-            //log.warn("DEBUG: Index fulltext of node: " + node.getPath());
+            log.debug("Index fulltext of node: " + node.getPath());
             org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
             if (metaData != null) {
-                log.warn("TODO: Copy name/value pairs");
+                log.warn("This indexer implementation '" + getClass().getName() + "' is currently not making use of the meta data argument!");
             }
             String mimeType = node.getMimeType();
             if (mimeType != null) {
@@ -82,6 +82,12 @@ public class LuceneIndexer implements Indexer {
                             // The WriteOutContentHandler writes all character content out to the writer. Please note that Tika also contains various other utility classes to extract content, such as for example the BodyContentHandler (see http://lucene.apache.org/tika/apidocs/org/apache/tika/sax/package-summary.html)
                             parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
                             fullText = writer.toString();
+                            // See http://www.mail-archive.com/tika-dev@lucene.apache.org/msg00743.html
+                            log.warn("TODO: Fulltext generation does seem to be buggy: " + fullText);
+
+                            // TODO: Add more meta content to full text
+                            String keywords = tikaMetaData.get(org.apache.tika.metadata.Metadata.KEYWORDS);
+                            if (keywords != null && keywords.trim().length() > 0) fullText = fullText + " " + keywords;
                         } catch (Exception e) {
                             log.error("Could not index node " + node.getPath() + ": error while extracting text: " + e, e);
                             // don't propagate exception
@@ -188,7 +194,6 @@ public class LuceneIndexer implements Indexer {
     public void index(Node node, Property property) throws SearchException {
         //log.warn("DEBUG: ...");
         try {
-            index(node, (Metadata)null);
             indexProperty(node.getPath(), property, (Metadata)null);
         } catch(Exception e) {
             throw new SearchException(e.getMessage(), e);
