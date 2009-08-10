@@ -12,6 +12,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.tika.parser.Parser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.WriteOutContentHandler;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Property;
@@ -80,14 +81,23 @@ public class LuceneIndexer implements Indexer {
                         try {
                             tikaMetaData.set("yarep-path", node.getPath());
                             // The WriteOutContentHandler writes all character content out to the writer. Please note that Tika also contains various other utility classes to extract content, such as for example the BodyContentHandler (see http://lucene.apache.org/tika/apidocs/org/apache/tika/sax/package-summary.html)
-                            parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
+                            //parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
+                            parser.parse(node.getInputStream(), new BodyContentHandler(writer), tikaMetaData);
                             fullText = writer.toString();
                             // See http://www.mail-archive.com/tika-dev@lucene.apache.org/msg00743.html
-                            log.warn("TODO: Fulltext generation does seem to be buggy: " + fullText);
+                            //log.warn("Fulltext generation with WriteOutContentHandler does seem to be buggy (because title and body are not separated with a space): " + fullText);
 
                             // TODO: Add more meta content to full text
+                            String title = tikaMetaData.get(org.apache.tika.metadata.Metadata.TITLE);
+                            if (title != null && title.trim().length() > 0) fullText = fullText + " " + title;
+
                             String keywords = tikaMetaData.get(org.apache.tika.metadata.Metadata.KEYWORDS);
                             if (keywords != null && keywords.trim().length() > 0) fullText = fullText + " " + keywords;
+
+                            String description = tikaMetaData.get(org.apache.tika.metadata.Metadata.DESCRIPTION);
+                            if (description != null && description.trim().length() > 0) fullText = fullText + " " + description;
+
+                            //log.debug("debug: Fulltext including title and meta: " + fullText);
                         } catch (Exception e) {
                             log.error("Could not index node " + node.getPath() + ": error while extracting text: " + e, e);
                             // don't propagate exception
