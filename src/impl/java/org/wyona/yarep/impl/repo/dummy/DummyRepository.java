@@ -28,19 +28,20 @@ public class DummyRepository implements Repository {
 
     private static final Logger log = Logger.getLogger(DummyRepository.class);
 
+    private String repoId;
+
     /**
      * @see org.wyona.yarep.core.Repository#getID()
      */
     public String getID() {
-        log.warn("TODO: Not implemented yet!");
-        return null;
+        return repoId;
     }
 
     /**
      * @see org.wyona.yarep.core.Repository#setID(String)
      */
     public void setID(String id) {
-        log.warn("TODO: Not implemented yet!");
+        this.repoId = id;
     }
 
     /**
