@@ -110,4 +110,29 @@ public class YarepUtil {
             }
         }
     }
+
+    /**
+     * Copy yarep node
+     * @param repo Data repository
+     * @param source Path of source node (to be copied)
+     * @param destination Path of destination node (copy of orginial node)
+     * @return Destination (copy of) node
+     */
+    public Node copyNode(Repository repo, String source, String destination) throws RepositoryException, java.io.IOException {
+        log.warn("DEBUG: Copy node from '" + source + "' to '" + destination + "'.");
+        if (!repo.existsNode(source)) throw new RepositoryException("No such source node: " + source);
+        Node src = repo.getNode(source);
+        Node dest = YarepUtil.addNodes(repo, destination, org.wyona.yarep.core.NodeType.RESOURCE);
+
+        byte buffer[] = new byte[8192];
+        int bytesRead;
+        java.io.InputStream in = src.getInputStream();
+        java.io.OutputStream out = dest.getOutputStream();
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);
+        }
+        in.close();
+        out.close();
+        return null;
+    }
 }
