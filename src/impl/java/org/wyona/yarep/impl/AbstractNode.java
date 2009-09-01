@@ -253,6 +253,7 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#getRevisions()
      */
     public Revision[] getRevisions() throws RepositoryException {
+        if (log.isDebugEnabled()) log.debug("Return already instantiated revisions ...");
         Collection values =  this.revisions.values();
         return (Revision[])values.toArray(new Revision[values.size()]);
     }
