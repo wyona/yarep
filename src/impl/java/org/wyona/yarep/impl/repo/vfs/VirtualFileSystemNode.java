@@ -56,6 +56,7 @@ public class VirtualFileSystemNode extends AbstractNode {
     protected File metaDir;
     protected File metaFile;
     
+    // NOTE: Flag to indicate if revisions already have been read/initialized from file system
     protected boolean areRevisionsRead = false;
     
     protected RevisionDirectoryFilter revisionDirectoryFilter = new RevisionDirectoryFilter();
@@ -373,16 +374,21 @@ public class VirtualFileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * Read revisions
+     */
     protected void readRevisions() throws RepositoryException {
         File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
         
         File[] revisionDirs = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
         
         this.revisions = new LinkedHashMap();
         
         if (revisionDirs != null) {
+            if (log.isDebugEnabled()) log.debug("Number of revisions which made it through the filter: " + revisionDirs.length);
             Arrays.sort(revisionDirs);
-            for (int i=0; i<revisionDirs.length; i++) {
+            for (int i = 0; i < revisionDirs.length; i++) {
                 String revisionName = revisionDirs[i].getName();
                 Revision revision = new VirtualFileSystemRevision(this, revisionName);
                 this.revisions.put(revisionName, revision);
@@ -412,11 +418,17 @@ public class VirtualFileSystemNode extends AbstractNode {
         }
     }
     
+    /**
+     * Check if file is a revision
+     */
     protected class RevisionDirectoryFilter implements FileFilter {
         public boolean accept(File pathname) {
             if (pathname.getName().matches("[0-9]+") && pathname.isDirectory()) {
                 return true;
             } else {
+                if (!pathname.getName().startsWith(".")) { // Ignore hidden files
+                    log.warn("Does not seem to be a revision: " + pathname);
+                }
                 return false;
             }
         }
@@ -543,6 +555,9 @@ public class VirtualFileSystemNode extends AbstractNode {
         return super.getRevisionByTag(tag);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#getRevisions()
+     */
     public Revision[] getRevisions() throws RepositoryException {
         if (!areRevisionsRead) {
             readRevisions();
