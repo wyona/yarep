@@ -40,24 +40,34 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         super(node.getRepository(), node.getPath(), node.getUUID(), false);
         this.node = node;
         this.revisionName = revisionName;
-        // defer the initialization until something is actually read from this
-        // revision (for performance reasons)
+        initContentAndMetaFile();
+        // Defer the time consuming initialization until something is actually read from this revision (for performance reasons)
     }
-    
-    protected void init() throws RepositoryException {
-        File superMetaDir = node.metaDir;
-        
-        File revisionDir = new File(superMetaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
+
+    /**
+     *
+     */
+    private void initContentAndMetaFile() throws RepositoryException {
+        File revisionDir = new File(node.metaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
         this.contentFile = new File(revisionDir, CONTENT_FILE_NAME);
         this.metaDir = revisionDir;
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
         
-        /*this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
+
+        /*
+        this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
         this.contentFile = new File(this.contentDir, CONTENT_FILE_NAME);
 
         this.metaDir = this.contentDir;
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
         */
+    }
+
+    /**
+     *
+     */
+    protected void init() throws RepositoryException {
+        initContentAndMetaFile();
 
         if (log.isDebugEnabled()) {
             log.debug("VirtualFileSystemRevision: path=" + path + " uuid=" + uuid + " revisionName=" + revisionName);
