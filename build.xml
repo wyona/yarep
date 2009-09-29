@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 
-<project name="yarep" default="usage" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project name="yarep" default="usage"
+ xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+ xmlns:wyona-tools="http://www.wyona.org/tools/1.0"
+>
+  <import file="tools/apache-ant_extras/artifacts.build.xml"/>
 
   <import file="dependencies.xml"/>
 
@@ -9,7 +13,8 @@
     <echo>NOTE: Read the README.txt</echo>
   </target>
 
-  <target name="init" depends="dependencies" description="Init all parameters and other settings">
+  <!-- Init all parameters and other settings. -->
+  <target name="init" depends="dependencies">
     <property file="local.build.properties"/>
     <property file="build.properties"/>
 
@@ -130,6 +135,26 @@
     <artifact:install file="build/lib/yarep-impl-${yarep.version}-r${subversion.revision}.jar">
       <pom refid="maven.project.impl"/>
     </artifact:install>
+  </target>
+
+  <!-- Install Yarep core JAR. Hidden because it's still a bit HACKy but please keep it as it's used to produce source JARs for debugging. -->
+  <target name="install-core-jar" depends="compile-core">
+    <wyona-tools:install-jar source-home="." name="yarep-core" version="${yarep.version}-r${subversion.revision}" package-root-path="org/wyona/yarep" id="core">
+      <!--HACK: both source and binary JARs will get these: -->
+      <fileset dir="./src/core" includes="org/wyona/yarep/core/**" excludes="org/wyona/yarep/core/impl/**"/>
+      <fileset dir="${classes.dir}" includes="org/wyona/yarep/core/**" excludes="org/wyona/yarep/core/impl/**"/>
+      <fileset dir="./src/core" includes="org/wyona/yarep/util/**"/>
+      <fileset dir="${classes.dir}" includes="org/wyona/yarep/util/**"/>
+    </wyona-tools:install-jar>
+  </target>
+
+  <!-- Install Yarep implementation JAR. Hidden because it's still a bit HACKy but please keep it as it's used to produce source JARs for debugging. -->
+  <target name="install-impl-jar" depends="compile-impl">
+    <wyona-tools:install-jar source-home="." name="yarep-impl" version="${yarep.version}-r${subversion.revision}" package-root-path="org/wyona/yarep" id="impl">
+      <!--HACK: both source and binary JARs will get these: -->
+      <fileset dir="./src/core" includes="org/wyona/yarep/core/impl/**"/>
+      <fileset dir="${classes.dir}" includes="org/wyona/yarep/core/impl/**"/>
+    </wyona-tools:install-jar>
   </target>
 
   <target name="deploy-jars" description="Upload jar files for core and impl into remote maven repository" depends="clean, init, jar, patch-pom-files">
