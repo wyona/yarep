@@ -17,6 +17,7 @@
   <target name="init" depends="dependencies">
     <property file="local.build.properties"/>
     <property file="build.properties"/>
+    <property name="source.home" value="${basedir}"/>
 
     <property name="classes.dir" value="${build.dir}/classes"/>
 
@@ -85,6 +86,27 @@
            target="${target.java.version}"
     />
     <copy file="src/test/java/yarep.properties" todir="${classes.dir}"/>
+  </target>
+
+  <target name="eclipse:classpath" description="Update Eclipse's .classpath file" depends="init">
+    <ant dir="${source.home}/tools/eclipse.settings" target="update-classpath"
+     inheritAll="false" inheritRefs="false">
+      <reference torefid="classpath.ref" refid="classpath.core"/>
+      <property name="classpath.dir" value="${source.home}"/>
+      <property name="classes.dir" value=""/>
+      <property name="source.dirs" value="src/core/java:src/impl/java:src/test/java"/>
+    </ant>
+  </target>
+
+  <target name="eclipse" description="Generate all files needed to use the project under Eclipse (WARNING: .project file will be overwritten!)" depends="eclipse:classpath">
+    <copy file="${source.home}/tools/eclipse.settings/Eclipse-3.template.project" tofile="${source.home}/.project">
+      <filterset>
+        <filter token="PROJECT_NAME" value="Wyona Yarep"/>
+        <filter token="PROJECT_VERSION" value="${yarep.version}-r${subversion.revision}"/>
+        <filter token="GENERATION_COMMAND" value="build eclipse"/>
+      </filterset>
+    </copy>
+    <echo>Eclipse project created: in Eclipse you can now import (as an existing project into your workspace) this project with root directory set to ${source.home} and build it there!</echo>
   </target>
 
   <target name="build-examples" description="Build examples" depends="init,compile-examples,compile-impl">
