@@ -84,7 +84,7 @@ public interface Node {
     /**
      * Creates a new node and adds it as a direct child to this node.
      * @param name name of the child node
-     * @param type node type of the child node
+     * @param type node type of the child node (e.g. collection or resource, see NodeType)
      * @return the new child node
      * @throws RepositoryException if this node is not a collection or if a repository error occurs
      */
