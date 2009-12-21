@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
+
 import org.wyona.commons.io.PathUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchPropertyException;
@@ -25,7 +26,7 @@ import org.wyona.yarep.core.Revision;
  * shared among different implementations.
  */
 public abstract class AbstractNode implements Node {
-    private static Category log = Category.getInstance(AbstractNode.class);
+    private static Logger log = Logger.getLogger(AbstractNode.class);
 
     protected Repository repository;
     protected String path;
