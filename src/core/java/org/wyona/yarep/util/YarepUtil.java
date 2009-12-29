@@ -6,13 +6,48 @@ import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.RepositoryFactory;
+import org.wyona.yarep.core.Revision;
+
+import java.util.Date;
 
 /**
- *
+ * Various yarep utility methods
  */
 public class YarepUtil {
 
     private static Logger log = Logger.getLogger(YarepUtil.class);
+
+    /**
+     * Get revision of a specific node for a specific date (or just before)
+     * (also see http://en.wikipedia.org/wiki/Point-in-time_recovery)
+     *
+     * @param node Yarep node for which a specific revision shall be found
+     * @param pointInTime Date for which a revision shall be found, whereas the creation date of the revision is equals or older
+     */
+    public static Revision getRevision(Node node, Date pointInTime) throws RepositoryException {
+        String path = null;
+        try {
+            path = node.getPath();
+            // INFO: Find the revision which was the current revision at (or before) the given date
+            // IMPORTANT TODO: Improve this algorithm re performance/scalability
+            Revision[] revisions = node.getRevisions();
+            if (log.isDebugEnabled()) log.debug("Trying to find revision for node " + node.getPath() + " at time " + pointInTime);
+            for (int i = revisions.length - 1; i >= 0; i--) {
+                //if (log.isDebugEnabled()) log.debug("Checking revision: " + revisions[i].getName() + " " + revisions[i].getCreationDate());
+                Date creationDate = revisions[i].getCreationDate();
+                if (creationDate.before(pointInTime) || creationDate.equals(pointInTime)) {
+                    if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getName());
+                    return revisions[i];
+                }
+            }
+            // TODO: what should happen in this case?
+            log.warn("No revision found for node " + path + " and date " + pointInTime);
+            return null;
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException("No revision found for node " + path + " and date " + pointInTime + ": " + e.getMessage(), e);
+        }
+    }
 
     /**
      *
