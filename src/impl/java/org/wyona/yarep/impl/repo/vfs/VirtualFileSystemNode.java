@@ -36,6 +36,7 @@ import org.wyona.yarep.core.PropertyType;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.UID;
+import org.wyona.yarep.core.attributes.VersionableV1;
 import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
 
@@ -43,7 +44,7 @@ import org.wyona.yarep.impl.DefaultProperty;
  * This class represents a repository node.
  * A repository node may be either a collection ("directory") or a resource ("file").
  */
-public class VirtualFileSystemNode extends AbstractNode {
+public class VirtualFileSystemNode extends AbstractNode implements VersionableV1 {
     private static Logger log = Logger.getLogger(VirtualFileSystemNode.class);
 
     protected static final String META_FILE_NAME = "meta";
@@ -540,6 +541,23 @@ public class VirtualFileSystemNode extends AbstractNode {
             dirListing.append("<no-such-mime-type-supported>" + mimeType + "</no-such-mime-type-supported>");
         }
         return dirListing.toString();
+    }
+
+    /**
+     * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
+     */
+    public Revision getRevision(Date date) throws Exception {
+        Revision[] revisions = getRevisions();
+        for (int i = revisions.length - 1; i >= 0; i--) {
+            Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+            //Date creationDate = revisions[i].getCreationDate(); // INFO: This method is slower than the above
+            if (creationDate.before(date) || creationDate.equals(date)) {
+                if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
+                return revisions[i];
+            }
+        }
+        log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+        return null;
     }
 
     /**
