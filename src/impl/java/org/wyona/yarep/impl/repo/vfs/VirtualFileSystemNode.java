@@ -547,6 +547,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
+        if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
         Revision[] revisions = getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
             Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))

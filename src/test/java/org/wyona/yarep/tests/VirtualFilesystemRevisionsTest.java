@@ -10,6 +10,8 @@ import org.apache.log4j.Logger;
 
 import junit.framework.TestCase;
 
+import java.util.Date;
+
 /**
  * Test the 'virtual filesystem' repository implementation re creating and retrieving revisions.
  */
@@ -49,5 +51,17 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
 
         log.info("Revision has been created: " + revision.getRevisionName());
         assertTrue("Revision has been created: " + revision.getRevisionName(), revision != null);
+    }
+
+    /**
+     * Test get revision by date (point in time)
+     */
+    public void testGetRevisionByDate() throws Exception {
+        String path = "/" + NODE_NAME;
+        //Date pointInTime = new Date(Long.parseLong("1000"));
+        Date pointInTime = new Date();
+        Revision revision = org.wyona.yarep.util.YarepUtil.getRevision(repo.getNode(path), pointInTime);
+        log.info("Revision has been found: " + revision.getRevisionName());
+        assertTrue("Revision has been found: " + revision.getRevisionName(), revision != null);
     }
 }

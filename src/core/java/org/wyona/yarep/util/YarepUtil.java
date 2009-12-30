@@ -25,6 +25,17 @@ public class YarepUtil {
      * @param pointInTime Date for which a revision shall be found, whereas the creation date of the revision is equals or older
      */
     public static Revision getRevision(Node node, Date pointInTime) throws RepositoryException {
+        if (hasInterfaceImplemented(node, "Versionable", "1")) {
+            try {
+                return ((org.wyona.yarep.core.attributes.VersionableV1) node).getRevision(pointInTime);
+            } catch(Exception e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage());
+            }
+        }
+
+        log.warn("Use SLOW implementation!");
+
         String path = null;
         try {
             path = node.getPath();
@@ -169,5 +180,32 @@ public class YarepUtil {
         in.close();
         out.close();
         return null;
+    }
+
+    /**
+     * Check if a class/object has an interface with a specific version implemented
+     */
+    static private boolean hasInterfaceImplemented(Object object, String attribute, String version) {
+        boolean implemented = false;
+        Class clazz = object.getClass();
+
+        while (!clazz.getName().equals("java.lang.Object") && !implemented) {
+            Class[] interfaces = clazz.getInterfaces();
+            for (int i = 0; i < interfaces.length; i++) {
+                if (interfaces[i].getName().equals("org.wyona.yarep.core.attributes." + attribute + "V" + version)) {
+                    implemented = true;
+                    break;
+                }
+                // TODO: Why does this not work?
+                //if (interfaces[i].isInstance(iface)) implemented = true;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        if (implemented) {
+            if (log.isDebugEnabled()) log.debug(clazz.getName() + " does implement " + attribute + "V" + version + " interface!");
+        } else {
+            if (log.isDebugEnabled()) log.debug(clazz.getName() + " does NOT implement " + attribute + "V" + version + " interface!");
+        }
+        return implemented;
     }
 }
