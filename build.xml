@@ -229,17 +229,20 @@
     </java>
   </target>
 
-  <!-- the test target executes all tests in the test directory, or alternatively
-       it executes a single test which is specified by the test.class.name property -->
-  <target name="test" description="Run Tests" depends="clean, init, build-examples">
+  <!-- INFO: The test target executes all tests in the test directory, or alternatively it executes a single test which is specified by the 'test.class.name' property, e.g. './build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRepoTest' -->
+  <target name="test" description="Run all tests or a particular test using the property 'test.class.name'" depends="clean, init, build-examples">
     <mkdir dir="build/log"/>
     <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" failureproperty="tests.failed">
       <formatter type="plain" usefile="false" />
       <formatter type="xml"/>
       <classpath refid="classpath.run" />
+
+      <!-- Execute all tests if property test.class.name has not been specified -->
       <batchtest todir="build/log" unless="test.class.name">
         <fileset dir="${classes.dir}" includes="**/*Test.class" excludes="**/Abstract*.class"/>
       </batchtest>
+
+      <!-- Execute a particular test -->
       <test todir="build/log" name="${test.class.name}" if="test.class.name"/>
     </junit>
     <fail if="tests.failed"  message="One or more junit tests failed. Please check the log (build/log)."/>
