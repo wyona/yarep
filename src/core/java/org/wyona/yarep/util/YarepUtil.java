@@ -36,7 +36,7 @@ public class YarepUtil {
                 //if (log.isDebugEnabled()) log.debug("Checking revision: " + revisions[i].getName() + " " + revisions[i].getCreationDate());
                 Date creationDate = revisions[i].getCreationDate();
                 if (creationDate.before(pointInTime) || creationDate.equals(pointInTime)) {
-                    if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getName());
+                    if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
                     return revisions[i];
                 }
             }
