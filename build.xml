@@ -229,7 +229,7 @@
     </java>
   </target>
 
-  <!-- INFO: The test target executes all tests in the test directory, or alternatively it executes a single test which is specified by the 'test.class.name' property, e.g. './build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRepoTest' -->
+  <!-- INFO: The test target executes all tests in the test directory, or alternatively it executes a single test which is specified by the 'test.class.name' property, e.g. './build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRevisionsTest' -->
   <target name="test" description="Run all tests or a particular test using the property 'test.class.name'" depends="clean, init, build-examples">
     <mkdir dir="build/log"/>
     <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes" failureproperty="tests.failed">

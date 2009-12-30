@@ -40,7 +40,7 @@
      "./build.sh test"
      
      Run a particular test class:
-     ./build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRepoTest
+     ./build.sh test -Dtest.class.name=org.wyona.yarep.tests.VirtualFilesystemRevisionsTest
 
 
      Configuration of repositories:
