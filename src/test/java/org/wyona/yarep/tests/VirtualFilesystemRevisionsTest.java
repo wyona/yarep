@@ -21,6 +21,9 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
 
     private String NODE_NAME = "revision-test.txt";
 
+    /**
+     * Setup of repository configuration
+     */
     public void setUp() throws Exception {
         RepositoryFactory repoFactory = new RepositoryFactory();
         repo = repoFactory.newRepository("vfs-example", new java.io.File("new-vfs-example/repository.xml"));
