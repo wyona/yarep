@@ -49,6 +49,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     protected static final String META_FILE_NAME = "meta";
     protected static final String REVISIONS_BASE_DIR = "revisions";
+    protected static final String DATE_INDEX_BASE_DIR = "index_date";
     protected static final String META_DIR_SUFFIX = ".yarep";
     
     //protected FileSystemRepository repository;
@@ -368,6 +369,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             ((VirtualFileSystemRevision)revision).setCreator(getCheckoutUserID());
             ((VirtualFileSystemRevision)revision).setComment(comment);
             this.revisions.put(revisionName, revision);
+
+            log.warn("TODO: Add to date index!");
+
             return revision;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
@@ -547,6 +551,22 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
+        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath());
+
+        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+        if (dateIndexBaseDir.isDirectory()) {
+        //if (dateIndexBaseDir.exists() && dateIndexBaseDir.isDirectory()) {
+            Revision revision = getRevisionViaDateIndex(date);
+            if (revision != null) {
+                return revision;
+            } else {
+                log.warn("No revision found via data index, try to find otherwise ...");
+            }
+        } else {
+            log.warn("No date index yet: " + dateIndexBaseDir);
+            buildDateIndex();
+        }
+
         if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
         Revision[] revisions = getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
@@ -559,6 +579,28 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
         log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
         return null;
+    }
+
+    /**
+     * Get revision via date index
+     */
+    private Revision getRevisionViaDateIndex(Date date) throws Exception {
+        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath() + ", " + dateIndexBaseDir);
+        return null;
+    }
+
+    /**
+     * Build date index in order to retrieve revisions more quickly based on creation date
+     */
+    private void buildDateIndex() throws Exception {
+        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+        log.warn("DEBUG: Build date index: " + dateIndexBaseDir);
+        Revision[] revisions = getRevisions();
+        for (int i = revisions.length - 1; i >= 0; i--) {
+            Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+            log.warn("DEBUG: Creation date: " + creationDate);
+            }
     }
 
     /**
