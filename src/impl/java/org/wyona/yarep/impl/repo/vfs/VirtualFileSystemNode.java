@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -555,7 +556,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         if (dateIndexBaseDir.isDirectory()) {
-        //if (dateIndexBaseDir.exists() && dateIndexBaseDir.isDirectory()) {
             Revision revision = getRevisionViaDateIndex(date);
             if (revision != null) {
                 return revision;
@@ -586,8 +586,92 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionViaDateIndex(Date date) throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath() + ", " + dateIndexBaseDir);
+        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath() + ", " + date);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+
+        Revision revision = getRevisionByYear(dateIndexBaseDir, cal);
+
         return null;
+    }
+
+    /**
+     * Get revision by year
+     */
+    private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] years = dateIndexBaseDir.list(); // IMPORTANT: Make sure the order is ascending: 2007, 2008, 2009, 2010, ...
+        for (int i = 0; i < years.length; i++) {
+            log.warn("DEBUG: Year: " + years[i]);
+            try {
+                int year = new Integer(years[i]).intValue();
+                if (year >= cal.get(Calendar.YEAR) ) {
+                    log.warn("DEBUG: Year found: " + year);
+                    revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' year higher ...");
+                    }
+
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a year: " + years[i]);
+            }
+        }
+        return revision;
+    }
+
+    /**
+     * Get revision by month
+     */
+    private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] months = yearDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
+        for (int k = 0; k < months.length; k++) {
+            log.warn("DEBUG: Month: " + months[k]);
+            try {
+                int month = new Integer(months[k]).intValue();
+                if (month >= cal.get(Calendar.MONTH) ) {
+                    log.warn("DEBUG: Month found: " + month);
+                    revision = getRevisionByDay(new File(yearDir, months[k]), cal);
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' month higher ...");
+                    }
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a month: " + months[k]);
+            }
+        }
+        return revision;
+    }
+
+    /**
+     * Get revision by day
+     */
+    private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
+        for (int k = 0; k < days.length; k++) {
+            log.warn("DEBUG: Day: " + days[k]);
+            try {
+                int day = new Integer(days[k]).intValue();
+                if (day >= cal.get(Calendar.DAY_OF_MONTH) ) {
+                    log.warn("DEBUG: Day found: " + day);
+                    revision = getRevisions()[0];
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' day higher ...");
+                    }
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a day: " + days[k]);
+            }
+        }
+        return revision;
     }
 
     /**
@@ -596,11 +680,29 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     private void buildDateIndex() throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         log.warn("DEBUG: Build date index: " + dateIndexBaseDir);
+
+        if (!dateIndexBaseDir.isDirectory()) {
+            dateIndexBaseDir.mkdirs();
+        }
+
         Revision[] revisions = getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
             Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
             log.warn("DEBUG: Creation date: " + creationDate);
+
+            String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
+            log.warn("DEBUG: Date directory of revision '" + revisions[i].getRevisionName() + "': " + dateDirS);
+            File dateDirF = new File(dateIndexBaseDir, dateDirS);
+            if (!dateDirF.isDirectory()) {
+                dateDirF.mkdirs();
+                File revisionIdFile = new File(dateDirF, "id.txt");
+                PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
+                pw.print(revisions[i].getRevisionName());
+                pw.close();
+            } else {
+               log.error("Revision '" + revisions[i].getRevisionName() + "' seems to exists twice!");
             }
+        }
     }
 
     /**
