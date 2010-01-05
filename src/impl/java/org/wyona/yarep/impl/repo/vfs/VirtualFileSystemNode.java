@@ -590,9 +590,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
 
-        Revision revision = getRevisionByYear(dateIndexBaseDir, cal);
-
-        return null;
+        return getRevisionByYear(dateIndexBaseDir, cal);
     }
 
     /**
@@ -612,6 +610,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                         break;
                     } else {
                         log.warn("DEBUG: Try 'one' year higher ...");
+                        // TODO: Reset cal such that it will always match on lower numbers!
                     }
 
                 }
@@ -653,14 +652,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
         Revision revision = null;
-        String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
+        String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
         for (int k = 0; k < days.length; k++) {
             log.warn("DEBUG: Day: " + days[k]);
             try {
                 int day = new Integer(days[k]).intValue();
                 if (day >= cal.get(Calendar.DAY_OF_MONTH) ) {
                     log.warn("DEBUG: Day found: " + day);
-                    revision = getRevisions()[0];
+                    revision = getRevisionByHour(new File(monthDir, days[k]), cal);
                     if (revision != null) {
                         break;
                     } else {
@@ -672,6 +671,107 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         }
         return revision;
+    }
+
+    /**
+     * Get revision by hour 
+     */
+    private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] hours = dayDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        for (int k = 0; k < hours.length; k++) {
+            log.warn("DEBUG: Hour: " + hours[k]);
+            try {
+                int hour = new Integer(hours[k]).intValue();
+                if (hour >= cal.get(Calendar.HOUR) ) {
+                    log.warn("DEBUG: Hour found: " + hour);
+                    revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' hour higher ...");
+                    }
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a hour: " + hours[k]);
+            }
+        }
+        return revision;
+    }
+
+    /**
+     * Get revision by minute 
+     */
+    private Revision getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] minutes = hourDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        for (int k = 0; k < minutes.length; k++) {
+            log.warn("DEBUG: Minute: " + minutes[k]);
+            try {
+                int minute = new Integer(minutes[k]).intValue();
+                if (minute >= cal.get(Calendar.MINUTE) ) {
+                    log.warn("DEBUG: Minute found: " + minute);
+                    revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' minute higher ...");
+                    }
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a minute: " + minutes[k]);
+            }
+        }
+        return revision;
+    }
+
+    /**
+     * Get revision by second
+     */
+    private Revision getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
+        Revision revision = null;
+        String[] seconds = minuteDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        for (int k = 0; k < seconds.length; k++) {
+            log.warn("DEBUG: Second: " + seconds[k]);
+            try {
+                int second = new Integer(seconds[k]).intValue();
+                if (second >= cal.get(Calendar.SECOND) ) {
+                    log.warn("DEBUG: Second found: " + second);
+                    revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
+                    if (revision != null) {
+                        break;
+                    } else {
+                        log.warn("DEBUG: Try 'one' second higher ...");
+                    }
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a second: " + seconds[k]);
+            }
+        }
+        return revision;
+    }
+
+    /**
+     * Get revision by millisecond
+     */
+    private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
+        String[] millis = secondDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        for (int k = 0; k < millis.length; k++) {
+            log.warn("DEBUG: Millisecond: " + millis[k]);
+            try {
+                int milli = new Integer(millis[k]).intValue();
+                if (milli >= cal.get(Calendar.MILLISECOND) ) {
+                    log.warn("DEBUG: Millisecond found: " + milli);
+                    BufferedReader br = new BufferedReader(new FileReader(new File(secondDir, millis[k] + File.separator + "id.txt")));
+                    String revisionName = br.readLine();
+                    br.close();
+                    return getRevision(revisionName);
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a millisecond: " + millis[k]);
+            }
+        }
+        return null;
     }
 
     /**
