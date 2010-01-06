@@ -836,32 +836,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Hour: " + hours[k]);
             try {
                 int hour = Integer.parseInt(hours[k]);
-                //log.debug("Compare: " + hour + ", " + cal.get(Calendar.HOUR_OF_DAY));
-                if (hour <= cal.get(Calendar.HOUR_OF_DAY)) {
-                    log.warn("DEBUG: Hour matched: " + hour);
-                    Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (hour < cal.get(Calendar.HOUR_OF_DAY)) {
-                            return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
-                        } else {
-                            log.warn("Youngest does not make sense!");
-                        }
 
-/*
-                        if (k - 1 >= 0) {
-                            log.warn("DEBUG: Try next hour lower: " + hours[k - 1]);
-                            cal.set(Calendar.MINUTE, 59);
-                            cal.set(Calendar.SECOND, 59);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionByMinute(new File(dayDir, hours[k - 1]), cal);
-                        } else {
-                            log.warn("DEBUG: No other hour available.");
-                            return null;
-                        }
-*/
-                    }
+                if (hour < cal.get(Calendar.HOUR_OF_DAY)) {
+                    log.warn("DEBUG: Hour '" + hour + "' which matched is smaller, hence get youngest revision for this hour.");
+                    return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
+                } else if (hour == cal.get(Calendar.HOUR_OF_DAY)) {
+                    log.warn("DEBUG: Hour '" + hour + "' which matched is equals, hence start comparing within this particular hour.");
+                    return getRevisionByMinute(new File(dayDir, hours[k]), cal);
+                } else {
+                    log.warn("Try next hour lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a hour: " + hours[k]);
@@ -879,30 +862,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Minute: " + minutes[k]);
             try {
                 int minute = Integer.parseInt(minutes[k]);
-                if (minute <= cal.get(Calendar.MINUTE) ) {
-                    log.warn("DEBUG: Minute matched: " + minute);
-                    Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (minute < cal.get(Calendar.MINUTE)) {
-                            return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
-                        } else {
-                            log.warn("Youngest does not make sense!");
-                        }
 
-/*
-                        if (k - 1 >= 0) {
-                            log.warn("DEBUG: Try next minute lower: " + minutes[k - 1]);
-                            cal.set(Calendar.SECOND, 59);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionBySecond(new File(hourDir, minutes[k - 1]), cal);
-                        } else {
-                            log.warn("DEBUG: No other minute available.");
-                            return null;
-                        }
-*/
-                    }
+                if (minute < cal.get(Calendar.MINUTE)) {
+                    log.warn("DEBUG: Minute '" + minute + "' which matched is smaller, hence get youngest revision for this minute.");
+                    return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
+                } else if (minute == cal.get(Calendar.MINUTE)) {
+                    log.warn("DEBUG: Minute '" + minute + "' which matched is equals, hence start comparing within this particular minute.");
+                    return getRevisionBySecond(new File(hourDir, minutes[k]), cal);
+                } else {
+                    log.warn("Try next minute lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a minute: " + minutes[k]);
@@ -920,30 +888,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Second: " + seconds[k]);
             try {
                 int second = Integer.parseInt(seconds[k]);
-                if (second <= cal.get(Calendar.SECOND) ) {
-                    log.warn("DEBUG: Second matched: " + second);
-                    Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (second < cal.get(Calendar.SECOND)) {
-                            return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
-                        } else {
-                            log.warn("Youngest does not make sense!");
-                        }
 
-
-/*
-                        if (k - 1 >= 0) {
-                            log.warn("DEBUG: Try next second lower: " + seconds[k - 1]);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionByMillisecond(new File(minuteDir, seconds[k - 1]), cal);
-                        } else {
-                            log.warn("DEBUG: No other second available.");
-                            return null;
-                        }
-*/
-                    }
+                if (second < cal.get(Calendar.SECOND)) {
+                    log.warn("DEBUG: Second '" + second + "' which matched is smaller, hence get youngest revision for this second.");
+                    return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
+                } else if (second == cal.get(Calendar.SECOND)) {
+                    log.warn("DEBUG: Second '" + second + "' which matched is equals, hence start comparing within this particular second.");
+                    return getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
+                } else {
+                    log.warn("Try next second lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a second: " + seconds[k]);
