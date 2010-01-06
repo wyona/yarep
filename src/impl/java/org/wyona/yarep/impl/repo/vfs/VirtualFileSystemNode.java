@@ -555,6 +555,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     public Revision getRevision(Date date) throws Exception {
         log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath());
 
+        // New implementation
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         if (dateIndexBaseDir.isDirectory()) {
             Revision revision = getRevisionViaDateIndex(date);
@@ -571,6 +572,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return getRevision(date);
         }
 
+        // Old implementation
 /*
         if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
         Revision[] revisions = getRevisions();
@@ -604,25 +606,25 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
         String[] years = dateIndexBaseDir.list(); // IMPORTANT: Make sure the order is ascending: 2007, 2008, 2009, 2010, ...
-        for (int i = 0; i < years.length; i++) {
+        for (int i = years.length - 1; i >= 0; i--) {
             log.warn("DEBUG: Year: " + years[i]);
             try {
                 int year = new Integer(years[i]).intValue();
-                if (year >= cal.get(Calendar.YEAR) ) {
+                if (year <= cal.get(Calendar.YEAR)) {
                     log.warn("DEBUG: Year matched: " + year);
                     Revision revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (i + 1 < years.length) {
-                            log.warn("DEBUG: Try next year higher: " + years[i + 1]);
-                            cal.set(Calendar.MONTH, 1);
-                            cal.set(Calendar.DAY_OF_MONTH, 1);
-                            cal.set(Calendar.HOUR, 0);
-                            cal.set(Calendar.MINUTE, 0);
-                            cal.set(Calendar.SECOND, 0);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionByMonth(new File(dateIndexBaseDir, years[i + 1]), cal);
+                        if (i - 1 >= 0) {
+                            log.warn("DEBUG: Try next year lower: " + years[i - 1]);
+                            cal.set(Calendar.MONTH, 11);
+                            cal.set(Calendar.DAY_OF_MONTH, 31);
+                            cal.set(Calendar.HOUR_OF_DAY, 23);
+                            cal.set(Calendar.MINUTE, 59);
+                            cal.set(Calendar.SECOND, 59);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionByMonth(new File(dateIndexBaseDir, years[i - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other year available.");
                             return null;
@@ -642,24 +644,24 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
         String[] months = yearDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
-        for (int k = 0; k < months.length; k++) {
-            log.warn("DEBUG: Month: " + months[k]);
+        for (int k = months.length - 1; k >= 0; k--) {
+            log.warn("DEBUG: Month: " + months[k] + "(" + cal + ")");
             try {
                 int month = new Integer(months[k]).intValue();
-                if (month >= cal.get(Calendar.MONTH) ) {
-                    log.warn("DEBUG: Month found: " + month);
+                if (month <= cal.get(Calendar.MONTH) + 1) {
+                    log.warn("DEBUG: Month matched: " + month);
                     Revision revision = getRevisionByDay(new File(yearDir, months[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (k + 1 < months.length) {
-                            log.warn("DEBUG: Try next month higher: " + months[k + 1]);
-                            cal.set(Calendar.DAY_OF_MONTH, 1);
-                            cal.set(Calendar.HOUR, 0);
-                            cal.set(Calendar.MINUTE, 0);
-                            cal.set(Calendar.SECOND, 0);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionByDay(new File(yearDir, months[k + 1]), cal);
+                        if (k - 1 >= 0) {
+                            log.warn("DEBUG: Try next month lower: " + months[k - 1]);
+                            cal.set(Calendar.DAY_OF_MONTH, 31);
+                            cal.set(Calendar.HOUR_OF_DAY, 23);
+                            cal.set(Calendar.MINUTE, 59);
+                            cal.set(Calendar.SECOND, 59);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionByDay(new File(yearDir, months[k - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other month available.");
                             return null;
@@ -678,23 +680,23 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
         String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
-        for (int k = 0; k < days.length; k++) {
+        for (int k = days.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Day: " + days[k]);
             try {
                 int day = new Integer(days[k]).intValue();
-                if (day >= cal.get(Calendar.DAY_OF_MONTH) ) {
+                if (day <= cal.get(Calendar.DAY_OF_MONTH)) {
                     log.warn("DEBUG: Day matched: " + day);
                     Revision revision = getRevisionByHour(new File(monthDir, days[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (k + 1 < days.length) {
-                            log.warn("DEBUG: Try next day higher: " + days[k + 1]);
-                            cal.set(Calendar.HOUR, 0);
-                            cal.set(Calendar.MINUTE, 0);
-                            cal.set(Calendar.SECOND, 0);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionByHour(new File(monthDir, days[k + 1]), cal);
+                        if (k - 1 >= 0) {
+                            log.warn("DEBUG: Try next day lower: " + days[k - 1]);
+                            cal.set(Calendar.HOUR_OF_DAY, 23);
+                            cal.set(Calendar.MINUTE, 59);
+                            cal.set(Calendar.SECOND, 59);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionByHour(new File(monthDir, days[k - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other day available.");
                             return null;
@@ -713,22 +715,23 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
         String[] hours = dayDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
-        for (int k = 0; k < hours.length; k++) {
+        for (int k = hours.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Hour: " + hours[k]);
             try {
                 int hour = new Integer(hours[k]).intValue();
-                if (hour >= cal.get(Calendar.HOUR) ) {
+                log.warn("DEBUG: Compare: " + hour + ", " + cal.get(Calendar.HOUR_OF_DAY));
+                if (hour <= cal.get(Calendar.HOUR_OF_DAY)) {
                     log.warn("DEBUG: Hour matched: " + hour);
                     Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (k + 1 < hours.length) {
-                            log.warn("DEBUG: Try next hour higher: " + hours[k + 1]);
-                            cal.set(Calendar.MINUTE, 0);
-                            cal.set(Calendar.SECOND, 0);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionByMinute(new File(dayDir, hours[k + 1]), cal);
+                        if (k - 1 >= 0) {
+                            log.warn("DEBUG: Try next hour lower: " + hours[k - 1]);
+                            cal.set(Calendar.MINUTE, 59);
+                            cal.set(Calendar.SECOND, 59);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionByMinute(new File(dayDir, hours[k - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other hour available.");
                             return null;
@@ -747,21 +750,21 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
         String[] minutes = hourDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
-        for (int k = 0; k < minutes.length; k++) {
+        for (int k = minutes.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Minute: " + minutes[k]);
             try {
                 int minute = new Integer(minutes[k]).intValue();
-                if (minute >= cal.get(Calendar.MINUTE) ) {
+                if (minute <= cal.get(Calendar.MINUTE) ) {
                     log.warn("DEBUG: Minute matched: " + minute);
                     Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (k + 1 < minutes.length) {
-                            log.warn("DEBUG: Try next minute higher: " + minutes[k + 1]);
-                            cal.set(Calendar.SECOND, 0);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionBySecond(new File(hourDir, minutes[k + 1]), cal);
+                        if (k - 1 >= 0) {
+                            log.warn("DEBUG: Try next minute lower: " + minutes[k - 1]);
+                            cal.set(Calendar.SECOND, 59);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionBySecond(new File(hourDir, minutes[k - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other minute available.");
                             return null;
@@ -780,20 +783,20 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
         String[] seconds = minuteDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 60
-        for (int k = 0; k < seconds.length; k++) {
+        for (int k = seconds.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Second: " + seconds[k]);
             try {
                 int second = new Integer(seconds[k]).intValue();
-                if (second >= cal.get(Calendar.SECOND) ) {
+                if (second <= cal.get(Calendar.SECOND) ) {
                     log.warn("DEBUG: Second matched: " + second);
                     Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
-                        if (k + 1 < seconds.length) {
-                            log.warn("DEBUG: Try next second higher: " + seconds[k + 1]);
-                            cal.set(Calendar.MILLISECOND, 0);
-                            return getRevisionByMillisecond(new File(minuteDir, seconds[k + 1]), cal);
+                        if (k - 1 >= 0) {
+                            log.warn("DEBUG: Try next second lower: " + seconds[k - 1]);
+                            cal.set(Calendar.MILLISECOND, 999);
+                            return getRevisionByMillisecond(new File(minuteDir, seconds[k - 1]), cal);
                         } else {
                             log.warn("DEBUG: No other second available.");
                             return null;
@@ -812,11 +815,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
         String[] millis = secondDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
-        for (int k = 0; k < millis.length; k++) {
+        for (int k = millis.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Millisecond: " + millis[k]);
             try {
                 int milli = new Integer(millis[k]).intValue();
-                if (milli >= cal.get(Calendar.MILLISECOND) ) {
+                if (milli <= cal.get(Calendar.MILLISECOND) ) {
                     log.warn("DEBUG: Millisecond matched: " + milli);
                     String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
                     log.warn("DEBUG: ID File: " + path);
