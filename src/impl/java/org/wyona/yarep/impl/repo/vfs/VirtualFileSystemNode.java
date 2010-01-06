@@ -644,7 +644,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Get youngest revision of year, whereas the algorithm assumes that the order of months is ascending 1, 2, ..., 12
+     * Get youngest revision of year, whereas the algorithm assumes that the order of months is ascending 01, 02, ..., 12
      * @param yearDir Directory of year containing months
      */
     private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
@@ -668,7 +668,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Get youngest revision of month, whereas the algorithm assumes that the order of days is ascending 1, 2, ..., 31
+     * Get youngest revision of month, whereas the algorithm assumes that the order of days is ascending 01, 02, ..., 31
      * @param monthDir Directory of month containing days
      */
     private Revision getYoungestRevisionOfMonth(File monthDir) throws Exception {
@@ -678,7 +678,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 int day = Integer.parseInt(days[k]);
                 if (1 <= day && day <= 31) {
                     log.warn("DEBUG: Youngest day '" + day + "' of month '" + monthDir + "' found");
-                    return null;
+                    return getYoungestRevisionOfDay(new File(monthDir, days[k]));
                 } else {
                     log.warn("Does not seem to be a day '" + day + "' and hence will be ignored.");
                 }
@@ -687,6 +687,104 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         }
         log.warn("No youngest day found within month '" + monthDir + "'");
+        return null;
+    }
+
+    /**
+     * Get youngest revision of day, whereas the algorithm assumes that the order of hours is ascending 00, 01, ..., 23
+     * @param dayDir Directory of day containing hours
+     */
+    private Revision getYoungestRevisionOfDay(File dayDir) throws Exception {
+        String[] hours = dayDir.list();
+        for (int k = hours.length - 1; k >= 0; k--) {
+            try {
+                int hour = Integer.parseInt(hours[k]);
+                if (0 <= hour && hour <= 23) {
+                    log.warn("DEBUG: Youngest hour '" + hour + "' of day '" + dayDir + "' found");
+                    return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
+                } else {
+                    log.warn("Does not seem to be a hour '" + hour + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a hour '" + hours[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest hour found within day '" + dayDir + "'");
+        return null;
+    }
+
+    /**
+     * Get youngest revision of hour, whereas the algorithm assumes that the order of minutes is ascending 00, 01, ..., 59
+     * @param hourDir Directory of hour containing minutes
+     */
+    private Revision getYoungestRevisionOfHour(File hourDir) throws Exception {
+        String[] minutes = hourDir.list();
+        for (int k = minutes.length - 1; k >= 0; k--) {
+            try {
+                int minute = Integer.parseInt(minutes[k]);
+                if (0 <= minute && minute <= 59) {
+                    log.warn("DEBUG: Youngest minute '" + minute + "' of hour '" + hourDir + "' found");
+                    return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
+                } else {
+                    log.warn("Does not seem to be a minute '" + minute + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a minute '" + minutes[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest hour found within hour '" + hourDir + "'");
+        return null;
+    }
+
+    /**
+     * Get youngest revision of minute, whereas the algorithm assumes that the order of seconds is ascending 00, 01, ..., 59
+     * @param minuteDir Directory of minute containing seconds
+     */
+    private Revision getYoungestRevisionOfMinute(File minuteDir) throws Exception {
+        String[] seconds = minuteDir.list();
+        for (int k = seconds.length - 1; k >= 0; k--) {
+            try {
+                int second = Integer.parseInt(seconds[k]);
+                if (0 <= second && second <= 59) {
+                    log.warn("DEBUG: Youngest second '" + second + "' of minute '" + minuteDir + "' found");
+                    return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
+                } else {
+                    log.warn("Does not seem to be a second '" + second + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a second '" + seconds[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest second found within minute '" + minuteDir + "'");
+        return null;
+    }
+
+    /**
+     * Get youngest revision of second, whereas the algorithm assumes that the order of milliseconds is ascending 0, 1, ..., 999
+     * @param secondDir Directory of second containing milliseconds 
+     */
+    private Revision getYoungestRevisionOfSecond(File secondDir) throws Exception {
+        String[] millis = secondDir.list();
+        for (int k = millis.length - 1; k >= 0; k--) {
+            try {
+                int milli = Integer.parseInt(millis[k]);
+                if (0 <= milli && milli <= 999) {
+                    log.warn("DEBUG: Youngest millisecond '" + milli + "' of second '" + secondDir + "' found");
+
+                    String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
+                    log.warn("DEBUG: ID File: " + path);
+                    BufferedReader br = new BufferedReader(new FileReader(new File(path)));
+                    String revisionName = br.readLine();
+                    br.close();
+                    return getRevision(revisionName);
+                } else {
+                    log.warn("Does not seem to be a millisecond '" + milli + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a millisecond '" + millis[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest millisecond found within second '" + secondDir + "'");
         return null;
     }
 
@@ -872,6 +970,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 int milli = new Integer(millis[k]).intValue();
                 if (milli <= cal.get(Calendar.MILLISECOND) ) {
                     log.warn("DEBUG: Millisecond matched: " + milli);
+
                     String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
                     log.warn("DEBUG: ID File: " + path);
                     BufferedReader br = new BufferedReader(new FileReader(new File(path)));
