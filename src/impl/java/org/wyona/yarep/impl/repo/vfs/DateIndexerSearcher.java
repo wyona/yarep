@@ -445,7 +445,27 @@ public class DateIndexerSearcher {
      * Add revision to date index
      */
     public void addRevision(String revisionName) throws Exception {
-        log.warn("TODO: Add revision '" + revisionName + "' to date index ...");
+        log.debug("Add revision '" + revisionName + "' to date index ...");
+        if (!indexExists()) {
+            buildDateIndex();
+        }
+
+        Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+        log.debug("Creation date: " + creationDate);
+
+        String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
+        log.debug("Date directory of revision '" + revisionName + "': " + dateDirS);
+        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+        File dateDirF = new File(dateIndexBaseDir, dateDirS);
+        if (!dateDirF.isDirectory()) {
+            dateDirF.mkdirs();
+            File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
+            pw.print(revisionName);
+            pw.close();
+        } else {
+           log.warn("Revision '" + revisionName + "' already exists within date index!");
+        }
     }
 
     /**
@@ -453,7 +473,7 @@ public class DateIndexerSearcher {
      */
     public void buildDateIndex() throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("DEBUG: Build date index: " + dateIndexBaseDir);
+        log.warn("Build date index: " + dateIndexBaseDir);
 
         if (!dateIndexBaseDir.isDirectory()) {
             dateIndexBaseDir.mkdirs();
@@ -461,21 +481,7 @@ public class DateIndexerSearcher {
 
         Revision[] revisions = node.getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
-            Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
-            log.warn("DEBUG: Creation date: " + creationDate);
-
-            String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
-            log.warn("DEBUG: Date directory of revision '" + revisions[i].getRevisionName() + "': " + dateDirS);
-            File dateDirF = new File(dateIndexBaseDir, dateDirS);
-            if (!dateDirF.isDirectory()) {
-                dateDirF.mkdirs();
-                File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
-                PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
-                pw.print(revisions[i].getRevisionName());
-                pw.close();
-            } else {
-               log.error("Revision '" + revisions[i].getRevisionName() + "' seems to exists twice!");
-            }
+            addRevision(revisions[i].getRevisionName());
         }
     }
 }
