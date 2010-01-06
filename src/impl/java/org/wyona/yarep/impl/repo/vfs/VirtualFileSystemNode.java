@@ -616,6 +616,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (revision != null) {
                         return revision;
                     } else {
+                        return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
+
+/*
                         if (i - 1 >= 0) {
                             log.warn("DEBUG: Try next year lower: " + years[i - 1]);
                             cal.set(Calendar.MONTH, 11);
@@ -629,6 +632,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other year available.");
                             return null;
                         }
+*/
                     }
 
                 }
@@ -636,6 +640,29 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 log.warn("Does not seem to be a year: " + years[i]);
             }
         }
+        return null;
+    }
+
+    /**
+     * Get youngest revision of month, whereas the algorithm assumes that the order is ascending 1, 2, ..., 12
+     * @param yearDir Directory of year containing months
+     */
+    private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
+        String[] months = yearDir.list();
+        for (int k = months.length - 1; k >= 0; k--) {
+            try {
+                int month = new Integer(months[k]).intValue();
+                if (1 <= month && month <= 12) {
+                    log.warn("DEBUG: Youngest month '" + month + "' of year '" + yearDir + "' found");
+                    return null;
+                } else {
+                    log.warn("Does not seem to be a month '" + month + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a month '" + months[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest month found within year '" + yearDir + "'");
         return null;
     }
 
