@@ -50,8 +50,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     protected static final String META_FILE_NAME = "meta";
     protected static final String REVISIONS_BASE_DIR = "revisions";
-    protected static final String DATE_INDEX_BASE_DIR = "index_date";
-    protected static final String DATE_INDEX_ID_FILENAME = "id.txt";
     protected static final String META_DIR_SUFFIX = ".yarep";
     
     //protected FileSystemRepository repository;
@@ -372,7 +370,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             ((VirtualFileSystemRevision)revision).setComment(comment);
             this.revisions.put(revisionName, revision);
 
-            log.warn("TODO: Add to date index!");
+            DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
+            try {
+                dis.addRevision(revisionName);
+            } catch(Exception e) {
+                log.error(e, e);
+            }
 
             return revision;
         } catch (IOException e) {
@@ -556,9 +559,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath());
 
         // New implementation
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        if (dateIndexBaseDir.isDirectory()) {
-            Revision revision = getRevisionViaDateIndex(date);
+        DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
+        if (dis.indexExists()) {
+            Revision revision = dis.getRevision(date);
             if (revision != null) {
                 return revision;
             } else {
@@ -567,8 +570,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 return null;
             }
         } else {
-            log.warn("No date index yet: " + dateIndexBaseDir);
-            buildDateIndex();
+            log.warn("No date index yet, hence one will be created ...");
+            dis.buildDateIndex();
             return getRevision(date);
         }
 
@@ -587,409 +590,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
         return null;
 */
-    }
-
-    /**
-     * Get revision via date index
-     */
-    private Revision getRevisionViaDateIndex(Date date) throws Exception {
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath() + ", " + date);
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-
-        return getRevisionByYear(dateIndexBaseDir, cal);
-    }
-
-    /**
-     * Get revision by year, whereas the algorithm assumes that the order is ascending: 2007, 2008, 2009, 2010, ...
-     * @param dateIndexBaseDir Directory where date index is located
-     * @param cal Point in time for which a revision shall be found
-     */
-    private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
-        String[] years = dateIndexBaseDir.list();
-        for (int i = years.length - 1; i >= 0; i--) {
-            log.warn("DEBUG: Year: " + years[i]);
-            try {
-                int year = new Integer(years[i]).intValue();
-
-                if (year < cal.get(Calendar.YEAR)) {
-                    log.warn("DEBUG: Year '" + year + "' which matched is smaller, hence get youngest revision for this year.");
-                    return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
-                } else if (year == cal.get(Calendar.YEAR)) {
-                    log.warn("DEBUG: Year '" + year + "' which matched is equals, hence start comparing within this particular year.");
-                    Revision revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next year lower ...");
-                    }
-                } else {
-                    log.warn("Try next year lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a year '" + years[i] + "' and hence will be ignored.");
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get youngest revision of year, whereas the algorithm assumes that the order of months is ascending 01, 02, ..., 12
-     * @param yearDir Directory of year containing months
-     */
-    private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
-        String[] months = yearDir.list();
-        for (int k = months.length - 1; k >= 0; k--) {
-            try {
-                int month = Integer.parseInt(months[k]);
-                //int month = new Integer(months[k]).intValue();
-                if (1 <= month && month <= 12) {
-                    log.warn("DEBUG: Youngest month '" + month + "' of year '" + yearDir + "' found");
-                    return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
-                } else {
-                    log.warn("Does not seem to be a month '" + month + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a month '" + months[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest month found within year '" + yearDir + "'");
-        return null;
-    }
-
-    /**
-     * Get youngest revision of month, whereas the algorithm assumes that the order of days is ascending 01, 02, ..., 31
-     * @param monthDir Directory of month containing days
-     */
-    private Revision getYoungestRevisionOfMonth(File monthDir) throws Exception {
-        String[] days = monthDir.list();
-        for (int k = days.length - 1; k >= 0; k--) {
-            try {
-                int day = Integer.parseInt(days[k]);
-                if (1 <= day && day <= 31) {
-                    log.warn("DEBUG: Youngest day '" + day + "' of month '" + monthDir + "' found");
-                    return getYoungestRevisionOfDay(new File(monthDir, days[k]));
-                } else {
-                    log.warn("Does not seem to be a day '" + day + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a day '" + days[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest day found within month '" + monthDir + "'");
-        return null;
-    }
-
-    /**
-     * Get youngest revision of day, whereas the algorithm assumes that the order of hours is ascending 00, 01, ..., 23
-     * @param dayDir Directory of day containing hours
-     */
-    private Revision getYoungestRevisionOfDay(File dayDir) throws Exception {
-        String[] hours = dayDir.list();
-        for (int k = hours.length - 1; k >= 0; k--) {
-            try {
-                int hour = Integer.parseInt(hours[k]);
-                if (0 <= hour && hour <= 23) {
-                    log.warn("DEBUG: Youngest hour '" + hour + "' of day '" + dayDir + "' found");
-                    return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
-                } else {
-                    log.warn("Does not seem to be a hour '" + hour + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a hour '" + hours[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest hour found within day '" + dayDir + "'");
-        return null;
-    }
-
-    /**
-     * Get youngest revision of hour, whereas the algorithm assumes that the order of minutes is ascending 00, 01, ..., 59
-     * @param hourDir Directory of hour containing minutes
-     */
-    private Revision getYoungestRevisionOfHour(File hourDir) throws Exception {
-        String[] minutes = hourDir.list();
-        for (int k = minutes.length - 1; k >= 0; k--) {
-            try {
-                int minute = Integer.parseInt(minutes[k]);
-                if (0 <= minute && minute <= 59) {
-                    log.warn("DEBUG: Youngest minute '" + minute + "' of hour '" + hourDir + "' found");
-                    return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
-                } else {
-                    log.warn("Does not seem to be a minute '" + minute + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a minute '" + minutes[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest hour found within hour '" + hourDir + "'");
-        return null;
-    }
-
-    /**
-     * Get youngest revision of minute, whereas the algorithm assumes that the order of seconds is ascending 00, 01, ..., 59
-     * @param minuteDir Directory of minute containing seconds
-     */
-    private Revision getYoungestRevisionOfMinute(File minuteDir) throws Exception {
-        String[] seconds = minuteDir.list();
-        for (int k = seconds.length - 1; k >= 0; k--) {
-            try {
-                int second = Integer.parseInt(seconds[k]);
-                if (0 <= second && second <= 59) {
-                    log.warn("DEBUG: Youngest second '" + second + "' of minute '" + minuteDir + "' found");
-                    return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
-                } else {
-                    log.warn("Does not seem to be a second '" + second + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a second '" + seconds[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest second found within minute '" + minuteDir + "'");
-        return null;
-    }
-
-    /**
-     * Get youngest revision of second, whereas the algorithm assumes that the order of milliseconds is ascending 0, 1, ..., 999
-     * @param secondDir Directory of second containing milliseconds 
-     */
-    private Revision getYoungestRevisionOfSecond(File secondDir) throws Exception {
-        String[] millis = secondDir.list();
-        for (int k = millis.length - 1; k >= 0; k--) {
-            try {
-                int milli = Integer.parseInt(millis[k]);
-                if (0 <= milli && milli <= 999) {
-                    log.warn("DEBUG: Youngest millisecond '" + milli + "' of second '" + secondDir + "' found");
-
-                    String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
-                    log.warn("DEBUG: ID File: " + path);
-                    BufferedReader br = new BufferedReader(new FileReader(new File(path)));
-                    String revisionName = br.readLine();
-                    br.close();
-                    return getRevision(revisionName);
-                } else {
-                    log.warn("Does not seem to be a millisecond '" + milli + "' and hence will be ignored.");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a millisecond '" + millis[k] + "' and hence will be ignored.");
-            }
-        }
-        log.warn("No youngest millisecond found within second '" + secondDir + "'");
-        return null;
-    }
-
-    /**
-     * Get revision by month
-     */
-    private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
-        String[] months = yearDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
-        for (int k = months.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Month: " + months[k]);
-            //log.warn("DEBUG: Month: " + months[k] + " (" + cal + ")");
-            try {
-                int month = new Integer(months[k]).intValue();
-
-                if (month < cal.get(Calendar.MONTH) + 1) {
-                    log.warn("DEBUG: Month '" + month + "' which matched is smaller, hence get youngest revision for this month.");
-                    return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
-                } else if (month == cal.get(Calendar.MONTH) + 1) {
-                    log.warn("DEBUG: Month '" + month + "' which matched is equals, hence start comparing within this particular month.");
-                    Revision revision = getRevisionByDay(new File(yearDir, months[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next month lower ...");
-                    }
-                } else {
-                    log.warn("Try next month lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a month: " + months[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get revision by day
-     */
-    private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
-        String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
-        for (int k = days.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Day: " + days[k]);
-            try {
-                int day = new Integer(days[k]).intValue();
-
-                if (day < cal.get(Calendar.DAY_OF_MONTH)) {
-                    log.warn("DEBUG: Day '" + day + "' which matched is smaller, hence get youngest revision for this day.");
-                    return getYoungestRevisionOfDay(new File(monthDir, days[k]));
-                } else if (day == cal.get(Calendar.DAY_OF_MONTH)) {
-                    log.warn("DEBUG: Day '" + day + "' which matched is equals, hence start comparing within this particular day.");
-                    Revision revision = getRevisionByHour(new File(monthDir, days[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next day lower ...");
-                    }
-                } else {
-                    log.warn("Try next day lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a day: " + days[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get revision by hour 
-     */
-    private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
-        String[] hours = dayDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
-        for (int k = hours.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Hour: " + hours[k]);
-            try {
-                int hour = Integer.parseInt(hours[k]);
-
-                if (hour < cal.get(Calendar.HOUR_OF_DAY)) {
-                    log.warn("DEBUG: Hour '" + hour + "' which matched is smaller, hence get youngest revision for this hour.");
-                    return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
-                } else if (hour == cal.get(Calendar.HOUR_OF_DAY)) {
-                    log.warn("DEBUG: Hour '" + hour + "' which matched is equals, hence start comparing within this particular hour.");
-                    Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next hour lower ...");
-                    }
-                } else {
-                    log.warn("Try next hour lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a hour: " + hours[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get revision by minute 
-     */
-    private Revision getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
-        String[] minutes = hourDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
-        for (int k = minutes.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Minute: " + minutes[k]);
-            try {
-                int minute = Integer.parseInt(minutes[k]);
-
-                if (minute < cal.get(Calendar.MINUTE)) {
-                    log.warn("DEBUG: Minute '" + minute + "' which matched is smaller, hence get youngest revision for this minute.");
-                    return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
-                } else if (minute == cal.get(Calendar.MINUTE)) {
-                    log.warn("DEBUG: Minute '" + minute + "' which matched is equals, hence start comparing within this particular minute.");
-                    Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next minute lower ...");
-                    }
-                } else {
-                    log.warn("Try next minute lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a minute: " + minutes[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get revision by second
-     */
-    private Revision getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
-        String[] seconds = minuteDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 60
-        for (int k = seconds.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Second: " + seconds[k]);
-            try {
-                int second = Integer.parseInt(seconds[k]);
-
-                if (second < cal.get(Calendar.SECOND)) {
-                    log.warn("DEBUG: Second '" + second + "' which matched is smaller, hence get youngest revision for this second.");
-                    return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
-                } else if (second == cal.get(Calendar.SECOND)) {
-                    log.warn("DEBUG: Second '" + second + "' which matched is equals, hence start comparing within this particular second.");
-                    Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.warn("Try next second lower ...");
-                    }
-                } else {
-                    log.warn("Try next second lower ...");
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a second: " + seconds[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get revision by millisecond
-     */
-    private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
-        String[] millis = secondDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
-        for (int k = millis.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Millisecond: " + millis[k]);
-            try {
-                int milli = new Integer(millis[k]).intValue();
-                if (milli <= cal.get(Calendar.MILLISECOND) ) {
-                    log.warn("DEBUG: Millisecond matched: " + milli);
-
-                    String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
-                    log.warn("DEBUG: ID File: " + path);
-                    BufferedReader br = new BufferedReader(new FileReader(new File(path)));
-                    String revisionName = br.readLine();
-                    br.close();
-                    return getRevision(revisionName);
-                }
-            } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a millisecond: " + millis[k]);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Build date index in order to retrieve revisions more quickly based on creation date
-     */
-    private void buildDateIndex() throws Exception {
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("DEBUG: Build date index: " + dateIndexBaseDir);
-
-        if (!dateIndexBaseDir.isDirectory()) {
-            dateIndexBaseDir.mkdirs();
-        }
-
-        Revision[] revisions = getRevisions();
-        for (int i = revisions.length - 1; i >= 0; i--) {
-            Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
-            log.warn("DEBUG: Creation date: " + creationDate);
-
-            String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
-            log.warn("DEBUG: Date directory of revision '" + revisions[i].getRevisionName() + "': " + dateDirS);
-            File dateDirF = new File(dateIndexBaseDir, dateDirS);
-            if (!dateDirF.isDirectory()) {
-                dateDirF.mkdirs();
-                File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
-                PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
-                pw.print(revisions[i].getRevisionName());
-                pw.close();
-            } else {
-               log.error("Revision '" + revisions[i].getRevisionName() + "' seems to exists twice!");
-            }
-        }
     }
 
     /**
