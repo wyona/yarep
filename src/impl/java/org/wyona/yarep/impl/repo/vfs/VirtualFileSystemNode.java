@@ -612,18 +612,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Year: " + years[i]);
             try {
                 int year = new Integer(years[i]).intValue();
-                if (year <= cal.get(Calendar.YEAR)) {
-                    log.warn("DEBUG: Year matched: " + year);
-                    Revision revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (year < cal.get(Calendar.YEAR)) {
-                            return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
-                        } else {
-                            log.warn("Youngest does not make sense! Try next year lower ...");
-                        }
-                    }
+
+                if (year < cal.get(Calendar.YEAR)) {
+                    log.warn("DEBUG: Year '" + year + "' which matched is smaller, hence get youngest revision for this year.");
+                    return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
+                } else if (year == cal.get(Calendar.YEAR)) {
+                    log.warn("DEBUG: Year '" + year + "' which matched is equals, hence start comparing within this particular year.");
+                    return getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
+                } else {
+                    log.warn("Try next year lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a year '" + years[i] + "' and hence will be ignored.");
@@ -875,7 +872,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Hour: " + hours[k]);
             try {
                 int hour = Integer.parseInt(hours[k]);
-                log.warn("DEBUG: Compare: " + hour + ", " + cal.get(Calendar.HOUR_OF_DAY));
+                //log.debug("Compare: " + hour + ", " + cal.get(Calendar.HOUR_OF_DAY));
                 if (hour <= cal.get(Calendar.HOUR_OF_DAY)) {
                     log.warn("DEBUG: Hour matched: " + hour);
                     Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
