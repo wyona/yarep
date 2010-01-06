@@ -189,7 +189,10 @@
     
     <artifact:deploy file="build/lib/yarep-core-${yarep.version}-r${subversion.revision}.jar">
       <remoteRepository url="${repository.url}">
+        <authentication username="${repository.username}" password="${repository.password}"/>
+<!--
         <authentication username="${repository.username}" privateKey="${user.home}/.ssh/id_dsa"/>
+-->
       </remoteRepository>
       <pom refid="maven.project.core"/>
     </artifact:deploy>
@@ -198,7 +201,10 @@
     
     <artifact:deploy file="build/lib/yarep-impl-${yarep.version}-r${subversion.revision}.jar">
       <remoteRepository url="${repository.url}">
+        <authentication username="${repository.username}" password="${repository.password}"/>
+<!--
         <authentication username="${repository.username}" privateKey="${user.home}/.ssh/id_dsa"/>
+-->
       </remoteRepository>
       <pom refid="maven.project.impl"/>
     </artifact:deploy>
