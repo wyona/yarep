@@ -784,33 +784,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             //log.warn("DEBUG: Month: " + months[k] + " (" + cal + ")");
             try {
                 int month = new Integer(months[k]).intValue();
-                if (month <= cal.get(Calendar.MONTH) + 1) {
-                    log.warn("DEBUG: Month matched: " + month);
-                    Revision revision = getRevisionByDay(new File(yearDir, months[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (month < cal.get(Calendar.MONTH) + 1) {
-                            return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
-                        } else {
-                            log.warn("Youngest does not make sense!");
-                        }
 
-/*
-                        if (k - 1 >= 0) {
-                            log.warn("DEBUG: Try next month lower: " + months[k - 1]);
-                            cal.set(Calendar.DAY_OF_MONTH, 31);
-                            cal.set(Calendar.HOUR_OF_DAY, 23);
-                            cal.set(Calendar.MINUTE, 59);
-                            cal.set(Calendar.SECOND, 59);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionByDay(new File(yearDir, months[k - 1]), cal);
-                        } else {
-                            log.warn("DEBUG: No other month available.");
-                            return null;
-                        }
-*/
-                    }
+                if (month < cal.get(Calendar.MONTH) + 1) {
+                    log.warn("DEBUG: Month '" + month + "' which matched is smaller, hence get youngest revision for this month.");
+                    return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
+                } else if (month == cal.get(Calendar.MONTH) + 1) {
+                    log.warn("DEBUG: Month '" + month + "' which matched is equals, hence start comparing within this particular month.");
+                    return getRevisionByDay(new File(yearDir, months[k]), cal);
+                } else {
+                    log.warn("Try next month lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a month: " + months[k]);
