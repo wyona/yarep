@@ -28,7 +28,8 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
      */
     public void setUp() throws Exception {
         RepositoryFactory repoFactory = new RepositoryFactory();
-        repo = repoFactory.newRepository("vfs-example", new java.io.File("new-vfs-example/repository.xml"));
+        repo = repoFactory.newRepository("new-vfs"); // INFO: Make sure that this repo is configured within 'src/test/java/yarep.properties'
+        //repo = repoFactory.newRepository("vfs-example", new java.io.File("new-vfs-example/repository.xml"));
         log.info("Testing repository: " + repo.getName() + " (" + repo.getConfigFile() + ")");
     }
 
