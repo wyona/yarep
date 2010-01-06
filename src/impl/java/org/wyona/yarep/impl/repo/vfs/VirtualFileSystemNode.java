@@ -602,10 +602,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Get revision by year
+     * Get revision by year, whereas the algorithm assumes that the order is ascending: 2007, 2008, 2009, 2010, ...
+     * @param dateIndexBaseDir Directory where date index is located
+     * @param cal Point in time for which a revision shall be found
      */
     private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
-        String[] years = dateIndexBaseDir.list(); // IMPORTANT: Make sure the order is ascending: 2007, 2008, 2009, 2010, ...
+        String[] years = dateIndexBaseDir.list();
         for (int i = years.length - 1; i >= 0; i--) {
             log.warn("DEBUG: Year: " + years[i]);
             try {
@@ -616,28 +618,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (revision != null) {
                         return revision;
                     } else {
-                        return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
-
-/*
-                        if (i - 1 >= 0) {
-                            log.warn("DEBUG: Try next year lower: " + years[i - 1]);
-                            cal.set(Calendar.MONTH, 11);
-                            cal.set(Calendar.DAY_OF_MONTH, 31);
-                            cal.set(Calendar.HOUR_OF_DAY, 23);
-                            cal.set(Calendar.MINUTE, 59);
-                            cal.set(Calendar.SECOND, 59);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionByMonth(new File(dateIndexBaseDir, years[i - 1]), cal);
+                        if (year < cal.get(Calendar.YEAR)) {
+                            return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
                         } else {
-                            log.warn("DEBUG: No other year available.");
-                            return null;
+                            log.warn("Youngest does not make sense! Try next year lower ...");
                         }
-*/
                     }
-
                 }
             } catch(NumberFormatException e) {
-                log.warn("Does not seem to be a year: " + years[i]);
+                log.warn("Does not seem to be a year '" + years[i] + "' and hence will be ignored.");
             }
         }
         return null;
@@ -794,7 +783,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
         String[] months = yearDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
         for (int k = months.length - 1; k >= 0; k--) {
-            log.warn("DEBUG: Month: " + months[k] + "(" + cal + ")");
+            log.warn("DEBUG: Month: " + months[k]);
+            //log.warn("DEBUG: Month: " + months[k] + " (" + cal + ")");
             try {
                 int month = new Integer(months[k]).intValue();
                 if (month <= cal.get(Calendar.MONTH) + 1) {
@@ -803,6 +793,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (revision != null) {
                         return revision;
                     } else {
+                        if (month < cal.get(Calendar.MONTH) + 1) {
+                            return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
+                        } else {
+                            log.warn("Youngest does not make sense!");
+                        }
+
+/*
                         if (k - 1 >= 0) {
                             log.warn("DEBUG: Try next month lower: " + months[k - 1]);
                             cal.set(Calendar.DAY_OF_MONTH, 31);
@@ -815,6 +812,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other month available.");
                             return null;
                         }
+*/
                     }
                 }
             } catch(NumberFormatException e) {
@@ -839,6 +837,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (revision != null) {
                         return revision;
                     } else {
+                        if (day < cal.get(Calendar.DAY_OF_MONTH)) {
+                            return getYoungestRevisionOfDay(new File(monthDir, days[k]));
+                        } else {
+                            log.warn("Youngest does not make sense!");
+                        }
+
+
+/*
                         if (k - 1 >= 0) {
                             log.warn("DEBUG: Try next day lower: " + days[k - 1]);
                             cal.set(Calendar.HOUR_OF_DAY, 23);
@@ -850,6 +856,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other day available.");
                             return null;
                         }
+*/
                     }
                 }
             } catch(NumberFormatException e) {
@@ -867,7 +874,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         for (int k = hours.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Hour: " + hours[k]);
             try {
-                int hour = new Integer(hours[k]).intValue();
+                int hour = Integer.parseInt(hours[k]);
                 log.warn("DEBUG: Compare: " + hour + ", " + cal.get(Calendar.HOUR_OF_DAY));
                 if (hour <= cal.get(Calendar.HOUR_OF_DAY)) {
                     log.warn("DEBUG: Hour matched: " + hour);
@@ -875,6 +882,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (revision != null) {
                         return revision;
                     } else {
+                        if (hour < cal.get(Calendar.HOUR_OF_DAY)) {
+                            return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
+                        } else {
+                            log.warn("Youngest does not make sense!");
+                        }
+
+/*
                         if (k - 1 >= 0) {
                             log.warn("DEBUG: Try next hour lower: " + hours[k - 1]);
                             cal.set(Calendar.MINUTE, 59);
@@ -885,6 +899,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other hour available.");
                             return null;
                         }
+*/
                     }
                 }
             } catch(NumberFormatException e) {
@@ -902,13 +917,20 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         for (int k = minutes.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Minute: " + minutes[k]);
             try {
-                int minute = new Integer(minutes[k]).intValue();
+                int minute = Integer.parseInt(minutes[k]);
                 if (minute <= cal.get(Calendar.MINUTE) ) {
                     log.warn("DEBUG: Minute matched: " + minute);
                     Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
+                        if (minute < cal.get(Calendar.MINUTE)) {
+                            return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
+                        } else {
+                            log.warn("Youngest does not make sense!");
+                        }
+
+/*
                         if (k - 1 >= 0) {
                             log.warn("DEBUG: Try next minute lower: " + minutes[k - 1]);
                             cal.set(Calendar.SECOND, 59);
@@ -918,6 +940,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other minute available.");
                             return null;
                         }
+*/
                     }
                 }
             } catch(NumberFormatException e) {
@@ -935,13 +958,21 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         for (int k = seconds.length - 1; k >= 0; k--) {
             log.warn("DEBUG: Second: " + seconds[k]);
             try {
-                int second = new Integer(seconds[k]).intValue();
+                int second = Integer.parseInt(seconds[k]);
                 if (second <= cal.get(Calendar.SECOND) ) {
                     log.warn("DEBUG: Second matched: " + second);
                     Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
                     if (revision != null) {
                         return revision;
                     } else {
+                        if (second < cal.get(Calendar.SECOND)) {
+                            return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
+                        } else {
+                            log.warn("Youngest does not make sense!");
+                        }
+
+
+/*
                         if (k - 1 >= 0) {
                             log.warn("DEBUG: Try next second lower: " + seconds[k - 1]);
                             cal.set(Calendar.MILLISECOND, 999);
@@ -950,6 +981,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                             log.warn("DEBUG: No other second available.");
                             return null;
                         }
+*/
                     }
                 }
             } catch(NumberFormatException e) {
