@@ -618,7 +618,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
                 } else if (year == cal.get(Calendar.YEAR)) {
                     log.warn("DEBUG: Year '" + year + "' which matched is equals, hence start comparing within this particular year.");
-                    return getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
+                    Revision revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next year lower ...");
+                    }
                 } else {
                     log.warn("Try next year lower ...");
                 }
@@ -790,7 +795,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
                 } else if (month == cal.get(Calendar.MONTH) + 1) {
                     log.warn("DEBUG: Month '" + month + "' which matched is equals, hence start comparing within this particular month.");
-                    return getRevisionByDay(new File(yearDir, months[k]), cal);
+                    Revision revision = getRevisionByDay(new File(yearDir, months[k]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next month lower ...");
+                    }
                 } else {
                     log.warn("Try next month lower ...");
                 }
@@ -816,7 +826,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfDay(new File(monthDir, days[k]));
                 } else if (day == cal.get(Calendar.DAY_OF_MONTH)) {
                     log.warn("DEBUG: Day '" + day + "' which matched is equals, hence start comparing within this particular day.");
-                    return getRevisionByHour(new File(monthDir, days[k]), cal);
+                    Revision revision = getRevisionByHour(new File(monthDir, days[k]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next day lower ...");
+                    }
                 } else {
                     log.warn("Try next day lower ...");
                 }
@@ -842,7 +857,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
                 } else if (hour == cal.get(Calendar.HOUR_OF_DAY)) {
                     log.warn("DEBUG: Hour '" + hour + "' which matched is equals, hence start comparing within this particular hour.");
-                    return getRevisionByMinute(new File(dayDir, hours[k]), cal);
+                    Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next hour lower ...");
+                    }
                 } else {
                     log.warn("Try next hour lower ...");
                 }
@@ -868,7 +888,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
                 } else if (minute == cal.get(Calendar.MINUTE)) {
                     log.warn("DEBUG: Minute '" + minute + "' which matched is equals, hence start comparing within this particular minute.");
-                    return getRevisionBySecond(new File(hourDir, minutes[k]), cal);
+                    Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next minute lower ...");
+                    }
                 } else {
                     log.warn("Try next minute lower ...");
                 }
@@ -894,7 +919,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
                 } else if (second == cal.get(Calendar.SECOND)) {
                     log.warn("DEBUG: Second '" + second + "' which matched is equals, hence start comparing within this particular second.");
-                    return getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
+                    Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
+                    if (revision != null) {
+                        return revision;
+                    } else {
+                        log.warn("Try next second lower ...");
+                    }
                 } else {
                     log.warn("Try next second lower ...");
                 }
