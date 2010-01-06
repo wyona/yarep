@@ -62,7 +62,24 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         //Date pointInTime = new Date(Long.parseLong("1000"));
         Date pointInTime = new Date();
         Revision revision = org.wyona.yarep.util.YarepUtil.getRevision(repo.getNode(path), pointInTime);
-        log.info("Revision has been found: " + revision.getRevisionName());
+        log.info("Revision '" + revision.getRevisionName() + "' (" + new Date(Long.parseLong(revision.getRevisionName())) + ") has been found for point in time: " + pointInTime);
         assertTrue("Revision has been found: " + revision.getRevisionName(), revision != null);
     }
+
+    /**
+     * Test get revision by date (point in time)
+     */
+/*
+    public void testGetRevisionByDate() throws Exception {
+        String path = "/sitetree.xml";
+        //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T11:46:37/134");
+        //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T11:46:38/134");
+        //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T11:46:39/134");
+        //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2010/12/31T09:46:23/134");
+        Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T09:46:23/134");
+        Revision revision = org.wyona.yarep.util.YarepUtil.getRevision(repo.getNode(path), pointInTime);
+        log.info("Revision '" + revision.getRevisionName() + "' (" + new Date(Long.parseLong(revision.getRevisionName())) + ") has been found for point in time: " + pointInTime);
+        assertTrue("Revision has been found: " + revision.getRevisionName(), revision != null);
+    }
+*/
 }
