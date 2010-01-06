@@ -644,17 +644,18 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Get youngest revision of month, whereas the algorithm assumes that the order is ascending 1, 2, ..., 12
+     * Get youngest revision of year, whereas the algorithm assumes that the order of months is ascending 1, 2, ..., 12
      * @param yearDir Directory of year containing months
      */
     private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
         String[] months = yearDir.list();
         for (int k = months.length - 1; k >= 0; k--) {
             try {
-                int month = new Integer(months[k]).intValue();
+                int month = Integer.parseInt(months[k]);
+                //int month = new Integer(months[k]).intValue();
                 if (1 <= month && month <= 12) {
                     log.warn("DEBUG: Youngest month '" + month + "' of year '" + yearDir + "' found");
-                    return null;
+                    return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
                 } else {
                     log.warn("Does not seem to be a month '" + month + "' and hence will be ignored.");
                 }
@@ -663,6 +664,29 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         }
         log.warn("No youngest month found within year '" + yearDir + "'");
+        return null;
+    }
+
+    /**
+     * Get youngest revision of month, whereas the algorithm assumes that the order of days is ascending 1, 2, ..., 31
+     * @param monthDir Directory of month containing days
+     */
+    private Revision getYoungestRevisionOfMonth(File monthDir) throws Exception {
+        String[] days = monthDir.list();
+        for (int k = days.length - 1; k >= 0; k--) {
+            try {
+                int day = Integer.parseInt(days[k]);
+                if (1 <= day && day <= 31) {
+                    log.warn("DEBUG: Youngest day '" + day + "' of month '" + monthDir + "' found");
+                    return null;
+                } else {
+                    log.warn("Does not seem to be a day '" + day + "' and hence will be ignored.");
+                }
+            } catch(NumberFormatException e) {
+                log.warn("Does not seem to be a day '" + days[k] + "' and hence will be ignored.");
+            }
+        }
+        log.warn("No youngest day found within month '" + monthDir + "'");
         return null;
     }
 
