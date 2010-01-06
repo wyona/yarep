@@ -810,33 +810,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("DEBUG: Day: " + days[k]);
             try {
                 int day = new Integer(days[k]).intValue();
-                if (day <= cal.get(Calendar.DAY_OF_MONTH)) {
-                    log.warn("DEBUG: Day matched: " + day);
-                    Revision revision = getRevisionByHour(new File(monthDir, days[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        if (day < cal.get(Calendar.DAY_OF_MONTH)) {
-                            return getYoungestRevisionOfDay(new File(monthDir, days[k]));
-                        } else {
-                            log.warn("Youngest does not make sense!");
-                        }
 
-
-/*
-                        if (k - 1 >= 0) {
-                            log.warn("DEBUG: Try next day lower: " + days[k - 1]);
-                            cal.set(Calendar.HOUR_OF_DAY, 23);
-                            cal.set(Calendar.MINUTE, 59);
-                            cal.set(Calendar.SECOND, 59);
-                            cal.set(Calendar.MILLISECOND, 999);
-                            return getRevisionByHour(new File(monthDir, days[k - 1]), cal);
-                        } else {
-                            log.warn("DEBUG: No other day available.");
-                            return null;
-                        }
-*/
-                    }
+                if (day < cal.get(Calendar.DAY_OF_MONTH)) {
+                    log.warn("DEBUG: Day '" + day + "' which matched is smaller, hence get youngest revision for this day.");
+                    return getYoungestRevisionOfDay(new File(monthDir, days[k]));
+                } else if (day == cal.get(Calendar.DAY_OF_MONTH)) {
+                    log.warn("DEBUG: Day '" + day + "' which matched is equals, hence start comparing within this particular day.");
+                    return getRevisionByHour(new File(monthDir, days[k]), cal);
+                } else {
+                    log.warn("Try next day lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a day: " + days[k]);
