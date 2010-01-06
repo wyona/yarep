@@ -556,7 +556,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
-        log.warn("DEBUG: Use vfs-repo specific implementation: " + getPath());
+        log.debug("Use vfs-repo specific implementation: " + getPath());
 
         // New implementation
         DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);

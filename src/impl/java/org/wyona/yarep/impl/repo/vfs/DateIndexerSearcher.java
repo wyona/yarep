@@ -74,7 +74,7 @@ public class DateIndexerSearcher {
      */
     public Revision getRevision(Date date) throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("DEBUG: Use vfs-repo specific implementation: " + node.getPath() + ", " + date);
+        log.debug("Use vfs-repo specific implementation: " + node.getPath() + ", " + date);
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
 
@@ -102,10 +102,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next year lower ...");
+                        log.debug("Try next year lower ...");
                     }
                 } else {
-                    log.warn("Try next year lower ...");
+                    log.debug("Try next year lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a year '" + years[i] + "' and hence will be ignored.");
@@ -278,10 +278,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next month lower ...");
+                        log.debug("Try next month lower ...");
                     }
                 } else {
-                    log.warn("Try next month lower ...");
+                    log.debug("Try next month lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a month: " + months[k]);
@@ -309,10 +309,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next day lower ...");
+                        log.debug("Try next day lower ...");
                     }
                 } else {
-                    log.warn("Try next day lower ...");
+                    log.debug("Try next day lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a day: " + days[k]);
@@ -340,10 +340,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next hour lower ...");
+                        log.debug("Try next hour lower ...");
                     }
                 } else {
-                    log.warn("Try next hour lower ...");
+                    log.debug("Try next hour lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a hour: " + hours[k]);
@@ -371,10 +371,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next minute lower ...");
+                        log.debug("Try next minute lower ...");
                     }
                 } else {
-                    log.warn("Try next minute lower ...");
+                    log.debug("Try next minute lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a minute: " + minutes[k]);
@@ -402,10 +402,10 @@ public class DateIndexerSearcher {
                     if (revision != null) {
                         return revision;
                     } else {
-                        log.warn("Try next second lower ...");
+                        log.debug("Try next second lower ...");
                     }
                 } else {
-                    log.warn("Try next second lower ...");
+                    log.debug("Try next second lower ...");
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a second: " + seconds[k]);
