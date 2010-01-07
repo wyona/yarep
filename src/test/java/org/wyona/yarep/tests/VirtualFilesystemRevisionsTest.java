@@ -76,10 +76,41 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T11:46:38/134");
         //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T11:46:39/134");
         //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2010/12/31T09:46:23/134");
-        Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2009/12/31T09:46:23/134");
+        //Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2010/01/06T21:33:23/134");
+        Date pointInTime = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S").parse("2010/01/07T21:33:23/134");
         Revision revision = org.wyona.yarep.util.YarepUtil.getRevision(repo.getNode(path), pointInTime);
         log.info("Revision '" + revision.getRevisionName() + "' (" + new Date(Long.parseLong(revision.getRevisionName())) + ") has been found for point in time: " + pointInTime);
         assertTrue("Revision has been found: " + revision.getRevisionName(), revision != null);
+    }
+*/
+
+    /**
+     * Test create many new revision
+     */
+/*
+    public void testCreateRevision() throws Exception {
+        String path = "/sitetree.xml";
+        Node node = repo.getNode(path);
+
+        for (int i = 0; i < 10000; i++) {
+            node.checkout("bob");
+            //node.setMimeType("application/xml");
+
+            // TODO: The code below creates empty files, doesn't really matter for testing though
+            byte[] buffer = new byte[1024];
+            int bytesRead = 0;
+            java.io.BufferedInputStream bis = new java.io.BufferedInputStream(node.getInputStream(), 160000);
+            java.io.OutputStream out = node.getOutputStream();
+            while((bytesRead = bis.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+            out.close();
+            bis.close();
+            Revision revision = node.checkin("new revision");
+            log.info("Revision has been created: " + revision.getRevisionName());
+        }
+
+        assertTrue("Revisions have been created.", true);
     }
 */
 }
