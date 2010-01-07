@@ -558,38 +558,40 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     public Revision getRevision(Date date) throws Exception {
         log.debug("Use vfs-repo specific implementation: " + getPath());
 
-        // New implementation
-        DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
-        if (dis.indexExists()) {
-            Revision revision = dis.getRevision(date);
-            if (revision != null) {
-                return revision;
+        if (true) {
+            log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
+            DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
+            if (dis.indexExists()) {
+                Revision revision = dis.getRevision(date);
+                if (revision != null) {
+                    return revision;
+                } else {
+                    //log.warn("No revision found via data index, try to find otherwise ...");
+                    log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+                    return null;
+                }
             } else {
-                //log.warn("No revision found via data index, try to find otherwise ...");
-                log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
-                return null;
+                log.warn("No date index yet, hence one will be created ...");
+                dis.buildDateIndex();
+                return getRevision(date);
             }
         } else {
-            log.warn("No date index yet, hence one will be created ...");
-            dis.buildDateIndex();
-            return getRevision(date);
-        }
-
-        // Old implementation
-/*
-        if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
-        Revision[] revisions = getRevisions();
-        for (int i = revisions.length - 1; i >= 0; i--) {
-            Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
-            //Date creationDate = revisions[i].getCreationDate(); // INFO: This method is slower than the above
-            if (creationDate.before(date) || creationDate.equals(date)) {
-                if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
-                return revisions[i];
+            log.debug("Old implementation");
+            if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
+            Revision[] revisions = getRevisions();
+            for (int i = revisions.length - 1; i >= 0; i--) {
+                //log.warn("DEBUG: Revison: " + revisions[i].getRevisionName());
+                //Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+                Date creationDate = revisions[i].getCreationDate(); // INFO: This method is slower than the above
+                if (creationDate.before(date) || creationDate.equals(date)) {
+                    if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
+                    log.warn("DEBUG: Number of revisions compared: " + (i + 1));
+                    return revisions[i];
+                }
             }
+            log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+            return null;
         }
-        log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
-        return null;
-*/
     }
 
     /**
