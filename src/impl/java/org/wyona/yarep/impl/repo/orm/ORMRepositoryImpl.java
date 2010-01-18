@@ -20,6 +20,11 @@ import org.wyona.yarep.core.search.Searcher;
 
 import org.apache.log4j.Logger;
 
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
+
+import org.apache.commons.dbcp.BasicDataSource;
+
 /**
  * Object Relational Mapping repository implementation
  * @see org.wyona.yarep.core.Repository
@@ -28,13 +33,25 @@ public class ORMRepositoryImpl implements Repository {
 
     private static final Logger log = Logger.getLogger(ORMRepositoryImpl.class);
 
-    private String repoId;
+    protected String repoId;
+    protected String repoName;
+    protected File configFile;
+
+    private String driverClassName;
+    private String url;
+    private String username;
+    private String password;
 
     /**
      *
      */
-    public org.apache.commons.dbcp.BasicDataSource getBasicDataSource() {
-        return null;
+    public BasicDataSource getBasicDataSource() {
+        BasicDataSource bds = new BasicDataSource();
+        bds.setDriverClassName(driverClassName);
+        bds.setUrl(url);
+        bds.setUsername(username);
+        bds.setPassword(password);
+        return bds;
     }
 
     /**
@@ -55,15 +72,29 @@ public class ORMRepositoryImpl implements Repository {
      * @see org.wyona.yarep.core.Repository#readConfiguration(File)
      */
     public void readConfiguration(File configFile) throws RepositoryException {
-        log.warn("TODO: Not implemented yet!");
+        this.configFile = configFile;
+        DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder(true);
+        Configuration config;
+        try {
+            config = builder.buildFromFile(configFile);
+            repoName = config.getChild("name", false).getValue();
+
+            Configuration dataSourceConfig = config.getChild("data-source", false);
+            driverClassName = dataSourceConfig.getChild("driverClassName").getValue();
+            url = dataSourceConfig.getChild("url").getValue();
+            username = dataSourceConfig.getChild("username").getValue();
+            password = dataSourceConfig.getChild("password").getValue();
+        } catch(Exception e) {
+            log.error(e, e);
+            throw new RepositoryException("Could not read repository configuration: " + e.getMessage(), e);
+        }
     }
 
     /**
      * @see org.wyona.yarep.core.Repository#getName()
      */
     public String getName() {
-        log.warn("TODO: Not implemented yet!");
-        return null;
+        return repoName;
     }
 
     /**
