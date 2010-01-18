@@ -46,22 +46,17 @@
                   version="1.1"/>
       <!-- Jackrabbit seems to have trouble on MacOS X with Java 1.5 if xalan is not added to the classpath -->
       <dependency groupId="xalan" artifactId="xalan" version="2.7.0"/>
-      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-discovery"
-                  version="0.2"/>
-      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging"
-                  version="1.0.4"/>
-      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-io"
-                  version="1.2"/>
-      <dependency groupId="hsqldb" artifactId="hsqldb"
-                  version="1.8.0.7"/>
-      <dependency groupId="postgresql" artifactId="postgresql"
-                  version="8.1-409.jdbc3"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-discovery" version="0.2"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging" version="1.0.4"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-io" version="1.2"/>
+      <dependency groupId="commons-dbcp" artifactId="commons-dbcp" version="1.2.1"/>
+
+      <dependency groupId="hsqldb" artifactId="hsqldb" version="1.8.0.7"/>
+      <dependency groupId="postgresql" artifactId="postgresql" version="8.1-409.jdbc3"/>
 <!--
-      <dependency groupId="postgresql" artifactId="postgresql"
-                  version="7.4.1-jdbc3"/>
+      <dependency groupId="postgresql" artifactId="postgresql" version="7.4.1-jdbc3"/>
 -->
-      <dependency groupId="xindice" artifactId="xmldb"
-                  version="1.0"/>
+      <dependency groupId="xindice" artifactId="xmldb" version="1.0"/>
     </artifact:dependencies>
     <property name="maven2.cp" refid="maven2.classpath"/>
   </target>
