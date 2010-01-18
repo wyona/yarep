@@ -13,7 +13,7 @@ import java.io.Writer;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 
@@ -99,7 +99,7 @@ import org.wyona.yarep.core.search.Searcher;
  */
 public class VirtualFileSystemRepository implements Repository {
 
-    private static Category log = Category.getInstance(VirtualFileSystemRepository.class);
+    private static Logger log = Logger.getLogger(VirtualFileSystemRepository.class);
 
     protected String id;
     protected File configFile;
