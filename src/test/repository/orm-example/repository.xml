@@ -4,9 +4,9 @@
   <name>ORM (Object Relational Mapping) Example</name>
 
   <data-source>
-    <property name="driverClassName" value="org.postgresql.Driver"/>
-    <property name="url" value="jdbc:postgresql://127.0.0.1:5432/peach"/>
-    <property name="username" value="postgres"/>
-    <property name="password" value="TODO"/>
+    <driverClassName>org.postgresql.Driver</driverClassName>
+    <url>jdbc:postgresql://127.0.0.1:5432/peach</url>
+    <username>postgres</username>
+    <password>TODO</password>
   </data-source>
 </repository>
