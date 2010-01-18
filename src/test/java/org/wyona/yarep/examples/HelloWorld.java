@@ -36,6 +36,7 @@ public class HelloWorld {
         RepositoryFactory repoFactory = getRepositoryFactory();
         System.out.println(repoFactory);
 
+        Repository repoORM;
         Repository repoA;
         Repository repoC;
         Repository repoB;
@@ -43,6 +44,7 @@ public class HelloWorld {
         Repository repoJCR;
         Repository repoNewFS;
         try {
+            repoORM = repoFactory.newRepository("example2");
             repoA = repoFactory.newRepository("example1");
             repoC = repoFactory.newRepository("hugo");
             repoJCR = repoFactory.newRepository("jcr");
@@ -130,8 +132,10 @@ public class HelloWorld {
 
 
 
-            System.out.println("\nWrite content to repository " + repoB.getName() + " (repoB) ...");
-            Writer writerB = repoB.getWriter(worldPath);
+            System.out.println("\nORM repository: " + repoB.getName() + " (repoB) ...");
+            System.out.println("\nORM repository: " + repoORM.getName() + " (repoORM) ...");
+            org.apache.commons.dbcp.BasicDataSource bds = ((org.wyona.yarep.impl.repo.orm.ORMRepositoryImpl) repoORM).getBasicDataSource();
+            System.out.println("\nORM repository connection url: " + bds.getUrl());
 
 // TODO: See TODO.txt re VFS implementation
 /*
