@@ -15,7 +15,7 @@ import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.log4j.Category;
 
 /**
- *
+ * Object Relational Mapping implementation
  */
 public class ORMStorage implements Storage {
 
