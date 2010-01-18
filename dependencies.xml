@@ -50,6 +50,7 @@
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging" version="1.0.4"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-io" version="1.2"/>
       <dependency groupId="commons-dbcp" artifactId="commons-dbcp" version="1.2.1"/>
+      <dependency groupId="commons-pool" artifactId="commons-pool" version="1.2"/>
 
       <dependency groupId="hsqldb" artifactId="hsqldb" version="1.8.0.7"/>
       <dependency groupId="postgresql" artifactId="postgresql" version="8.1-409.jdbc3"/>
