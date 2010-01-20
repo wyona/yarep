@@ -42,7 +42,7 @@ import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
 
 /**
- * Utility class to index and search revisions by date
+ * Utility class to index and search revisions of a node by date
  */
 public class DateIndexerSearcher {
     private static Logger log = Logger.getLogger(DateIndexerSearcher.class);
@@ -54,7 +54,8 @@ public class DateIndexerSearcher {
     private Node node;
 
     /**
-     *
+     * @param node Node for revisions shall be indexed by date
+     * @param metaDir Meta directory of this node
      */
     public DateIndexerSearcher(Node node, File metaDir) {
         this.node = node;
@@ -449,7 +450,8 @@ public class DateIndexerSearcher {
             buildDateIndex();
         }
 
-        Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+        Date creationDate = node.getRevision(revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
+        //Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
         log.debug("Creation date: " + creationDate);
 
         String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
