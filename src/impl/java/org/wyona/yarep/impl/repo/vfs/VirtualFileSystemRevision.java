@@ -272,6 +272,9 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         return super.getProperties();
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#getProperty(String)
+     */
     public Property getProperty(String name) throws RepositoryException {
         if (!isInitialized) {
             init();
@@ -307,6 +310,9 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         return super.setProperty(name, value);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#setProperty(String, Date)
+     */
     public Property setProperty(String name, Date value) throws RepositoryException {
         if (!isInitialized) {
             init();
