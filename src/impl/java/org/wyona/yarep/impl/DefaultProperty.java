@@ -14,6 +14,9 @@ import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.PropertyType;
 import org.wyona.yarep.core.RepositoryException;
 
+/**
+ * Default implementation of the property interface
+ */
 public class DefaultProperty implements Property {
     private static Logger log = Logger.getLogger(DefaultProperty.class);
    
@@ -21,7 +24,7 @@ public class DefaultProperty implements Property {
     protected Node node;
     protected int type;
 
-    protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"); // INFO: We need to keep this because of backwards compatibility
     private DateFormat dateFormatInclMillis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSSZ");
     
     protected boolean booleanValue;
@@ -93,7 +96,9 @@ public class DefaultProperty implements Property {
             case PropertyType.BOOLEAN: return "" + getBoolean(); 
             case PropertyType.DOUBLE: return "" + getDouble(); 
             case PropertyType.LONG: return "" + getLong(); 
-            case PropertyType.DATE: return dateFormat.format(getDate()); 
+            case PropertyType.DATE:
+                //log.debug("Format date incl milliseconds: " + dateFormatInclMillis.format(getDate()));
+                return dateFormatInclMillis.format(getDate()); 
             case PropertyType.STRING: return getString();
             default: return "";
         }
@@ -117,7 +122,6 @@ public class DefaultProperty implements Property {
      * @see org.wyona.yarep.core.Property#getDate()
      */
     public Date getDate() throws RepositoryException {
-        log.warn("DEBUG: Date: " + this.dateValue);
         return this.dateValue;
     }
     
@@ -165,7 +169,6 @@ public class DefaultProperty implements Property {
      * @see org.wyona.yarep.core.Property#setValue(java.util.Date)
      */
     public void setValue(Date value) throws RepositoryException {
-        log.warn("DEBUG: Date: " + value);
         this.dateValue = value;
     }
     
@@ -201,7 +204,7 @@ public class DefaultProperty implements Property {
             return dateFormatInclMillis.parse(value);
         } catch (ParseException e) {
             try {
-                log.warn("Date of node '" + node.getPath() + "' does not seem to contain milliseconds: " + value + " (probably old data ...)");
+                if(log.isDebugEnabled()) log.debug("Date of node '" + node.getPath() + "' does not seem to contain milliseconds: " + value + " (probably old data ...)");
             } catch(Exception re) {
                 log.error(re, re);
             }
