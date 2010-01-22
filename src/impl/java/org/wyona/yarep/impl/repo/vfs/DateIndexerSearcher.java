@@ -83,13 +83,18 @@ public class DateIndexerSearcher {
     }
 
     /**
-     * Get revision by year, whereas the algorithm assumes that the order is ascending: 2007, 2008, 2009, 2010, ...
+     * Get revision by year, whereas the algorithm assumes that the order which File.list() is generating is ascending: 2007, 2008, 2009, 2010, ...
      * @param dateIndexBaseDir Directory where date index is located
      * @param cal Point in time for which a revision shall be found
      */
     private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
-        String[] years = dateIndexBaseDir.list();
-        for (int i = years.length - 1; i >= 0; i--) {
+/* DEBUG
+        String[] unsortedYears = {"2018", "1989", "2010" ,"2009", "2017"};
+        String[] years = sortAlphabeticallyAscending(unsortedYears);
+*/
+
+        String[] years = sortAlphabeticallyAscending(dateIndexBaseDir.list());
+        for (int i = years.length - 1; i >= 0; i--) { // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
             log.debug("Year: " + years[i]);
             try {
                 int year = new Integer(years[i]).intValue();
@@ -120,7 +125,7 @@ public class DateIndexerSearcher {
      * @param yearDir Directory of year containing months
      */
     private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
-        String[] months = yearDir.list();
+        String[] months = sortAlphabeticallyAscending(yearDir.list());
         for (int k = months.length - 1; k >= 0; k--) {
             try {
                 int month = Integer.parseInt(months[k]);
@@ -144,7 +149,7 @@ public class DateIndexerSearcher {
      * @param monthDir Directory of month containing days
      */
     private Revision getYoungestRevisionOfMonth(File monthDir) throws Exception {
-        String[] days = monthDir.list();
+        String[] days = sortAlphabeticallyAscending(monthDir.list());
         for (int k = days.length - 1; k >= 0; k--) {
             try {
                 int day = Integer.parseInt(days[k]);
@@ -167,7 +172,7 @@ public class DateIndexerSearcher {
      * @param dayDir Directory of day containing hours
      */
     private Revision getYoungestRevisionOfDay(File dayDir) throws Exception {
-        String[] hours = dayDir.list();
+        String[] hours = sortAlphabeticallyAscending(dayDir.list());
         for (int k = hours.length - 1; k >= 0; k--) {
             try {
                 int hour = Integer.parseInt(hours[k]);
@@ -190,7 +195,7 @@ public class DateIndexerSearcher {
      * @param hourDir Directory of hour containing minutes
      */
     private Revision getYoungestRevisionOfHour(File hourDir) throws Exception {
-        String[] minutes = hourDir.list();
+        String[] minutes = sortAlphabeticallyAscending(hourDir.list());
         for (int k = minutes.length - 1; k >= 0; k--) {
             try {
                 int minute = Integer.parseInt(minutes[k]);
@@ -213,7 +218,7 @@ public class DateIndexerSearcher {
      * @param minuteDir Directory of minute containing seconds
      */
     private Revision getYoungestRevisionOfMinute(File minuteDir) throws Exception {
-        String[] seconds = minuteDir.list();
+        String[] seconds = sortAlphabeticallyAscending(minuteDir.list());
         for (int k = seconds.length - 1; k >= 0; k--) {
             try {
                 int second = Integer.parseInt(seconds[k]);
@@ -236,7 +241,7 @@ public class DateIndexerSearcher {
      * @param secondDir Directory of second containing milliseconds 
      */
     private Revision getYoungestRevisionOfSecond(File secondDir) throws Exception {
-        String[] millis = secondDir.list();
+        String[] millis = sortAlphabeticallyAscending(secondDir.list());
         for (int k = millis.length - 1; k >= 0; k--) {
             try {
                 int milli = Integer.parseInt(millis[k]);
@@ -264,7 +269,7 @@ public class DateIndexerSearcher {
      * Get revision by month
      */
     private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
-        String[] months = yearDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
+        String[] months = sortAlphabeticallyAscending(yearDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
         for (int k = months.length - 1; k >= 0; k--) {
             if(log.isDebugEnabled()) log.debug("Month: " + months[k] + " (" + cal + ")");
             try {
@@ -295,7 +300,7 @@ public class DateIndexerSearcher {
      * Get revision by day
      */
     private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
-        String[] days = monthDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
+        String[] days = sortAlphabeticallyAscending(monthDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
         for (int k = days.length - 1; k >= 0; k--) {
             log.debug("Day: " + days[k]);
             try {
@@ -326,7 +331,7 @@ public class DateIndexerSearcher {
      * Get revision by hour 
      */
     private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
-        String[] hours = dayDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        String[] hours = sortAlphabeticallyAscending(dayDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
         for (int k = hours.length - 1; k >= 0; k--) {
             log.debug("Hour: " + hours[k]);
             try {
@@ -357,7 +362,7 @@ public class DateIndexerSearcher {
      * Get revision by minute 
      */
     private Revision getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
-        String[] minutes = hourDir.list(); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
+        String[] minutes = sortAlphabeticallyAscending(hourDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
         for (int k = minutes.length - 1; k >= 0; k--) {
             log.debug("Minute: " + minutes[k]);
             try {
@@ -388,7 +393,7 @@ public class DateIndexerSearcher {
      * Get revision by second
      */
     private Revision getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
-        String[] seconds = minuteDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 60
+        String[] seconds = sortAlphabeticallyAscending(minuteDir.list()); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 60
         for (int k = seconds.length - 1; k >= 0; k--) {
             log.debug("Second: " + seconds[k]);
             try {
@@ -419,7 +424,7 @@ public class DateIndexerSearcher {
      * Get revision by millisecond
      */
     private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
-        String[] millis = secondDir.list(); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
+        String[] millis = sortAlphabeticallyAscending(secondDir.list()); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
         for (int k = millis.length - 1; k >= 0; k--) {
             log.debug("Millisecond: " + millis[k]);
             try {
@@ -484,5 +489,30 @@ public class DateIndexerSearcher {
         for (int i = revisions.length - 1; i >= 0; i--) {
             addRevision(revisions[i].getRevisionName());
         }
+    }
+
+    /**
+     * Sort alphabetically ascending
+     */
+    private String[] sortAlphabeticallyAscending(String[] array) {
+/*
+        String unsorted = "";
+        for (int i = array.length - 1; i >= 0; i--) {
+            unsorted = unsorted + " " + array[i];
+        }
+        log.warn("DEBUG: Array unsorted: " + unsorted);
+*/
+
+        java.util.Arrays.sort(array);
+
+/*
+        String sorted = "";
+        for (int i = array.length - 1; i >= 0; i--) {
+            sorted = sorted + " " + array[i];
+        }
+        log.warn("DEBUG: Array sorted: " + sorted);
+*/
+
+        return array;
     }
 }
