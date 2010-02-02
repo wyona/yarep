@@ -101,6 +101,9 @@ public interface Node {
     
     /**
      * Gets all child nodes.
+     *
+     * There is no guarantee that the nodes in the resulting array will appear in any specific order; they are not, in particular, guaranteed to appear in alphabetical order.
+     *
      * @return child nodes or empty array if there are no child nodes.
      * @throws RepositoryException if node is not a collection or if a repository error occurs
      */
