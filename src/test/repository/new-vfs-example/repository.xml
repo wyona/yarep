@@ -36,7 +36,7 @@
 -->
 
   <s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
-    <index-location file="index"/>
+    <index-location file="search-index"/> <!-- INFO: Because of backwards compatibility the fulltext index will be assumed to be located within the root directory, but if a sub-directory 'search-index/fulltext' exists, then this will be used. The properties index is always located within the sub-directory 'search-index/properties' -->
     <repo-auto-index-fulltext boolean="true"/>
     <repo-auto-index-properties boolean="true"/>
     <lucene>
