@@ -264,8 +264,11 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public boolean hasProperty(String name) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return false;
+        try {
+            return this.jcrNode.hasProperty(name);
+        } catch(javax.jcr.RepositoryException e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     //public boolean hasProperties() throws RepositoryException;
