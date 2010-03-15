@@ -58,6 +58,4 @@ public interface Revision extends Node {
      * @throws RepositoryException
      */
     public String getComment() throws RepositoryException;
-
-
 }
