@@ -9,7 +9,7 @@ import org.wyona.yarep.core.UID;
 
 import org.wyona.commons.io.FileUtil;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.InputStream;
@@ -36,7 +36,7 @@ import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
  */
 public class JCRRepository implements Repository {
 
-    private static Category log = Category.getInstance(JCRRepository.class);
+    private static Logger log = Logger.getLogger(JCRRepository.class);
 
     private String repoId;
     private String repoName;
@@ -83,9 +83,13 @@ public class JCRRepository implements Repository {
      */
     public boolean existsNode(String path) throws RepositoryException {
         try {
-            Item item = this.session.getItem(path);
-            if (item.isNode()) {
-                return true;
+            if (session != null) {
+                Item item = this.session.getItem(path);
+                if (item.isNode()) {
+                    return true;
+                }
+            } else {
+                throw new RepositoryException("No repository session!");
             }
             throw new RepositoryException("No such path exception: " + path);
         } catch (PathNotFoundException e) {
@@ -449,8 +453,29 @@ public class JCRRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#importNode(String, String, Repository)
      */
     public boolean importNode(String destPath, String srcPath, Repository srcRepository) throws RepositoryException {
-        // TODO: Implement importNode
-        log.warn("Not implemented yet!");
+        if (existsNode(destPath)) {
+            log.warn("Node '" + destPath + "' already exists within destination repository and will be overwritten!");
+        }
+
+        Node srcNode = srcRepository.getNode(srcPath);
+        if (srcNode.isCollection()) {
+            log.warn("This seems to be a collection and hence no data will be imported: " + srcNode.getPath());
+            Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.COLLECTION);
+            // TODO: What about properties?!
+            return true;
+        }
+
+        Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
+        try {
+            OutputStream os = destNode.getOutputStream();
+            org.apache.commons.io.IOUtils.copy(srcNode.getInputStream(), os);
+            os.close();
+        } catch(Exception e) {
+            log.error(e, e);
+            throw new RepositoryException(e);
+        }
+
+        log.warn("TODO: Implementation not finished yet!");
         return false;
     }
 }
