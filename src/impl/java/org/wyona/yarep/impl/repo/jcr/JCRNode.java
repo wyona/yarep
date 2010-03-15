@@ -233,7 +233,7 @@ public class JCRNode implements Node {
                 p = new DefaultProperty(name, PropertyType.STRING, this);
                 p.setValue(this.jcrNode.getProperty(name).getValue().getString());
             } else if (type == javax.jcr.PropertyType.UNDEFINED) {
-                log.warn("PropertyType is UNDEFINED. Trying to convert to String ...");
+                log.warn("PropertyType of property '" + name + "' is UNDEFINED. Trying to convert to String ...");
                 p = new DefaultProperty(name, PropertyType.STRING, this);
                 p.setValue(this.jcrNode.getProperty(name).getValue().getString());
             } else {
@@ -291,8 +291,15 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, boolean value) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            this.jcrNode.setProperty(name, value);
+            session.save();
+            Property p = new DefaultProperty(name, PropertyType.STRING, this);
+            p.setValue(value);
+            return p;
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
@@ -303,8 +310,17 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Property setProperty(String name, Date value) throws RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        try {
+            java.util.Calendar cal = new java.util.GregorianCalendar();
+            cal.setTime(value);
+            this.jcrNode.setProperty(name, cal);
+            session.save();
+            Property p = new DefaultProperty(name, PropertyType.STRING, this);
+            p.setValue(value);
+            return p;
+        } catch (Exception e) {
+            throw new RepositoryException(e.getMessage(), e);
+        }
     }
     
     /**
@@ -431,8 +447,7 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Revision checkin() throws NodeStateException, RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        return checkin("");
     }
     
     /**
@@ -443,8 +458,21 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public Revision checkin(String comment) throws NodeStateException, RepositoryException {
-        log.error("Not implemented yet!");
+        if (!isCheckedOut()) {
+            try {
+                throw new NodeStateException("Node " + jcrNode.getPath() + " is not checked out.");
+            } catch(javax.jcr.RepositoryException e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage(), e);
+            }
+        }
+        //Revision revision = createRevision(comment);
+
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT, false);
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKIN_DATE, new Date());
+
         return null;
+        //return revision;
     }
     
     /**
@@ -453,7 +481,18 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
-        log.error("Not implemented yet!");
+        if (isCheckedOut()) {
+            try {
+                throw new NodeStateException("Node " + jcrNode.getPath() + " is already checked out by: " + getCheckoutUserID());
+            } catch(javax.jcr.RepositoryException e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage(), e);
+            }
+        }
+
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT, true);
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKOUT_USER_ID, userID);
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKOUT_DATE, new Date());
     }
     
     /**
@@ -472,8 +511,10 @@ public class JCRNode implements Node {
      * @throws RepositoryException repository error
      */
     public boolean isCheckedOut() throws RepositoryException {
-        log.error("Not implemented yet!");
-        return false;
+        if (!hasProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT)) {
+            return false;
+        }
+        return getProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT).getBoolean();
     }
     
     /**
