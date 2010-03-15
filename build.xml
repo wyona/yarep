@@ -76,7 +76,7 @@
     />
   </target>
 
-  <target name="compile-examples" description="Compile Java classes of examples" depends="init,compile-core">
+  <target name="compile-examples" description="Compile Java classes of examples" depends="init,compile-core, compile-impl">
     <echo>${classes.dir}</echo>
     <mkdir dir="${classes.dir}"/>
     <javac srcdir="src/test" destdir="${classes.dir}"
