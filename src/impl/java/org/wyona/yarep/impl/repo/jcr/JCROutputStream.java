@@ -61,7 +61,7 @@ public class JCROutputStream extends OutputStream {
                 resourceNode = node.getJCRNode().addNode("jcr:content", "nt:resource");
             }
             if (node.getMimeType() != null) {
-                log.error("DEBUG: Set mime type of jcr:data property: " + node.getMimeType());
+                log.warn("DEBUG: Set mime type of jcr:data property: " + node.getMimeType());
                 if (node.getMimeType().equals("application/xml")) {
                     log.warn("Replace application/xml by text/xml");
                     resourceNode.setProperty("jcr:mimeType", "text/xml");
