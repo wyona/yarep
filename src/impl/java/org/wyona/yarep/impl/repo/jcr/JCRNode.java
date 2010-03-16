@@ -508,7 +508,17 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public void cancelCheckout() throws NodeStateException, RepositoryException {
-        log.error("Not implemented yet!");
+        if (!isCheckedOut()) {
+            try {
+                throw new NodeStateException("Node " + jcrNode.getPath() + " is not checked out.");
+            } catch(javax.jcr.RepositoryException e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage(), e);
+            }
+        }
+
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT, false);
+        setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKIN_DATE, new Date());
     }
     
     /**
@@ -530,8 +540,15 @@ public class JCRNode implements Node {
      * @throws RepositoryException
      */
     public String getCheckoutUserID() throws NodeStateException, RepositoryException {
-        log.error("Not implemented yet!");
-        return null;
+        if (!isCheckedOut()) {
+            try {
+                throw new NodeStateException("Node is not checked out: " + jcrNode.getPath());
+            } catch(javax.jcr.RepositoryException e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage(), e);
+            }
+        }
+        return getProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKOUT_USER_ID).getString();
     }
     
     /**
