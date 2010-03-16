@@ -124,12 +124,12 @@ public class JCRNode implements Node {
      * @see org.wyona.yarep.core.Node#isResource()
      */
     public boolean isResource() throws RepositoryException {
-        log.error("Implementation not finished yet!");
-        // TODO: Do not use the property BINARY_CONTENT_PROP_NAME ...
         try {
-            if (jcrNode.hasProperty(BINARY_CONTENT_PROP_NAME)) {
+            if (jcrNode.hasNode("jcr:content") && jcrNode.getNode("jcr:content").hasProperty("jcr:data")) {
+            //if (jcrNode.hasProperty(BINARY_CONTENT_PROP_NAME)) {
                 return true;
             } else {
+                log.warn("Node '" + jcrNode.getPath() + "' does not seem to be of type RESOURCE");
                 return false;
             }
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public class JCRNode implements Node {
     }
     
     /**
-     *  Indicates whether this node is of type "collection".
+     * Indicates whether this node is of type "collection".
      * @return true if type is collection
      * @throws RepositoryException repository error
      * @see org.wyona.yarep.core.Node#isCollection()
@@ -219,14 +219,15 @@ public class JCRNode implements Node {
     
     /**
      * Gets the property with the given name.
-     * @param name
+     * @param name Property name
      * @return property or null if the property does not exist
      * @throws RepositoryException repository error
      */
     public Property getProperty(String name) throws RepositoryException {
         try {
             javax.jcr.Property jcrProp = this.jcrNode.getProperty(name);
-            int type = jcrProp.getDefinition().getRequiredType();
+            int type = jcrProp.getType();
+            //int type = jcrProp.getDefinition().getRequiredType();
 
             Property p = null;
             if (type == javax.jcr.PropertyType.STRING) {
@@ -361,6 +362,7 @@ public class JCRNode implements Node {
      */
     public Property setProperty(String name, String value) throws RepositoryException {
         try {
+            log.warn("Property: " + name + ", " + value);
             this.jcrNode.setProperty(name, value);
             //this.jcrNode.setProperty(name, value, javax.jcr.PropertyType.STRING);
             session.save();
@@ -494,6 +496,7 @@ public class JCRNode implements Node {
         }
 
         setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT, true);
+        log.warn("User ID: " + userID);
         setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKOUT_USER_ID, userID);
         setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKOUT_DATE, new Date());
     }
