@@ -476,6 +476,7 @@ public class JCRNode implements Node {
         setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_IS_CHECKED_OUT, false);
         setProperty(org.wyona.yarep.impl.AbstractNode.PROPERTY_CHECKIN_DATE, new Date());
 
+        log.warn("TODO: Implementation not finished yet, because no revision returned yet!");
         return null;
         //return revision;
     }
