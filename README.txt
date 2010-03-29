@@ -7,7 +7,7 @@
      Prerequisites:
      --------------
 
-     - JDK 1.5.X or higher
+     - JDK 1.6 or higher
 
 
      Building YAREP:
