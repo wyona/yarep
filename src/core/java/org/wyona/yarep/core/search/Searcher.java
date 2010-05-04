@@ -30,9 +30,9 @@ public interface Searcher {
     /**
      * Search for properties content within subtree
      *
-     * @param pName Parameter name
-     * @param pValue Parameter value of search query
-     * @param path Scope of search (path of subtree)
+     * @param pName Property name
+     * @param query Search query
+     * @param path Scope of search (path of subtree, in order to search the whole tree one sets path = "/")
      */
-    public Node[] searchProperty(String pName, String pValue, String path) throws SearchException;
+    public Node[] searchProperty(String pName, String query, String path) throws SearchException;
 }

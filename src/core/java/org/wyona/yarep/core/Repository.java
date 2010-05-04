@@ -55,6 +55,7 @@ public interface Repository {
 
     /**
      * Read configuration
+     * @param configFile Configuration file of this repository
      */
     public void readConfiguration(File configFile) throws RepositoryException;
 
