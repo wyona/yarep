@@ -67,6 +67,30 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
     }
 
     /**
+     * Test escaping/unescaping property names and values
+     */
+    public void testEscapeUnescapePropertyName() throws Exception {
+        String path = "/" + NODE_NAME;
+
+        String name1 = "prefix_name";
+        String value1 = "value1" + System.getProperty("line.separator") + "value2";
+
+        Node node = repo.getNode(path);
+        node.setProperty(name1, value1);
+        Node nodeCopy = repo.getNode(path);
+        assertTrue(nodeCopy.getProperty(name1).getValueAsString().equals(value1));
+
+
+        String name2 = "prefix:name";
+        String value2 = "value1:value2";
+
+        node = repo.getNode(path);
+        node.setProperty(name2, value2);
+        nodeCopy = repo.getNode(path);
+        assertTrue(nodeCopy.getProperty(name2).getValueAsString().equals(value2));
+    }
+
+    /**
      * Test get revision by date (point in time)
      */
 /*
