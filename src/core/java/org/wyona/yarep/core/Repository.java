@@ -274,6 +274,8 @@ public interface Repository {
     public void close() throws RepositoryException;
     
     /**
+     * Get Indexer in order to index explicitely the content and property values of nodes, for example in the case of re-indexing nodes, because the index has become out of sync or got lost
+     *
      * @return Indexer. Allows to add nodes to a search index
      * @throws RepositoryException
      */
