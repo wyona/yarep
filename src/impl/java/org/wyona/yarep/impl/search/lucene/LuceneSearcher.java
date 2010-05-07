@@ -64,8 +64,11 @@ public class LuceneSearcher implements Searcher {
 
     /**
      * Search property
+     *
+     * @param pName Property name
+     * @param query Search query
      */
-    public Node[] searchProperty(String pName, String pValue, String path) throws SearchException {
+    public Node[] searchProperty(String pName, String query, String path) throws SearchException {
         try {
             //TODO: this is not really nice re performance, it reads the index form the file-system for each search
             //it would be nice to initialize IndexSearcher at startup and reuse the IndexSearcher 
@@ -73,7 +76,8 @@ public class LuceneSearcher implements Searcher {
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
                 try {
-                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(pName, config.getPropertyAnalyzer()).parse(pValue);
+                    log.debug("Search property '" + pName + "': " + query);
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(pName, config.getPropertyAnalyzer()).parse(query);
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                     log.info("Number of matching documents: " + hits.length());
                     List results = new ArrayList();
