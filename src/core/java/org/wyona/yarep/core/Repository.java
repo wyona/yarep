@@ -243,13 +243,15 @@ public interface Repository {
     
     
     /**
-     * Search for properties within subtree
-     * @param pName Parameter name
-     * @param pValue Parameter value query
-     * @param path Scope of search (path of subtree)
+     * Search a property within subtree
+     *
+     * @param pName Property name
+     * @param query Query value
+     * @param path Scope of search (path of subtree, whereas in order to search the whole tree use "/")
+     *
      * @deprecated (2008.09.11) Use getSearcher()
      */
-    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException;
+    public Node[] searchProperty(String pName, String query, String path) throws RepositoryException;
     
     /**
      * Search content within a specific subtree
