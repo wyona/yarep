@@ -104,8 +104,9 @@ public class LuceneIndexer implements Indexer {
                         }
         
                         if (fullText != null && fullText.length() > 0) {
-                            document.add(new Field("_FULLTEXT", new StringReader(fullText)));
-                            //document.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
+                            document.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                            //document.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+
                             document.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
                             if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
                             indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
@@ -202,53 +203,52 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
     public void index(Node node, Property property) throws SearchException {
-        //log.warn("DEBUG: ...");
+        //log.debug("Index property ...");
+        IndexWriter iw = null;
         try {
-            indexProperty(node.getPath(), property, (Metadata)null);
-        } catch(Exception e) {
-            throw new SearchException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * @path Repository path of node
-     */
-    private void indexProperty(String path, Property property, Metadata metadata) throws SearchException {
-        //log.warn("DEBUG: ...");
-        try {
+           String path = node.getPath();
            Document luceneDoc = new Document();
+
+           // TODO: Write typed property value to index. Is this actually possible?
+           // INFO: As workaround Add the property as string value to the lucene document
            if (property.getValueAsString() != null) {
-               // Add the property to the lucene document
-               // TODO: write typed property value to index. Is this actually possible?
-               //log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
-               luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+               //log.warn("DEBUG: Index property '" + property.getName() + "': " + property.getValueAsString());
+               //luceneDoc.add(new Field(property.getName(), new StringReader(property.getValueAsString())));
+               luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
            } else {
-               log.warn("Property '" + property.getName() + "' has null as value and hence will not be indexed (path: " + path + ")!");
+               log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
            }
 
            // Add path as field such that found properties can be related to a path
            luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
-           IndexWriter iw = null;
+
            try {
                iw = createPropertiesIndexWriter();
            } catch(org.apache.lucene.store.LockObtainFailedException e) {
                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
                return;
            }
+           //if (iw != null && property.getName().equals("firstnames")) {
            if (iw != null) {
+               if (log.isDebugEnabled()) log.debug("Index/update property '" + property.getName() + "' of node: " + path);
+               // TODO: All properties seem to be deleted except _PATH and the one which has been set. Also see http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
-               // Make sure to close the IndexWriter and release the lock!
-               iw.close();
-               //iw.flush();
-               if (log.isDebugEnabled()) log.debug("Index node: " + path);
            } else {
-               if (log.isDebugEnabled()) {
-                   log.debug("No property index configured, hence do not index properties of node: " + path);
-               }
+               log.warn("Index writer could not be initialized, hence do not index properties of node: " + path);
            }
+
+           // Make sure to close the IndexWriter and release the lock!
+           iw.close();
+           //iw.flush();
        } catch (Exception e) {
-           log.error("Could not index property.",e);
-           throw new SearchException();
+           log.error(e, e);
+           throw new SearchException(e.getMessage());
+       } finally {
+           try {
+               iw.close();
+           } catch(Exception e) {
+               log.error(e, e);
+           }
        }
    }
    
