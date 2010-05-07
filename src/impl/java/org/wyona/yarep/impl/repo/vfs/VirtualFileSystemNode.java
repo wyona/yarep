@@ -51,6 +51,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected static final String META_FILE_NAME = "meta";
     protected static final String REVISIONS_BASE_DIR = "revisions";
     protected static final String META_DIR_SUFFIX = ".yarep";
+    private static final char PROPERTY_SEPARATOR = ':';
     
     //protected FileSystemRepository repository;
     protected File contentDir;
@@ -62,7 +63,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected boolean areRevisionsRead = false;
     
     protected RevisionDirectoryFilter revisionDirectoryFilter = new RevisionDirectoryFilter();
-    
+
+    String vfsMetaFileVersion = null;
     
     /**
      * Constructor
@@ -137,6 +139,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         try {
             log.debug("Reading meta file: " + this.metaFile);
             this.properties = new HashMap();
+            this.vfsMetaFileVersion = null;
             BufferedReader reader = new BufferedReader(new FileReader(this.metaFile));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -144,14 +147,30 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 String name;
                 String typeName;
                 String value;
-                try {
-                    name = line.substring(0, line.indexOf("<")).trim();
-                    typeName = line.substring(line.indexOf("<")+1, line.indexOf(">")).trim();
-                    value = line.substring(line.indexOf(":")+1).trim();
-                } catch (StringIndexOutOfBoundsException e) {
-                    throw new RepositoryException("Error while parsing meta file: " + this.metaFile 
-                            + " at line " + line);
+
+                if (vfsMetaFileVersion != null && vfsMetaFileVersion.equals("1.0")) {
+                    try {
+                        name = unescapeSeparator(line.substring(0, line.indexOf("<")).trim());
+                        typeName = line.substring(line.indexOf("<")+1, line.indexOf(">")).trim();
+
+                        value = unescapeLinebreak(unescapeSeparator(line.substring(getValueStartIndex(line)).trim()));
+                    } catch (StringIndexOutOfBoundsException e) {
+                        throw new RepositoryException("Error while parsing meta file: " + this.metaFile + " at line " + line);
+                    }
+                } else { // INFO: Backwards compatibility (also see method checkForSeparator(String))
+                    try {
+                        name = unescapeSeparator(line.substring(0, line.indexOf("<")).trim());
+                        typeName = line.substring(line.indexOf("<")+1, line.indexOf(">")).trim();
+                        value = unescapeLinebreak(checkForSeparator(line.substring(line.indexOf(PROPERTY_SEPARATOR) + 1).trim()));
+                    } catch (StringIndexOutOfBoundsException e) {
+                        throw new RepositoryException("Error while parsing meta file: " + this.metaFile + " at line " + line);
+                    }
                 }
+
+                if (name.equals("yarep_vfs-meta-file-version")) {
+                    vfsMetaFileVersion = value;
+                }
+
                 Property property = new DefaultProperty(name, PropertyType.getType(typeName), this);
                 property.setValueFromString(value);
                 this.properties.put(name, property);
@@ -164,20 +183,27 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * FIXME: this implementation does not work correctly when a string property contains a line-break. 
+     * Save all properties within a meta file
      * @throws RepositoryException
      */
     protected void saveProperties() throws RepositoryException {
         try {
             log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
+
+            writer.println("yarep_vfs-meta-file-version" + "<" + "string" + ">" + PROPERTY_SEPARATOR + "1.0");
+            if (vfsMetaFileVersion != null && !vfsMetaFileVersion.equals("1.0")) {
+                throw new RepositoryException("No such vfs meta file version supported: " + vfsMetaFileVersion);
+            }
             
             Iterator iterator = this.properties.values().iterator();
             while (iterator.hasNext()) {
                 Property property = (Property)iterator.next();
-                writer.println(property.getName() + "<" + PropertyType.getTypeName(property.getType()) + ">:" + property.getValueAsString());
-                if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
-                    repository.getIndexer().index(this, property);
+                if (!property.getName().equals("yarep_vfs-meta-file-version")) {
+                    writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
+                    if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
+                        repository.getIndexer().index(this, property);
+                    }
                 }
             }
             writer.flush();
@@ -476,7 +502,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
        
     protected void deleteRec(Node node) throws RepositoryException {
         Node[] children = node.getNodes();
-        for (int i=0; i<children.length; i++) {
+        for (int i=0; i < children.length; i++) {
             deleteRec(children[i]);
         }
         //boolean success = getRepository().getMap().delete(new Path(getPath()));
@@ -657,5 +683,67 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public File getMetaFile() {
         return metaFile;
+    }
+
+    /**
+     * Check for separators within a string. Because of backwards compatibility we cannot unescape the separator of existing data, because it might contain strings like "\:" but which have not been escaped like "\\:"
+     */
+    private String checkForSeparator(String st) throws RepositoryException {
+        if (st.indexOf(PROPERTY_SEPARATOR) >= 0) {
+            log.warn("Meta data string/property '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' (Path: " + getPath() + ").");
+        }
+        return st;
+    }
+
+    /**
+     * Escape separator within a string
+     */
+    private String escapeSeparator(String st) {
+        if (st.indexOf(PROPERTY_SEPARATOR) >= 0) {
+            log.warn("String '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' and hence will be escaped.");
+        }
+        return st.replace("" + PROPERTY_SEPARATOR, "\\" + PROPERTY_SEPARATOR);
+    }
+
+    /**
+     * Unescape separator within a string
+     */
+    private String unescapeSeparator(String st) {
+        return st.replace("\\" + PROPERTY_SEPARATOR, "" + PROPERTY_SEPARATOR);
+    }
+
+    /**
+     * Escape linebreak within a string
+     */
+    private String escapeLinebreak(String st) {
+        String lineSeparator = System.getProperty("line.separator");
+        if (st.indexOf(lineSeparator) >= 0) {
+            log.warn("String '" + st + "' contains a line break and hence the line break will be escaped.");
+        }
+        return st.replace(lineSeparator, "\\ ");
+    }
+
+    /**
+     * Unescape linebreak within a string
+     */
+    private String unescapeLinebreak(String st) {
+        return st.replace("\\ ", System.getProperty("line.separator"));
+    }
+
+    /**
+     * Get index of where the value starts
+     * @param line Line containing name and value separated by a SEPARATOR
+     */
+    private int getValueStartIndex(String line) throws RepositoryException {
+        for (int i = 1; i < line.length(); i++) {
+            if (line.charAt(i) == PROPERTY_SEPARATOR && !(line.charAt(i - 1) == '\\')) {
+                return i + 1;
+            }
+        }
+        String errMsg = "No name/value separator found within line '" + line + "' (Path: " + getPath() + ")!";
+        throw new RepositoryException(errMsg);
+
+        //return line.indexOf(">" + PROPERTY_SEPARATOR) + 2;
+        //return line.indexOf(PROPERTY_SEPARATOR) + 1;
     }
 }
