@@ -41,8 +41,8 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         if (repo.existsNode(path)) {
             repo.getNode(path).delete();
         }
-
         Node node = repo.getRootNode().addNode(NODE_NAME, NodeType.RESOURCE);
+
         node.checkout("bob");
         node.setMimeType("text/plain");
         java.io.PrintWriter pw = new java.io.PrintWriter(node.getOutputStream());
@@ -71,6 +71,10 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
      */
     public void testEscapeUnescapePropertyName() throws Exception {
         String path = "/" + NODE_NAME;
+        if (repo.existsNode(path)) {
+            repo.getNode(path).delete();
+        }
+        repo.getRootNode().addNode(NODE_NAME, NodeType.RESOURCE);
 
         String name1 = "prefix_name";
         String value1 = "value1" + System.getProperty("line.separator") + "value2";
