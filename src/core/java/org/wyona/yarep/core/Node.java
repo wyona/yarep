@@ -119,7 +119,7 @@ public interface Node {
     
     /**
      * Gets the property with the given name.
-     * @param name
+     * @param name Name of property
      * @return property or null if the property does not exist
      * @throws RepositoryException repository error
      */
