@@ -235,10 +235,21 @@ public class LuceneIndexer implements Indexer {
                log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
            }
 
-           // TODO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
+           // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
            IndexReader indexReader = getIndexReader();
            if (indexReader != null) {
                log.warn("DEBUG: Number of documents of this index: " + indexReader.numDocs());
+
+               // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+               Property[] properties = node.getProperties();
+               for (int i = 0; i < properties.length; i++) {
+                   if (!properties[i].getName().equals(property.getName())) {
+                       if (properties[i].getValueAsString() != null) {
+                           luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+                       }
+                   }
+               }
+
 /* WARN: For some strange reason the code below thows a NullPointerException
                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
                if (termDocs != null) {
@@ -259,10 +270,9 @@ public class LuceneIndexer implements Indexer {
                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
                return;
            }
-           //if (iw != null && property.getName().equals("firstnames")) {
            if (iw != null) {
                if (log.isDebugEnabled()) log.debug("Index/update property '" + property.getName() + "' of node: " + path);
-               // TODO: All properties seem to be deleted except _PATH and the one which has been set. Also see http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
+               // INFO: See http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
            } else {
                log.warn("Index writer could not be initialized, hence do not index properties of node: " + path);
