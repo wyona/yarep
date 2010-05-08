@@ -371,7 +371,7 @@ public class JCRRepository implements Repository {
     }
 
     /**
-     * Search content
+     * @see org.wyona.yarep.core.Repository#search(String)
      */
     public Node[] search(String query) throws RepositoryException {
         log.error("Implementation not finished yet!");
@@ -427,11 +427,13 @@ public class JCRRepository implements Repository {
         }
         return new Node[0];
     }
-    
-    public Node[] searchProperty(String pName, String pValue, String path) throws RepositoryException {
+
+    /**
+     * @see org.wyona.yarep.core.Repository#searchProperty(String, String, String)
+     */
+    public Node[] searchProperty(String pName, String query, String path) throws RepositoryException {
         throw new RepositoryException("Not implemented yet!");
     }
-    
     
     /**
      * TODO: not implemented yet.
