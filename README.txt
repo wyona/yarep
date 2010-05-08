@@ -68,3 +68,12 @@
      2) ./build.sh compile-tools
      3) ./build.sh copy-repository -Dcopy.src.repo.config=/home/yanel/foo-yarep-repository.xml -Dcopy.dest.repo.config=/home/yanel/bar-yarep-repository.xml
 
+
+     How to (re-)index a repository
+     ------------------------
+
+     (Re-)Index content of repo 'foo':
+     
+     1) ./build.sh build-examples
+     2) ./build.sh compile-tools
+     3) ./build.sh index-repository -Drepo.config=/home/yanel/foo-yarep-repository.xml
