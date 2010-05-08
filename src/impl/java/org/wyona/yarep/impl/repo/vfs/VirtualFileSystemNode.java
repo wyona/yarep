@@ -201,7 +201,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 Property property = (Property)iterator.next();
                 if (!property.getName().equals("yarep_vfs-meta-file-version")) {
                     writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
+
+                    // NOTE: Please note that the property is being indexed before it is being saved persistently. Does that make sense?
                     if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
+                        //log.warn("DEBUG: Index property: " + property.getName());
                         repository.getIndexer().index(this, property);
                     }
                 }
@@ -231,6 +234,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public Node addNode(String name, int type) throws RepositoryException {
         String newPath = getPath() + "/" + name;
+        if (getPath().endsWith("/")) {
+            newPath = getPath() + name;
+        }
         log.debug("adding node: " + newPath);
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
