@@ -215,7 +215,9 @@ public class YarepUtil {
      * @throws RepositoryException
      */
     public static void indexRepository(Repository repo) throws RepositoryException {
+        log.warn("DEBUG: Start indexing repository: " + repo.getName());
         indexNodeRecursively(repo.getRootNode(), repo.getIndexer());
+        log.warn("DEBUG: End indexing repository: " + repo.getName());
     }
     
     /**
@@ -226,6 +228,12 @@ public class YarepUtil {
      */
     protected static void indexNodeRecursively(Node node, org.wyona.yarep.core.search.Indexer indexer) throws RepositoryException {
         try {
+            // TODO: Make the ignore configurable
+            if (node.getName().equals(".svn")) {
+                log.info("Ignore .svn directories.");
+                return;
+            }
+
             indexer.index(node);
 
             // INFO: Index children recursively
