@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -163,7 +164,7 @@ public class LuceneIndexer implements Indexer {
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.indexWriter;
    }
-   
+
    /**
     *
     */
@@ -199,15 +200,30 @@ public class LuceneIndexer implements Indexer {
        return null;
     }
 
+   /**
+    * Get index reader
+    */
+   public IndexReader getIndexReader() throws Exception {
+       if (config.getPropertiesSearchIndexFile().exists()) {
+           return IndexReader.open(config.getPropertiesSearchIndexFile());
+       } else {
+           log.warn("No properties index exists yet: " + config.getPropertiesSearchIndexFile().getAbsolutePath());
+           return null;
+       }
+   }
+
     /**
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
     public void index(Node node, Property property) throws SearchException {
-        //log.debug("Index property ...");
         IndexWriter iw = null;
         try {
+           log.warn("DEBUG: Index property '" + property.getName() + " of node: " + node.getPath());
            String path = node.getPath();
            Document luceneDoc = new Document();
+
+           // Add path as field such that found properties can be related to a path
+           luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
 
            // TODO: Write typed property value to index. Is this actually possible?
            // INFO: As workaround Add the property as string value to the lucene document
@@ -219,8 +235,23 @@ public class LuceneIndexer implements Indexer {
                log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
            }
 
-           // Add path as field such that found properties can be related to a path
-           luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
+           // TODO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
+           IndexReader indexReader = getIndexReader();
+           if (indexReader != null) {
+               log.warn("DEBUG: Number of documents of this index: " + indexReader.numDocs());
+/* WARN: For some strange reason the code below thows a NullPointerException
+               org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
+               if (termDocs != null) {
+                   log.warn("DEBUG: Number of documents matching term: " + termDocs.doc());
+                   termDocs.close();
+               } else {
+                   log.warn("No term docs found for path: " + path);
+               }
+*/
+               indexReader.close();
+           } else {
+               log.warn("Could not init IndexReader!");
+           }
 
            try {
                iw = createPropertiesIndexWriter();
@@ -245,7 +276,9 @@ public class LuceneIndexer implements Indexer {
            throw new SearchException(e.getMessage());
        } finally {
            try {
-               iw.close();
+               if (iw != null) {
+                   iw.close();
+               }
            } catch(Exception e) {
                log.error(e, e);
            }
