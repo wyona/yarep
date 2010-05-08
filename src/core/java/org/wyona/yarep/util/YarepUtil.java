@@ -95,7 +95,7 @@ public class YarepUtil {
         log.debug("Path (still original): " + path);
         return new RepoPath(repo, path);
     }
-    
+
     /**
      * Copies the content of one repository into another repository.
      * Currently copies nodes and properties, but no revisions.
@@ -207,5 +207,35 @@ public class YarepUtil {
             if (log.isDebugEnabled()) log.debug(clazz.getName() + " does NOT implement " + attribute + "V" + version + " interface!");
         }
         return implemented;
+    }
+
+    /**
+     * (Re-)Index repository.
+     * @param repo Repository to be (re-)indexed
+     * @throws RepositoryException
+     */
+    public static void indexRepository(Repository repo) throws RepositoryException {
+        indexNodeRecursively(repo.getRootNode(), repo.getIndexer());
+    }
+    
+    /**
+     * Index nodes recursively
+     * @param node Node to be indexed
+     * @param repo Repository to which node belongs to
+     * @throws RepositoryException
+     */
+    protected static void indexNodeRecursively(Node node, org.wyona.yarep.core.search.Indexer indexer) throws RepositoryException {
+        try {
+            indexer.index(node);
+
+            // INFO: Index children recursively
+            Node[] childNodes = node.getNodes();
+            for (int i = 0; i < childNodes.length; i++) {
+                indexNodeRecursively(childNodes[i], indexer);
+            }
+        } catch (Exception e) {
+            //throw new RepositoryException(e.getMessage(), e);
+            log.error("Could not index node: " + node.getPath() + ": " + e.getMessage(), e);
+        }
     }
 }
