@@ -282,5 +282,13 @@
     />
   </target>
 
+  <target name="index-repository" description="Index repository" depends="init">
+    <!-- <taskdef name="indexrepository" classpath="${classes.dir}" classname="org.wyona.yarep.tools.ant.IndexRepositoryTask"/> -->
+    <taskdef name="indexrepository" classpathref="classpath.run" classname="org.wyona.yarep.tools.ant.IndexRepositoryTask"/>
+    <indexrepository
+      repoconfigpath="${repo.config}"
+    />
+  </target>
+
 
 </project>
