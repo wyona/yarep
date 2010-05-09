@@ -159,7 +159,7 @@ public class LuceneIndexer implements Indexer {
      * Get index writer
      */
    public IndexWriter createFulltextIndexWriter() throws Exception {
-        //log.warn("DEBUG: fulltext search index directory: " + config.getFulltextSearchIndexFile());
+        log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
         return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.indexWriter;
@@ -218,7 +218,7 @@ public class LuceneIndexer implements Indexer {
     public void index(Node node, Property property) throws SearchException {
         IndexWriter iw = null;
         try {
-           log.warn("DEBUG: Index property '" + property.getName() + " of node: " + node.getPath());
+           log.debug("Index property '" + property.getName() + " of node: " + node.getPath());
            String path = node.getPath();
            Document luceneDoc = new Document();
 
@@ -228,7 +228,7 @@ public class LuceneIndexer implements Indexer {
            // TODO: Write typed property value to index. Is this actually possible?
            // INFO: As workaround Add the property as string value to the lucene document
            if (property.getValueAsString() != null) {
-               //log.warn("DEBUG: Index property '" + property.getName() + "': " + property.getValueAsString());
+               log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
                //luceneDoc.add(new Field(property.getName(), new StringReader(property.getValueAsString())));
                luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
            } else {
@@ -238,7 +238,7 @@ public class LuceneIndexer implements Indexer {
            // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
            IndexReader indexReader = getIndexReader();
            if (indexReader != null) {
-               log.warn("DEBUG: Number of documents of this index: " + indexReader.numDocs());
+               log.debug("Number of documents of this index: " + indexReader.numDocs());
 
                // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
                Property[] properties = node.getProperties();
@@ -253,7 +253,7 @@ public class LuceneIndexer implements Indexer {
 /* WARN: For some strange reason the code below thows a NullPointerException
                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
                if (termDocs != null) {
-                   log.warn("DEBUG: Number of documents matching term: " + termDocs.doc());
+                   log.debug("Number of documents matching term: " + termDocs.doc());
                    termDocs.close();
                } else {
                    log.warn("No term docs found for path: " + path);
