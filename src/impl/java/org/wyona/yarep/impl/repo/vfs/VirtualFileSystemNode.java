@@ -110,6 +110,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
         
         if (!metaFile.exists()) {
+            // TODO: Is this really necessary?
+            log.warn("No meta file exists yet for node '" + path + "' and hence one will be created!");
             createMetaFile();
         }
         readProperties();
@@ -204,7 +206,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
                     // NOTE: Please note that the property is being indexed before it is being saved persistently. Does that make sense?
                     if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
-                        //log.warn("DEBUG: Index property: " + property.getName());
+                        log.debug("Index property: " + property.getName());
                         repository.getIndexer().index(this, property);
                     }
                 }
@@ -212,6 +214,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             writer.flush();
             writer.close();
         } catch (Exception e) {
+            log.error(e, e);
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);
         }
     }
@@ -617,7 +620,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 Date creationDate = revisions[i].getCreationDate(); // INFO: This method is slower than the above
                 if (creationDate.before(date) || creationDate.equals(date)) {
                     if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
-                    log.warn("DEBUG: Number of revisions compared: " + (i + 1));
+                    log.debug("Number of revisions compared: " + (i + 1));
                     return revisions[i];
                 }
             }
@@ -706,7 +709,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private String escapeSeparator(String st) {
         if (st.indexOf(PROPERTY_SEPARATOR) >= 0) {
-            log.warn("String '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' and hence will be escaped.");
+            log.debug("String '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' and hence will be escaped.");
         }
         return st.replace("" + PROPERTY_SEPARATOR, "\\" + PROPERTY_SEPARATOR);
     }
