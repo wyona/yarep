@@ -163,7 +163,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     try {
                         name = unescapeSeparator(line.substring(0, line.indexOf("<")).trim());
                         typeName = line.substring(line.indexOf("<")+1, line.indexOf(">")).trim();
-                        value = unescapeLinebreak(checkForSeparator(line.substring(line.indexOf(PROPERTY_SEPARATOR) + 1).trim()));
+                        value = unescapeLinebreak(line.substring(line.indexOf(PROPERTY_SEPARATOR) + 1).trim());
+                        // INFO: Because revisions of a node also contain separators, the checkForSeparator() method generates a huge amount of log entries!
+                        //value = unescapeLinebreak(checkForSeparator(line.substring(line.indexOf(PROPERTY_SEPARATOR) + 1).trim()));
                     } catch (StringIndexOutOfBoundsException e) {
                         throw new RepositoryException("Error while parsing meta file: " + this.metaFile + " at line " + line);
                     }
@@ -699,7 +701,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private String checkForSeparator(String st) throws RepositoryException {
         if (st.indexOf(PROPERTY_SEPARATOR) >= 0) {
-            log.warn("Meta data string/property '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' (Path: " + getPath() + ").");
+            // INFO: Check node itself and its revisions!
+            log.warn("Meta data string/property-value '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' (Node path: " + getPath() + ").");
         }
         return st;
     }
