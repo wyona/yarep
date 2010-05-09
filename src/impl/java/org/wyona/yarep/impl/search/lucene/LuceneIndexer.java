@@ -204,7 +204,7 @@ public class LuceneIndexer implements Indexer {
     * Get index reader
     */
    public IndexReader getIndexReader() throws Exception {
-       if (config.getPropertiesSearchIndexFile().exists()) {
+       if (config.getPropertiesSearchIndexFile().exists() && IndexReader.indexExists(config.getPropertiesSearchIndexFile())) {
            return IndexReader.open(config.getPropertiesSearchIndexFile());
        } else {
            log.warn("No properties index exists yet: " + config.getPropertiesSearchIndexFile().getAbsolutePath());
