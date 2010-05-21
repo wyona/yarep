@@ -204,6 +204,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             while (iterator.hasNext()) {
                 Property property = (Property)iterator.next();
                 if (!property.getName().equals("yarep_vfs-meta-file-version")) {
+                    if (property.getValueAsString() == null) {
+                        log.warn("Value as string of property '" + property.getName() + "' is null!");
+                    }
                     writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
 
                     // NOTE: Please note that the property is being indexed before it is being saved persistently. Does that make sense?
@@ -711,10 +714,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Escape separator within a string
      */
     private String escapeSeparator(String st) {
-        if (st.indexOf(PROPERTY_SEPARATOR) >= 0) {
+        if (st != null && st.indexOf(PROPERTY_SEPARATOR) >= 0) {
             log.debug("String '" + st + "' contains reserved character '" + PROPERTY_SEPARATOR + "' and hence will be escaped.");
+            return st.replace("" + PROPERTY_SEPARATOR, "\\" + PROPERTY_SEPARATOR);
+        } else {
+            log.debug("String '" + st + "' contains no reserved character: " + PROPERTY_SEPARATOR);
+            return st;
         }
-        return st.replace("" + PROPERTY_SEPARATOR, "\\" + PROPERTY_SEPARATOR);
     }
 
     /**
@@ -729,10 +735,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private String escapeLinebreak(String st) {
         String lineSeparator = System.getProperty("line.separator");
-        if (st.indexOf(lineSeparator) >= 0) {
+        if (st != null && st.indexOf(lineSeparator) >= 0) {
             log.warn("String '" + st + "' contains a line break and hence the line break will be escaped.");
+            return st.replace(lineSeparator, "\\ ");
+        } else {
+            log.debug("String '" + st + "' contains no line break.");
+            return st;
         }
-        return st.replace(lineSeparator, "\\ ");
     }
 
     /**
