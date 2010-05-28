@@ -33,6 +33,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
         this.node  = node;
         this.out = new FileOutputStream(file);
         this.file = file;
+        log.debug("Write to file: " + file);
     }
     
     /**
@@ -66,6 +67,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
             VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
             
             if(vfsRepo.isAutoFulltextIndexingEnabled()) {
+                log.debug("Auto fulltext indexing enabled ...");
                 vfsRepo.getIndexer().index(node);
             }
         } catch (Exception e) {
