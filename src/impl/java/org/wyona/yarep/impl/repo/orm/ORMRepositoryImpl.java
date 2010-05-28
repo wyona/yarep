@@ -83,7 +83,10 @@ public class ORMRepositoryImpl implements Repository {
             driverClassName = dataSourceConfig.getChild("driverClassName").getValue();
             url = dataSourceConfig.getChild("url").getValue();
             username = dataSourceConfig.getChild("username").getValue();
-            password = dataSourceConfig.getChild("password").getValue();
+            password = dataSourceConfig.getChild("password").getValue("");
+            if (password == null || password.length() <= 0) {
+                log.warn("No password set: " + configFile);
+            }
         } catch(Exception e) {
             log.error(e, e);
             throw new RepositoryException("Could not read repository configuration: " + e.getMessage(), e);
