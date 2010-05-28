@@ -327,6 +327,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 }
             } else {
                 //return new FileOutputStream(this.contentFile);
+                log.debug("Write content to '" + contentFile + "'");
                 return new VirtualFileSystemOutputStream(this, this.contentFile);
             }
         } catch (FileNotFoundException e) {
