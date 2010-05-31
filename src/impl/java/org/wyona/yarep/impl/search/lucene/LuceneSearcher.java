@@ -42,7 +42,12 @@ public class LuceneSearcher implements Searcher {
                     log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
                     Node[] results = new Node[hits.length()];
                     for (int i = 0; i < results.length;i++) {
-                        results[i] = config.getRepo().getNode(hits.doc(i).getField("_PATH").stringValue());
+                        String path = hits.doc(i).getField("_PATH").stringValue();
+                        if (config.getRepo().existsNode(path)) {
+                            results[i] = config.getRepo().getNode(path);
+                        } else {
+                            log.error("No such node '" + path + "'. Search index (Fulltext: '" + config.getFulltextSearchIndexFile() + "', Properties: '" + config.getPropertiesSearchIndexFile() + "') seems to be out of sync!");
+                        }
                     }
                     searcher.close();
                     return results;
