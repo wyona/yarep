@@ -40,17 +40,18 @@ public class LuceneSearcher implements Searcher {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", config.getFulltextAnalyzer()).parse(query);
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                     log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
-                    Node[] results = new Node[hits.length()];
-                    for (int i = 0; i < results.length;i++) {
+
+                    java.util.List<Node> results = new java.util.ArrayList<Node>();
+                    for (int i = 0; i < hits.length();i++) {
                         String path = hits.doc(i).getField("_PATH").stringValue();
                         if (config.getRepo().existsNode(path)) {
-                            results[i] = config.getRepo().getNode(path);
+                            results.add(config.getRepo().getNode(path));
                         } else {
                             log.error("No such node '" + path + "'. Search index (Fulltext: '" + config.getFulltextSearchIndexFile() + "', Properties: '" + config.getPropertiesSearchIndexFile() + "') seems to be out of sync!");
                         }
                     }
                     searcher.close();
-                    return results;
+                    return results.toArray(new Node[results.size()]);
                 } catch (Exception e) {
                     searcher.close();
                     log.error(e, e);
