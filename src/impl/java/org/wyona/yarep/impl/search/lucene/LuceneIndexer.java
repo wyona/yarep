@@ -49,13 +49,14 @@ public class LuceneIndexer implements Indexer {
      */
     public void index(Node node, Metadata metaData) throws SearchException {
         try {
-            log.debug("Index fulltext of node: " + node.getPath());
+            log.debug("Trying to index fulltext of node: " + node.getPath());
             org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
             if (metaData != null) {
                 log.warn("This indexer implementation '" + getClass().getName() + "' is currently not making use of the meta data argument!");
             }
             String mimeType = node.getMimeType();
             if (mimeType != null) {
+                log.debug("Mime type: " + mimeType);
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
 
                 IndexWriter indexWriter = null;
