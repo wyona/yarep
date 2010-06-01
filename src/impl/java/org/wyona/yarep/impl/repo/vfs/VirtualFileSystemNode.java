@@ -514,7 +514,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     public void delete() throws RepositoryException {
         deleteRec(this);
     }
-       
+
+    /**
+     * Delete node recursively
+     */
     protected void deleteRec(Node node) throws RepositoryException {
         Node[] children = node.getNodes();
         for (int i=0; i < children.length; i++) {
@@ -531,6 +534,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         } catch (IOException e) {
             throw new RepositoryException("Could not delete node: " + node.getPath() + ": " + 
                     e.toString(), e);
+        }
+
+        // INFO: Delete node from fulltext search index
+        try {
+            getRepository().getIndexer().removeFromIndex(this);
+        } catch(Exception e) {
+            log.error(e, e);
         }
     }
 
