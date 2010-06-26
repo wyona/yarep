@@ -3,6 +3,7 @@
 <project name="yarep" default="usage"
  xmlns:artifact="antlib:org.apache.maven.artifact.ant"
  xmlns:wyona-tools="http://www.wyona.org/tools/1.0"
+ xmlns:svnant="antlib:org.tigris.subversion.svnant"
 >
   <import file="tools/apache-ant_extras/artifacts.build.xml"/>
 
@@ -180,6 +181,9 @@
   </target>
 
   <target name="deploy-jars" description="Upload jar files for core and impl into remote maven repository" depends="clean, init, jar, patch-pom-files">
+<!--
+  <target name="deploy-jars" description="Upload jar files for core and impl into remote maven repository" depends="clean, init, svn-export, jar, patch-pom-files">
+-->
     <!-- <artifact:install-provider artifactId="wagon-ssh" version="1.0-beta-2"/> -->
     <artifact:install-provider artifactId="wagon-ssh" version="1.0-alpha-7"/>
     
@@ -208,6 +212,17 @@
       </remoteRepository>
       <pom refid="maven.project.impl"/>
     </artifact:deploy>
+  </target>
+
+  <target name="svn-export" description="Export a particular revision of SVN trunk" depends="init">
+    <echo>Start exporting source from SVN, revision: ${subversion.revision}</echo>
+    <svnant:svn username="anonymous" password="anonymous">
+      <export
+       revision="${subversion.revision}"
+       srcUrl="http://svn.wyona.com/repos/public/yarep/trunk"
+       destPath="${build.dir}/svn-export-trunk-r${subversion.revision}"
+      />
+    </svnant:svn>
   </target>
   
   <target name="patch-pom-files" depends="init">
