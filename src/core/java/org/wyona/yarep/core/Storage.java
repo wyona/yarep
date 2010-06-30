@@ -10,7 +10,7 @@ import java.io.Reader;
 import java.io.Writer;
 
 /**
- *
+ * @deprecated Use Repository and Node instead
  */
 public interface Storage {
 
