@@ -146,7 +146,7 @@ public class VirtualFileSystemRepository implements Repository {
                 this.contentDir = FileUtil.file(configFile.getParent(), this.contentDir.toString());
             }
 
-            log.info("Content dir: " + this.contentDir);
+            log.info("Content dir: " + this.contentDir.getAbsolutePath());
 
             map = (Map) Class.forName("org.wyona.yarep.impl.VFileSystemMapImpl").newInstance();
             ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setPathsDir(contentDir, configFile);
