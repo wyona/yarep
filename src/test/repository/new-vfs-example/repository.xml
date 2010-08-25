@@ -12,9 +12,7 @@
   <!-- Optional elements below: -->
 
   <!-- If the "meta" parameter below is not being set, then the meta data will also be written into the content directory configured above. -->
-<!--
   <meta src="meta"/>
--->
 
   <directory alternative="index.html" mime-type="application/xhtml+xml"/>
 <!--
@@ -52,5 +50,33 @@
       <write-lock-timeout ms="3000"/>
     </lucene>
   </s:search-index>
+  
+  <!--
+       Various filesystems have a limit on the number of files per directory (e.g. 35K).
+       By splitting the paths one can workaround potential issues with too many files per directory.
+       The 'splitpath' section/element defines how paths are split into subdirectories, whereas
+       the following attributes can be set/configured:
+
+         - depth:  denotes how many splits are performed (at most)
+         - length: denotes how long a single segment is
+         - escape: denotes by what character a path separator ("/") should be replaced during splitting
+
+       The 'include' element defines which paths should be split; only paths
+       starting with any of the include paths are split.
+
+       Example: depth = 2, length = 2, escape = +, include = /foobar/
+         The path '/foobar/helloworld.txt' becomes '/foobar/he/ll/oworld.txt'
+         and '/foobar/fo/bar.txt' becomes '/foobar/fo/-b/ar.txt'
+         and '/lorem/ipsum.txt' does not change as it does not start with '/foobar/'
+
+       NOTE: The order of the include values (comma separated) matter, which means if '/foo' comes
+             before '/foo/bar', then '/foo/bar' is never reached.
+  -->
+  <splitpath depth="2" length="3" escape="+">
+    <include path="/splitpath-example/"/>
+<!-- NOTE: Apply splitpath to all files
+    <include path="/"/>
+-->
+  </splitpath>
 
 </repository>
