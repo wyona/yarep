@@ -22,6 +22,7 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
     private Repository repo;
 
     private String NODE_NAME = "revision-test.txt";
+    private String MESSAGE = "Hello revision test!\n";
 
     /**
      * Setup of repository configuration
@@ -53,6 +54,61 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         log.info("Revision has been created: " + revision.getRevisionName());
         assertTrue("Revision has been created: " + revision.getRevisionName(), revision != null);
     }
+
+    /**
+     * This test reads and writes multiple files
+     */
+    public void testSplitpathReadWrite() throws Exception {
+        String[] PATHS = {
+            "/splitpath-example/aa/bb/cc/dd",
+            "/splitpath-example/aab/b/cc/dd",
+            "/splitpath-example/foobar/baz.txt"
+        };
+
+        for (String path : PATHS) {
+            if (repo.existsNode(path)) {
+                repo.getNode(path).delete();
+            }
+
+            Node node = repo.getRootNode().addNode(path.substring(1, path.length()), NodeType.RESOURCE);
+            node.checkout("bob");
+            node.setMimeType("text/plain");
+            java.io.PrintWriter pw = new java.io.PrintWriter(node.getOutputStream());
+            pw.print(MESSAGE);
+            pw.close();
+            Revision revision = node.checkin("My first revision");
+
+            java.io.InputStream in = repo.getNode(path).getInputStream();
+            byte[] b = new byte[MESSAGE.length()];
+            in.read(b);
+            String s = new String(b);
+            log.info(String.format("File has been read, content: \"%s\"", s));
+
+            Node[] nodes = repo.getRootNode().getNodes();
+
+            for (Node n : nodes) {
+                log.info(String.format("got type: %d", n.getType()));
+                log.info("got name: " + n.getName());
+            }
+        }
+
+        java.io.InputStream in = repo.getNode("/hello-world.txt").getInputStream();
+        byte[] b = new byte[256];
+        String s = ""; 
+        while (in.read(b) > 0) {
+            s += new String(b);
+        }
+        log.info(String.format("HelloWorld file has been read, content: \"%s\"", s));
+
+        in = repo.getNode("/splitpath-example/backwards-compatible.txt").getInputStream();
+        b = new byte[256];
+        s = ""; 
+        while (in.read(b) > 0) {
+            s += new String(b);
+        }
+        log.info(String.format("Splitpath backwards compatibility example file has been read, content: \"%s\"", s));
+    }
+
 
     /**
      * Test get revision by date (point in time)
