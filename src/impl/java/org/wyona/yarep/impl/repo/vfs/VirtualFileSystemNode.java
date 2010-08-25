@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -58,6 +59,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected File contentFile;
     protected File metaDir;
     protected File metaFile;
+
+    // INFO: Because of the new split path functionality previous versions with a regular path are migrated automatically to a splitted path version, whereas the original version remains as a backup (TODO: Make the backup configurable, because one might have no need for backups)
+    protected File backupContentFile;
+    protected File backupMetaDir;
+    protected File backupMetaFile;
     
     // NOTE: Flag to indicate if revisions already have been read/initialized from file system
     protected boolean areRevisionsRead = false;
@@ -93,13 +99,19 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected void init() throws RepositoryException {
         
         this.contentDir = getRepository().getContentDir();
-        this.contentFile = new File(this.contentDir, this.uuid);
+        this.contentFile = new File(this.contentDir, getRepository().splitPath(this.uuid));
+        this.backupContentFile = new File(this.contentDir, this.uuid);
+        
+        String metauuid = getRepository().splitPath(uuid + META_DIR_SUFFIX);
         if (getRepository().getMetaDir() != null) {
-            this.metaDir = new File(getRepository().getMetaDir(), uuid + META_DIR_SUFFIX);
+            this.metaDir = new File(getRepository().getMetaDir(), metauuid);
+            this.backupMetaDir = new File(getRepository().getMetaDir(), uuid + META_DIR_SUFFIX);
         } else {
-            this.metaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
+            this.metaDir = new File(this.contentDir, metauuid);
+            this.backupMetaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
         }
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
+        this.backupMetaFile = new File(this.backupMetaDir, META_FILE_NAME);
         
         if (log.isDebugEnabled()) {
             log.debug("VirtualFileSystemNode: path=" + path + " uuid=" + uuid);
@@ -249,13 +261,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = getRepository().getMap().create(new Path(newPath), type);
+        UID uid = getRepository().getMap().create(new Path(getRepository().splitPath(newPath)), type);
         // create file:
         File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
                 file.mkdirs();
             } else if (type == NodeType.RESOURCE) {
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             } else {
                 throw new RepositoryException("Unknown node type: " + type);
@@ -289,7 +302,21 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         try {
             if (isCollection()) {
                 if (getRepository().getAlternative() != null) {
+                    File backupAlternativeFile = new File(backupContentFile, getRepository().getAlternative());
                     File alternativeFile = new File(contentFile, getRepository().getAlternative());
+
+                    if (!alternativeFile.exists() && backupAlternativeFile.exists()) {
+                        if (alternativeFile.isFile()) {
+                            alternativeFile.getParentFile().mkdirs();
+                            try {
+                                IOUtils.copy(new FileInputStream(backupAlternativeFile), new FileOutputStream(alternativeFile));
+                            } catch (IOException e) {
+                                log.error("Could not copy file or directory '" + backupAlternativeFile + "' to '" + alternativeFile + "'");
+                                log.error(e, e);
+                            }
+                        }
+                    }
+
                     if (alternativeFile.isFile()) {
                         return new FileInputStream(alternativeFile);
                     } else {
@@ -301,6 +328,16 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return new java.io.StringBufferInputStream(getDirectoryListing(contentFile, getRepository().getDirListingMimeType()));
                 }
             } else {
+                if (!contentFile.exists() && backupContentFile.exists()) {
+                    log.warn("Not-splitted-yet file exists, hence copying file " + backupContentFile.getAbsolutePath() + " to " + contentFile.getAbsolutePath());
+                    contentFile.getParentFile().mkdirs();
+                    try {
+                        IOUtils.copy(new FileInputStream(backupContentFile), new FileOutputStream(contentFile));
+                    } catch (IOException e) {
+                        log.error("Could not copy file or directory '" + backupContentFile + "' to '" + contentFile + "'");
+                        log.error(e, e);
+                    }
+                }
                 return new FileInputStream(contentFile);
             }
         } catch (FileNotFoundException e) {
