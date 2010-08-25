@@ -112,6 +112,14 @@ public class VirtualFileSystemRepository implements Repository {
     private boolean isPropertyIndexingEnabled = false;
     private Indexer indexer = null;
     private Searcher searcher = null;
+
+    // Configuration parameters of the <splitpath ...> element
+    private boolean splitPathEnabled = false;
+    private int splitparts = 0;
+    private int splitlength = 0;
+    private String DEFAULT_DUMMY_SEPARATOR_VALUE = "-";
+    private String dummySeparator = DEFAULT_DUMMY_SEPARATOR_VALUE;
+    private String[] includepaths = {};
     
     /**
      *
@@ -200,6 +208,29 @@ public class VirtualFileSystemRepository implements Repository {
             
             searcher = (Searcher) Class.forName(searcherClass).newInstance();
             searcher.configure(searchConfig, configFile, this);
+
+            // Read the <splitpath ...> configuration
+            Configuration splitConfig = config.getChild("splitpath", false);
+            if (splitConfig != null) {
+                splitPathEnabled = true;
+                String depth = splitConfig.getAttribute("depth", "0");
+                splitparts = Integer.parseInt(depth);
+
+                String length;
+                length = splitConfig.getAttribute("length", "0");
+                splitlength = Integer.parseInt(length);
+
+                dummySeparator = splitConfig.getAttribute("escape", DEFAULT_DUMMY_SEPARATOR_VALUE);
+
+                int c = splitConfig.getChildren("include").length;
+                int i = 0;
+                if (c > 0) {
+                    includepaths = new String[c];
+                    for (Configuration include : splitConfig.getChildren("include")) {
+                        includepaths[i++] = include.getAttribute("path");
+                    }
+                }
+            } 
         } catch (Exception e) {
             log.error(e.toString());
             throw new RepositoryException("Could not read repository configuration: " 
@@ -364,7 +395,11 @@ public class VirtualFileSystemRepository implements Repository {
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        return map.exists(new Path(path));
+        if (splitPathEnabled) {
+            return map.exists(new Path(splitPath(path)));
+        } else {
+            return map.exists(new Path(path));
+        }
     }
 
     /**
@@ -375,15 +410,13 @@ public class VirtualFileSystemRepository implements Repository {
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        String uuid;
 
-        if (map.exists(new Path(path))) {
-            uuid = new UID(path).toString();
+        if ((splitPathEnabled && map.exists(new Path(splitPath(path)))) || map.exists(new Path(path))) {
+            String uuid = new UID(path).toString();
+            return new VirtualFileSystemNode(this, path, uuid);
         } else {
             throw new NoSuchNodeException(path, this);
         }
-        
-        return new VirtualFileSystemNode(this, path, uuid);
     }
 
     /**
@@ -569,5 +602,93 @@ public class VirtualFileSystemRepository implements Repository {
         writer.flush();
         writer.close();
         return true;
+    }
+
+    /**
+     * Splits a String such that the result can be used as a repo path for a tree-like repo structure.
+     *
+     * This method splits off n strings (where n = parts) of length partlength, e.g. if
+     * splitPath("ec2c0c02-1d7d-4a21-8a39-68f9f72dea09", 3, 4) is called, then:
+     * in:  ec2c0c02-1d7d-4a21-8a39-68f9f72dea09, 3, 4
+     * out: ec2c/0c02/-1d7/d-4a21-8a39-68f9f72dea09
+     *
+     * If the strings length is shorter than parts * partslength, then as many
+     * parts as possible are split, e.g.
+     * in:  foobar, 2, 5
+     * out: fooba/r
+     * in:  lorem, 3, 10
+     * out: lorem
+     *
+     * An example with "/" characters:
+     * in:  /foobar/lorem/ipsum.txt, parts = 3, lenght = 3
+     * out: /foo/bar/-lo/rem/ipsum.txt
+     *
+     * @param uuid
+     * @return split uuid
+     */
+    String splitPath(String path) {
+        // NOTE: uuid should be a full yarep path, so we can safely remove
+        // the leading slash
+        
+        // check if the given path matches any of the include values
+        // in the configuration
+        boolean include = false;
+        String base = "";
+        for (String s : includepaths) {
+            if (path.startsWith(s)) {
+                include = true;
+                base = s;
+                break;
+            }
+        }
+
+        // return the path unchanged if it doesn't match
+        // any of the include values
+        if (!include) {
+            return path;
+        }
+        
+        // remove the leading base string, will be added again later
+        path = path.substring(base.length(), path.length());
+
+        // replace "/" characters where needed
+        if (path.length() <= splitparts * splitlength) {
+            path = path.replaceAll("/", dummySeparator);
+        } else {
+            path = String.format("%s%s",
+                    path.substring(0, splitparts * splitlength).replaceAll("/", dummySeparator),
+                    path.substring(splitparts * splitlength));
+        }
+
+        // now do the actual splitting
+        int len = path.length();
+        int pos = 0;
+        String out = "";
+
+        int partc = 0;
+        int w;
+        while (len > 0 && partc < splitparts) {
+            partc++;
+            if (len < splitlength) {
+                w = len;
+            } else {
+                w = splitlength;
+            }
+            out += path.substring(pos, pos + w);
+            pos += w;
+            len -= w;
+
+            if (len > 0) {
+                out += "/";
+            }
+        }
+
+        // append remainder
+        if (len > 0) {
+            out += path.substring(pos, pos + len);
+        }
+
+        // finally, add the leading zero again and return the new path
+        return base + out;
     }
 }
