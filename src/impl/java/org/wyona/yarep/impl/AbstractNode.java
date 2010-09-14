@@ -122,7 +122,11 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#getNode(java.lang.String)
      */
     public Node getNode(String name) throws NoSuchNodeException, RepositoryException {
-        String childPath = getPath() + "/" + name;
+        String base = getPath();
+        if (!base.endsWith("/")) {
+            base = base + "/";
+        }
+        String childPath = base + name;
         return this.repository.getNode(childPath);
     }
     
@@ -130,7 +134,11 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#hasNode(java.lang.String)
      */
     public boolean hasNode(String name) throws RepositoryException {
-        String childPath = getPath() + "/" + name;
+        String base = getPath();
+        if (!base.endsWith("/")) {
+            base = base + "/";
+        }
+        String childPath = base + name;
         return this.repository.existsNode(childPath);
     }
     
