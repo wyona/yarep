@@ -391,7 +391,7 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#existsNode(java.lang.String)
      */
     public boolean existsNode(String path) throws RepositoryException {
-        // strip trailing slash:
+        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
@@ -406,7 +406,7 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#getNode(java.lang.String)
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        // strip trailing slash:
+        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
