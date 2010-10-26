@@ -58,7 +58,7 @@
        the following attributes can be set/configured:
 
          - depth:  denotes how many splits are performed (at most)
-         - length: denotes how long a single segment is
+         - length: denotes how long a single segment is (we recommend to set length to 2 because this should make sure to stay below 35'000 files per directory, assuming one uses 26 characters and 10 numbers, which means 36x36=1296 < 35000)
          - escape: denotes by what character a path separator ("/") should be replaced during splitting
 
        The 'include' element defines which paths should be split; only paths
@@ -72,7 +72,7 @@
        NOTE: The order of the include values (comma separated) matter, which means if '/foo' comes
              before '/foo/bar', then '/foo/bar' is never reached.
   -->
-  <splitpath depth="2" length="3" escape="+">
+  <splitpath depth="3" length="2" escape="+">
     <include path="/splitpath-example/"/>
 <!-- NOTE: Apply splitpath to all files
     <include path="/"/>
