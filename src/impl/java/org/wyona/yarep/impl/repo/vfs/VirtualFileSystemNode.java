@@ -240,7 +240,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
-        Path[] childPaths = getRepository().getMap().getChildren(new Path(this.path));
+        Path[] childPaths;
+        if (getRepository().isSplitPathEnabled()) {
+            // TODO: Unsplit paths
+            log.warn("TODO: Unsplit paths...");
+            childPaths = getRepository().getMap().getChildren(new Path(this.path));
+        } else {
+            childPaths = getRepository().getMap().getChildren(new Path(this.path));
+        }
         
         Node[] childNodes = new Node[childPaths.length];
         for (int i=0; i<childPaths.length; i++) {
