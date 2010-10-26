@@ -291,7 +291,12 @@ public class VirtualFileSystemRepository implements Repository {
         return delete(path);
     }
 
+
+    /**
+     * @see org.wyona.yarep.core.Repository#exists(org.wyona.yarep.core.Path)
+     */
     public boolean exists(Path path) throws RepositoryException {
+        log.warn("DEPRECATED");
         return existsNode(path.toString());
     }
 
@@ -396,7 +401,7 @@ public class VirtualFileSystemRepository implements Repository {
             path = path.substring(0, path.length() - 1);
         }
         if (splitPathEnabled) {
-            return map.exists(new Path(splitPath(path)));
+            return map.exists(new Path(splitPath(path))) || map.exists(new Path(path)); // INFO: The OR is because of backwards compatibility in case that a node exists with an unsplitted path, because it has not been migrated yet (which can happen if it has only been read so far, but never written since introducing the split path configuration)
         } else {
             return map.exists(new Path(path));
         }
