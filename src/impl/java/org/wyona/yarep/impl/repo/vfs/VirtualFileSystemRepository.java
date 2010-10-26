@@ -696,4 +696,11 @@ public class VirtualFileSystemRepository implements Repository {
         // finally, add the leading zero again and return the new path
         return base + out;
     }
+
+    /**
+     * Check whether split path is enabled and make this available to classes within this package
+     */
+    boolean isSplitPathEnabled() {
+        return splitPathEnabled;
+    }
 }
