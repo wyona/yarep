@@ -219,11 +219,17 @@ public class LuceneIndexer implements Indexer {
     public void index(Node node, Property property) throws SearchException {
         IndexWriter iw = null;
         try {
-           log.debug("Index property '" + property.getName() + " of node: " + node.getPath());
-           String path = node.getPath();
-           Document luceneDoc = new Document();
+            String path = node.getPath();
+            boolean indexRevisionsSeparately = true; // TODO: Make this configurable for backwards compatibility reasons
+            if (indexRevisionsSeparately && isRevision(node)) {
+                log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + ((org.wyona.yarep.core.Revision)node).getRevisionName() + "), " + node.getClass().getName());
+            } else {
+                log.debug("Index property '" + property.getName() + " of node: " + path);
+            }
 
-           // Add path as field such that found properties can be related to a path
+            Document luceneDoc = new Document();
+
+           // INFO: Add path as field such that found properties can be related to a path
            luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
 
            // TODO: Write typed property value to index. Is this actually possible?
@@ -251,7 +257,7 @@ public class LuceneIndexer implements Indexer {
                    }
                }
 
-/* WARN: For some strange reason the code below thows a NullPointerException
+/* WARN: For some strange reason the code below throws a NullPointerException
                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
                if (termDocs != null) {
                    log.debug("Number of documents matching term: " + termDocs.doc());
@@ -302,4 +308,31 @@ public class LuceneIndexer implements Indexer {
    public void removeFromIndex(Node node, Property property) throws SearchException {
        log.warn("TODO: Not implemented yet.");
    }
+
+    /**
+     * Check if a node is actually revision
+     */
+    static private boolean isRevision(Node node) {
+        boolean implemented = false;
+        Class clazz = node.getClass();
+    
+        while (!clazz.getName().equals("java.lang.Object") && !implemented) {
+            Class[] interfaces = clazz.getInterfaces();
+            for (int i = 0; i < interfaces.length; i++) {
+                if (interfaces[i].getName().equals("org.wyona.yarep.core.Revision")) {
+                    implemented = true;
+                    break;
+                }
+                // TODO: Why does this not work?
+                //if (interfaces[i].isInstance(iface)) implemented = true;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        if (implemented) {
+            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is a Revision!");
+        } else {
+            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is NOT a Revision!");
+        }
+        return implemented;
+    }
 }
