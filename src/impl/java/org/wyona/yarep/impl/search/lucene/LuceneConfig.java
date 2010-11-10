@@ -30,15 +30,23 @@ public class LuceneConfig {
     private TikaConfig tikaConfig;
     private int writeLockTimeout = 0;
     private Repository repo;
+
+    private boolean indexRevisions = false;
     
     private Indexer indexer = null;
-    
+
+    /**
+     *
+     */
     public LuceneConfig(Configuration searchIndexConfig, String configParent, Repository repo) throws SearchException {
         this.repo = repo;
         configure(searchIndexConfig, configParent);
     }
-    
-    public void configure(Configuration searchConfig, String configParent) throws SearchException {
+
+    /**
+     * Lucene specific configuration
+     */
+    void configure(Configuration searchConfig, String configParent) throws SearchException {
         try {
             if (searchConfig != null) {
                 if(searchConfig.getNamespace() == "" || searchConfig.getNamespace() == null) {
@@ -52,6 +60,7 @@ public class LuceneConfig {
                 }
 
                 Configuration luceneConfig = searchConfig.getChild("lucene");
+                indexRevisions = luceneConfig.getAttributeAsBoolean("index-revisions", false);
                 
                 String fulltextAnalyzerClass = luceneConfig.getChild("fulltext-analyzer").getAttribute("class","org.apache.lucene.analysis.standard.StandardAnalyzer");
                 fulltextAnalyzer = (Analyzer) Class.forName(fulltextAnalyzerClass).newInstance();
@@ -225,5 +234,12 @@ public class LuceneConfig {
 
     public Repository getRepo() {
         return repo;
+    }
+
+    /**
+     * Check whether revisions should be indexed
+     */
+    boolean doIndexRevisions() {
+        return indexRevisions;
     }
 }
