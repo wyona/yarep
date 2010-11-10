@@ -222,9 +222,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
 
                     // NOTE: Please note that the property is being indexed before it is being saved persistently. Does that make sense?
-                    if (((VirtualFileSystemRepository)repository).isAutoPropertyIndexingEnabled()) {
-                        log.debug("Index property: " + property.getName());
-                        repository.getIndexer().index(this, property);
+                    if (getRepository().isAutoPropertyIndexingEnabled()) {
+                        log.debug("Index property '" + property.getName() + "' of node: " + this.getPath());
+                        getRepository().getIndexer().index(this, property);
                     }
                 }
             }
@@ -240,6 +240,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#getNodes()
      */
     public Node[] getNodes() throws RepositoryException {
+        //log.debug("Get nodes from repository: " + getRepository().getClass().getName() + ", " + getRepository().getConfigFile());
         Path[] childPaths;
         if (getRepository().isSplitPathEnabled()) {
             // TODO: Unsplit paths
@@ -298,6 +299,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#setProperty(org.wyona.yarep.core.Property)
      */
     public void setProperty(Property property) throws RepositoryException {
+        //log.debug("Set property: " + property.getName());
         this.properties.put(property.getName(), property);
         saveProperties();
     }
@@ -546,7 +548,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     *
+     * Get the virtual file system repository this node belongs to
      */
     public VirtualFileSystemRepository getRepository() {
         return (VirtualFileSystemRepository)this.repository;
