@@ -40,7 +40,7 @@
     <repo-auto-index-fulltext boolean="true"/>
     <repo-auto-index-properties boolean="true"/>
 
-    <lucene>
+    <lucene index-revisions="true"> <!-- INFO: The attribute index-revisions is optional and by default set to false for backwards compatibility reasons. If set to true, then the revisions are indexed with the revision number attached to the path -->
       <!-- The element 'local-tika-config' attribute 'file' is used to patch the default tika config -->
       <local-tika-config file="tika-config.xml"/>
 
