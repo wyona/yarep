@@ -225,7 +225,6 @@ public class LuceneIndexer implements Indexer {
             String path = node.getPath();
             if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
                 String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
-                log.warn("DEBUG: Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
