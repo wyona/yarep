@@ -246,4 +246,31 @@ public class YarepUtil {
             log.error("Could not index node: " + node.getPath() + ": " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Check if a node is actually a revision
+     */
+    static public boolean isRevision(Node node) {
+        boolean implemented = false;
+        Class clazz = node.getClass();
+
+        while (!clazz.getName().equals("java.lang.Object") && !implemented) {
+            Class[] interfaces = clazz.getInterfaces();
+            for (int i = 0; i < interfaces.length; i++) {
+                if (interfaces[i].getName().equals("org.wyona.yarep.core.Revision")) {
+                    implemented = true;
+                    break;
+                }
+                // TODO: Why does this not work?
+                //if (interfaces[i].isInstance(iface)) implemented = true;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        if (implemented) {
+            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is a Revision!");
+        } else {
+            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is NOT a Revision!");
+        }
+        return implemented;
+    }
 }
