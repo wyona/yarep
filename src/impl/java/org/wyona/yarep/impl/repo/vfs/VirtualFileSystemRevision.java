@@ -334,10 +334,14 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         return super.setProperty(name, value);
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#setProperty(String, String)
+     */
     public Property setProperty(String name, String value) throws RepositoryException {
         if (!isInitialized) {
             init();
         }
+        //log.debug("Set property: " + name + ", " + value);
         return super.setProperty(name, value);
     }
 
