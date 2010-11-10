@@ -93,7 +93,14 @@ public class LuceneSearcher implements Searcher {
                             
                             // subtree filter
                             if (resultPath.startsWith(path)) {
-                                results.add(config.getRepo().getNode(resultPath));
+                                if (resultPath.contains("#revision=")) {
+                                    //log.debug("This seems to be a revision: " + resultPath);
+                                    String resultPathWithoutRevision = resultPath.substring(0, resultPath.lastIndexOf("#revision="));
+                                    String revisionName = resultPath.substring(resultPath.lastIndexOf("#revision=") + 10);
+                                    results.add(config.getRepo().getNode(resultPathWithoutRevision).getRevision(revisionName));
+                                } else {
+                                    results.add(config.getRepo().getNode(resultPath));
+                                }
                             }
                         } catch (NoSuchNodeException nsne) {
                             log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
