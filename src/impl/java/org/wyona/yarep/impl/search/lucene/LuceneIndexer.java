@@ -31,7 +31,10 @@ public class LuceneIndexer implements Indexer {
     
     static Logger log = Logger.getLogger(LuceneIndexer.class);
     protected LuceneConfig config;
-    
+
+    /**
+     * @see org.wyona.yarep.core.search.Indexer#configure(Configuration, File, Repository)
+     */
     public void configure(Configuration searchIndexConfig, File configFile, Repository repo) throws SearchException {
         this.config = new LuceneConfig(searchIndexConfig, configFile.getParent(), repo);
     }
@@ -220,9 +223,11 @@ public class LuceneIndexer implements Indexer {
         IndexWriter iw = null;
         try {
             String path = node.getPath();
-            boolean indexRevisionsSeparately = true; // TODO: Make this configurable for backwards compatibility reasons
-            if (indexRevisionsSeparately && isRevision(node)) {
-                log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + ((org.wyona.yarep.core.Revision)node).getRevisionName() + "), " + node.getClass().getName());
+            if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
+                String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
+                log.warn("DEBUG: Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
+                log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
+                path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
                 log.debug("Index property '" + property.getName() + " of node: " + path);
             }
@@ -308,31 +313,4 @@ public class LuceneIndexer implements Indexer {
    public void removeFromIndex(Node node, Property property) throws SearchException {
        log.warn("TODO: Not implemented yet.");
    }
-
-    /**
-     * Check if a node is actually revision
-     */
-    static private boolean isRevision(Node node) {
-        boolean implemented = false;
-        Class clazz = node.getClass();
-    
-        while (!clazz.getName().equals("java.lang.Object") && !implemented) {
-            Class[] interfaces = clazz.getInterfaces();
-            for (int i = 0; i < interfaces.length; i++) {
-                if (interfaces[i].getName().equals("org.wyona.yarep.core.Revision")) {
-                    implemented = true;
-                    break;
-                }
-                // TODO: Why does this not work?
-                //if (interfaces[i].isInstance(iface)) implemented = true;
-            }
-            clazz = clazz.getSuperclass();
-        }
-        if (implemented) {
-            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is a Revision!");
-        } else {
-            if (log.isDebugEnabled()) log.debug(node.getClass().getName() + " is NOT a Revision!");
-        }
-        return implemented;
-    }
 }
