@@ -211,6 +211,7 @@ public abstract class AbstractNode implements Node {
      * @see org.wyona.yarep.core.Node#setProperty(java.lang.String, java.lang.String)
      */
     public Property setProperty(String name, String value) throws RepositoryException {
+        //log.debug("Set property: " + name + ", " + value);
         Property property = new DefaultProperty(name, PropertyType.STRING, this);
         property.setValue(value);
         setProperty(property);
