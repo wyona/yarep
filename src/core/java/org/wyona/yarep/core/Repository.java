@@ -163,7 +163,7 @@ public interface Repository {
     /**
      * Get all revision numbers of the given path.
      * @return Array of revision number strings. Newest revision first. 
-     * @deprecated
+     * @deprecated Use getNode(String).getRevisions() instead
      */
    public String[] getRevisions(Path path) throws RepositoryException;
 
