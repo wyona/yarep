@@ -43,7 +43,13 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node)
      */
     public void index(Node node) throws SearchException {
-        log.debug("Index fulltext of node");
+        if (log.isDebugEnabled()) {
+            try {
+                log.debug("Index fulltext of node: " + node.getPath());
+            } catch(Exception e) {
+                log.warn(e, e);
+            }
+        }
         index(node, (Metadata)null);
     }
     
