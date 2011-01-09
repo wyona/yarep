@@ -104,8 +104,7 @@ public class ORMRepositoryImpl implements Repository {
      * @see org.wyona.yarep.core.Repository#getConfigFile()
      */
     public File getConfigFile() {
-        log.warn("TODO: Not implemented yet!");
-        return null;
+        return configFile;
     }
 
     /**
