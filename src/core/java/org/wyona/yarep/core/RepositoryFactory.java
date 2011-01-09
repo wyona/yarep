@@ -135,7 +135,7 @@ public class RepositoryFactory {
     }
 
     /**
-     * Get repository from yarep.properties
+     * Get repository for a specific ID (historically this method created a new repository based on a properties file, hence the name newRepository, but today it should rather be renamed to getRepository(String))
      *
      * @param rid Repository ID
      */
@@ -145,7 +145,7 @@ public class RepositoryFactory {
         }
         log.warn("No such repository: " + rid + " (" + getPropertiesURL() + ")");
         if (repositories.size() == 0) {
-            log.error("No repositories (" + getPropertiesURL() + ")! Maybe properties file is misconfigured!");
+            log.error("No repositories (" + getPropertiesURL() + ")! Maybe no repositories set yet or/and properties file is misconfigured!");
         }
         return null;
     }
