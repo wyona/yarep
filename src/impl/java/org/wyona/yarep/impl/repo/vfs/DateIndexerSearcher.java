@@ -470,7 +470,7 @@ public class DateIndexerSearcher {
             pw.print(revisionName);
             pw.close();
         } else {
-           log.warn("Revision '" + revisionName + "' already exists within date index!");
+           log.debug("Revision '" + revisionName + "' already exists within date index!");
         }
     }
 
@@ -479,7 +479,7 @@ public class DateIndexerSearcher {
      */
     public void buildDateIndex() throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.warn("Build date index: " + dateIndexBaseDir);
+        log.debug("Build date index: " + dateIndexBaseDir);
 
         if (!dateIndexBaseDir.isDirectory()) {
             dateIndexBaseDir.mkdirs();
