@@ -86,5 +86,6 @@
      2) Set credentials (usernam and password) within local.build.properties
      3) Run ./build.sh svn-export
      4) Change directory: build/svn-export-trunk-rREVISION
-     4) Run ./build.sh deploy-jars
+     4.1) Update (local).build.properties accordingly
+     5) Run ./build.sh deploy-jars
 
