@@ -70,10 +70,21 @@
 
 
      How to (re-)index a repository
-     ------------------------
+     ------------------------------
 
      (Re-)Index content of repo 'foo':
      
      1) ./build.sh build-examples
      2) ./build.sh compile-tools
      3) ./build.sh index-repository -Drepo.config=/home/yanel/foo-yarep-repository.xml
+
+
+     Creating a release
+     ------------------
+
+     1) Update revision number (subversion.revision) within build.properties
+     2) Set credentials (usernam and password) within local.build.properties
+     3) Run ./build.sh svn-export
+     4) Change directory: build/svn-export-trunk-rREVISION
+     4) Run ./build.sh deploy-jars
+
