@@ -117,7 +117,6 @@ public class LuceneIndexer implements Indexer {
                             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                                 log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
                             }
-
                         } else {
                             log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
                         }
@@ -279,18 +278,25 @@ public class LuceneIndexer implements Indexer {
             }
 
             // INFO: Add lucene document also to fulltext index
+/*
+            try {
+                updateDocument(createFulltextIndexWriter(), path, luceneDoc);
+            } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
+            }
+*/
         } catch (Exception e) {
             log.error(e, e);
             throw new SearchException(e.getMessage());
         }
     }
   
-   /**
+    /**
      * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node, Property)
-    */
-   public void removeFromIndex(Node node, Property property) throws SearchException {
-       log.warn("TODO: Not implemented yet.");
-   }
+     */
+    public void removeFromIndex(Node node, Property property) throws SearchException {
+        log.warn("TODO: Not implemented yet.");
+    }
 
     /**
      * Update document of a particular path within index
