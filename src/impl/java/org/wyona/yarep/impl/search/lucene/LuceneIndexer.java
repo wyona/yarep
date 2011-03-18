@@ -143,7 +143,7 @@ public class LuceneIndexer implements Indexer {
         }
     }
     
-    /* (non-Javadoc)
+    /**
      * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node)
      */
     public void removeFromIndex(Node node) {
@@ -239,81 +239,84 @@ public class LuceneIndexer implements Indexer {
 
             Document luceneDoc = new Document();
 
-           // INFO: Add path as field such that found properties can be related to a path
-           luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
+            // INFO: Add path as field such that found properties can be related to a path
+            luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
 
-           // TODO: Write typed property value to index. Is this actually possible?
-           // INFO: As workaround Add the property as string value to the lucene document
-           if (property.getValueAsString() != null) {
-               log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
-               //luceneDoc.add(new Field(property.getName(), new StringReader(property.getValueAsString())));
-               luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
-           } else {
-               log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
-           }
+            // TODO: Write typed property value to index. Is this actually possible?
+            // INFO: As workaround Add the property as string value to the lucene document
+            if (property.getValueAsString() != null) {
+                log.debug("Index property '" + property.getName() + "': " + property.getValueAsString());
+                //luceneDoc.add(new Field(property.getName(), new StringReader(property.getValueAsString())));
+                luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+            } else {
+                log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
+            }
 
-           // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
-           IndexReader indexReader = getIndexReader();
-           if (indexReader != null) {
-               log.debug("Number of documents of this index: " + indexReader.numDocs());
-
-               // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
-               Property[] properties = node.getProperties();
-               for (int i = 0; i < properties.length; i++) {
-                   if (!properties[i].getName().equals(property.getName())) {
-                       if (properties[i].getValueAsString() != null) {
-                           luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
-                       }
-                   }
-               }
+            // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
+            IndexReader indexReader = getIndexReader();
+            if (indexReader != null) {
+                log.debug("Number of documents of this index: " + indexReader.numDocs());
+ 
+                // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+                Property[] properties = node.getProperties();
+                for (int i = 0; i < properties.length; i++) {
+                    if (!properties[i].getName().equals(property.getName())) {
+                        if (properties[i].getValueAsString() != null) {
+                            luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+                        }
+                    }
+                }
 
 /* WARN: For some strange reason the code below throws a NullPointerException
-               org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
-               if (termDocs != null) {
-                   log.debug("Number of documents matching term: " + termDocs.doc());
-                   termDocs.close();
-               } else {
-                   log.warn("No term docs found for path: " + path);
-               }
+                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
+                if (termDocs != null) {
+                    log.debug("Number of documents matching term: " + termDocs.doc());
+                    termDocs.close();
+                } else {
+                    log.warn("No term docs found for path: " + path);
+                }
 */
-               indexReader.close();
-           } else {
-               log.warn("Could not init IndexReader!");
-           }
+                indexReader.close();
+            } else {
+                log.warn("Could not init IndexReader!");
+            }
 
-           try {
-               iw = createPropertiesIndexWriter();
-           } catch(org.apache.lucene.store.LockObtainFailedException e) {
-               log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
-               return;
-           }
-           if (iw != null) {
-               if (log.isDebugEnabled()) log.debug("Index/update property '" + property.getName() + "' of node: " + path);
-               // INFO: See http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
-               iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
-           } else {
-               log.warn("Index writer could not be initialized, hence do not index properties of node: " + path);
-           }
 
-           // Make sure to close the IndexWriter and release the lock!
-           iw.close();
-           //iw.flush();
-       } catch (Exception e) {
-           log.error(e, e);
-           throw new SearchException(e.getMessage());
-       } finally {
-           try {
-               if (iw != null) {
-                   iw.close();
-               }
-           } catch(Exception e) {
-               log.error(e, e);
-           }
-       }
-   }
-   
+            // INFO: Now add lucene document containing all properties to index
+            try {
+                iw = createPropertiesIndexWriter();
+            } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
+                return;
+            }
+
+            if (iw != null) {
+                if (log.isDebugEnabled()) log.debug("Index/update property '" + property.getName() + "' of node: " + path);
+                // INFO: See http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
+                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
+            } else {
+                log.warn("Index writer could not be initialized, hence do not index properties of node: " + path);
+            }
+
+            // Make sure to close the IndexWriter and release the lock!
+            iw.close();
+            //iw.flush();
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new SearchException(e.getMessage());
+        } finally {
+            try {
+                if (iw != null) {
+                    iw.close();
+                }
+            } catch(Exception e) {
+                log.error(e, e);
+            }
+        }
+    }
+  
    /**
-    * Remove node from index
+     * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node, Property)
     */
    public void removeFromIndex(Node node, Property property) throws SearchException {
        log.warn("TODO: Not implemented yet.");
