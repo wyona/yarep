@@ -68,20 +68,12 @@ public class LuceneIndexer implements Indexer {
                 log.debug("Mime type: " + mimeType);
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
 
-                IndexWriter indexWriter = null;
-                try {
-                    indexWriter = createFulltextIndexWriter();
-                } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                    log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + node.getPath() + "' will not be indexed!");
-                    return;
-                }
                 
                 // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
                 //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
                 //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
 
-                if (indexWriter != null) {
                     Document document = new Document();
                     
                     // Extract/parse text content:
@@ -119,21 +111,19 @@ public class LuceneIndexer implements Indexer {
                             //document.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
 
                             document.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
-                            if (log.isDebugEnabled()) log.debug("Node will be indexed: " + node.getPath());
-                            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", node.getPath()), document);
-                            indexWriter.close();
-                            //indexWriter.flush();
+
+                            try {
+                                updateDocument(createFulltextIndexWriter(), node.getPath(), document);
+                            } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
+                            }
+
                         } else {
                             log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
-                            indexWriter.close();
                         }
                     } else {
                         log.warn("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
-                        indexWriter.close();
                     }
-                } else {
-                    log.warn("IndexWriter is null and hence node will not be indexed: " + node.getPath());
-                }
             } else {
                 log.warn("Node '" + node.getPath() + "' has no mime-type set and hence will not be added to fulltext index.");
             }
@@ -226,7 +216,6 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
     public void index(Node node, Property property) throws SearchException {
-        IndexWriter iw = null;
         try {
             String path = node.getPath();
             if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
@@ -284,34 +273,15 @@ public class LuceneIndexer implements Indexer {
 
             // INFO: Now add lucene document containing all properties to index
             try {
-                iw = createPropertiesIndexWriter();
+                updateDocument(createPropertiesIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init IndexWriter, because of existing lock, hence properties of node '" + path + "' will not be indexed!");
-                return;
+                log.warn("Could not init properties IndexWriter (maybe because of existing lock), hence properties of node '" + path + "' will not be indexed!");
             }
 
-            if (iw != null) {
-                if (log.isDebugEnabled()) log.debug("Index/update property '" + property.getName() + "' of node: " + path);
-                // INFO: See http://lucene.apache.org/java/2_1_0/api/org/apache/lucene/index/IndexWriter.html#updateDocument(org.apache.lucene.index.Term,%20org.apache.lucene.document.Document)
-                iw.updateDocument(new org.apache.lucene.index.Term("_PATH", path), luceneDoc);
-            } else {
-                log.warn("Index writer could not be initialized, hence do not index properties of node: " + path);
-            }
-
-            // Make sure to close the IndexWriter and release the lock!
-            iw.close();
-            //iw.flush();
+            // INFO: Add lucene document also to fulltext index
         } catch (Exception e) {
             log.error(e, e);
             throw new SearchException(e.getMessage());
-        } finally {
-            try {
-                if (iw != null) {
-                    iw.close();
-                }
-            } catch(Exception e) {
-                log.error(e, e);
-            }
         }
     }
   
@@ -321,4 +291,19 @@ public class LuceneIndexer implements Indexer {
    public void removeFromIndex(Node node, Property property) throws SearchException {
        log.warn("TODO: Not implemented yet.");
    }
+
+    /**
+     * Update document of a particular path within index
+     */
+    private void updateDocument(IndexWriter indexWriter, String path, Document document) throws Exception {
+        if (indexWriter != null) {
+            if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
+            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", path), document);
+            indexWriter.close();
+            //indexWriter.flush();
+        } else {
+            throw new Exception("IndexWriter is null and hence node will not be indexed: " + path);
+            //log.warn("IndexWriter is null and hence node will not be indexed: " + path);
+        }
+    }
 }
