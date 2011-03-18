@@ -166,9 +166,9 @@ public class LuceneIndexer implements Indexer {
     }
 
    /**
-    * Get index reader
+    * Get properties index reader
     */
-   public IndexReader getIndexReader() throws Exception {
+   public IndexReader getPropertiesIndexReader() throws Exception {
        if (config.getPropertiesSearchIndexFile().exists() && IndexReader.indexExists(config.getPropertiesSearchIndexFile())) {
            return IndexReader.open(config.getPropertiesSearchIndexFile());
        } else {
@@ -204,21 +204,21 @@ public class LuceneIndexer implements Indexer {
             }
 
             // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
-            IndexReader indexReader = getIndexReader();
-            if (indexReader != null) {
-                log.debug("Number of documents of this index: " + indexReader.numDocs());
- 
-                // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
-                Property[] properties = node.getProperties();
-                for (int i = 0; i < properties.length; i++) {
-                    if (!properties[i].getName().equals(property.getName())) {
-                        if (properties[i].getValueAsString() != null) {
-                            luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
-                        }
+            // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+            Property[] properties = node.getProperties();
+            for (int i = 0; i < properties.length; i++) {
+                if (!properties[i].getName().equals(property.getName())) {
+                    if (properties[i].getValueAsString() != null) {
+                        luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
                     }
                 }
+            }
+            // WARN: For some strange reason the code below throws a NullPointerException
+            IndexReader propsIndexReader = getPropertiesIndexReader();
+            if (propsIndexReader != null) {
+                log.debug("Number of documents of properties index: " + propsIndexReader.numDocs());
 
-/* WARN: For some strange reason the code below throws a NullPointerException
+/*
                 org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
                 if (termDocs != null) {
                     log.debug("Number of documents matching term: " + termDocs.doc());
@@ -227,11 +227,10 @@ public class LuceneIndexer implements Indexer {
                     log.warn("No term docs found for path: " + path);
                 }
 */
-                indexReader.close();
+                propsIndexReader.close();
             } else {
-                log.warn("Could not init IndexReader!");
+                log.warn("Could not init properties index reader!");
             }
-
 
             // INFO: Now add lucene document containing all properties to index
             try {
