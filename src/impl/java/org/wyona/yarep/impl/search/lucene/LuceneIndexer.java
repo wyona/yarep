@@ -294,6 +294,10 @@ public class LuceneIndexer implements Indexer {
 
     /**
      * Update document of a particular path within index
+     *
+     * @param indexWriter Index writer
+     * @param path Path of node with which the fields and values are related to
+     * @param document Lucene document containing the fields and values
      */
     private void updateDocument(IndexWriter indexWriter, String path, Document document) throws Exception {
         if (indexWriter != null) {
