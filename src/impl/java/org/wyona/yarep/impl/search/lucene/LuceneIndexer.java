@@ -73,8 +73,6 @@ public class LuceneIndexer implements Indexer {
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
                 //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
                 //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
-
-                    Document document = new Document();
                     
                     // Extract/parse text content:
                     Parser parser = config.getTikaConfig().getParser(mimeType);
@@ -107,13 +105,14 @@ public class LuceneIndexer implements Indexer {
                         }
         
                         if (fullText != null && fullText.length() > 0) {
-                            document.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
-                            //document.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+                            Document luceneDoc = getDocument(node.getPath());
 
-                            document.add(new Field("_PATH", node.getPath(), Field.Store.YES, Field.Index.UN_TOKENIZED));
+                            luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                            //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+
 
                             try {
-                                updateDocument(createFulltextIndexWriter(), node.getPath(), document);
+                                updateDocument(createFulltextIndexWriter(), node.getPath(), luceneDoc);
                             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                                 log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
                             }
@@ -225,10 +224,7 @@ public class LuceneIndexer implements Indexer {
                 log.debug("Index property '" + property.getName() + " of node: " + path);
             }
 
-            Document luceneDoc = new Document();
-
-            // INFO: Add path as field such that found properties can be related to a path
-            luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
+            Document luceneDoc = getDocument(path);
 
             // TODO: Write typed property value to index. Is this actually possible?
             // INFO: As workaround Add the property as string value to the lucene document
@@ -278,6 +274,7 @@ public class LuceneIndexer implements Indexer {
             }
 
             // INFO: Add lucene document also to fulltext index
+            log.warn("TODO: Also add lucene document to fulltext index...");
 /*
             try {
                 updateDocument(createFulltextIndexWriter(), path, luceneDoc);
@@ -315,5 +312,16 @@ public class LuceneIndexer implements Indexer {
             throw new Exception("IndexWriter is null and hence node will not be indexed: " + path);
             //log.warn("IndexWriter is null and hence node will not be indexed: " + path);
         }
+    }
+
+    /**
+     * Init lucene document
+     * @param path Node path for which fields and values are associated with
+     */
+    private Document getDocument(String path) {
+        Document luceneDoc = new Document();
+        // INFO: Add path as field such that found properties can be related to a path
+        luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
+        return luceneDoc;
     }
 }
