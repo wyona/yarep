@@ -6,15 +6,22 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 import org.apache.avalon.framework.configuration.Configuration;
+
 import org.apache.log4j.Logger;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
+
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.WriteOutContentHandler;
+
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.Repository;
@@ -82,7 +89,7 @@ public class LuceneIndexerV2 implements Indexer {
                     //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
 
                     try {
-                        updateDocument(createFulltextIndexWriter(), node.getPath(), luceneDoc);
+                        updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
                     } catch(org.apache.lucene.store.LockObtainFailedException e) {
                         log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
                     }
@@ -213,28 +220,10 @@ public class LuceneIndexerV2 implements Indexer {
                     }
                 }
             }
-            // WARN: For some strange reason the code below throws a NullPointerException
-            IndexReader propsIndexReader = getPropertiesIndexReader();
-            if (propsIndexReader != null) {
-                log.debug("Number of documents of properties index: " + propsIndexReader.numDocs());
-
-/*
-                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
-                if (termDocs != null) {
-                    log.debug("Number of documents matching term: " + termDocs.doc());
-                    termDocs.close();
-                } else {
-                    log.warn("No term docs found for path: " + path);
-                }
-*/
-                propsIndexReader.close();
-            } else {
-                log.warn("Could not init properties index reader!");
-            }
 
             // INFO: Now add lucene document containing all properties to index
             try {
-                updateDocument(createPropertiesIndexWriter(), path, luceneDoc);
+                updateDocument(getPropertiesIndexSearcher(), createPropertiesIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init properties IndexWriter (maybe because of existing lock), hence properties of node '" + path + "' will not be indexed!");
             }
@@ -242,27 +231,10 @@ public class LuceneIndexerV2 implements Indexer {
             // INFO: Add lucene document also to fulltext index
             log.warn("TODO: Also add properties to fulltext index... (Property: " + property.getName() + ", " + property.getValueAsString() + ")");
             // Also see http://hrycan.com/2009/11/26/updating-document-fields-in-lucene/
-/*
-            // WARN: For some strange reason the code below throws a NullPointerException
-            IndexReader fulltextIndexReader = getFulltextIndexReader();
-            if (propsIndexReader != null) {
-                log.debug("Number of documents of properties index: " + propsIndexReader.numDocs());
-
-                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
-                if (termDocs != null) {
-                    log.debug("Number of documents matching term: " + termDocs.doc());
-                    termDocs.close();
-                } else {
-                    log.warn("No term docs found for path: " + path);
-                }
-                propsIndexReader.close();
-            } else {
-                log.warn("Could not init properties index reader!");
-            }
-*/
+            // Search doc, getFields(), delete old fields, add fields, ...
 /*
             try {
-                updateDocument(createFulltextIndexWriter(), path, luceneDoc);
+                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
             }
@@ -283,14 +255,45 @@ public class LuceneIndexerV2 implements Indexer {
     /**
      * Update document of a particular path within index
      *
+     * @param indexSearcher Index searcher to check if document with this particular path already exists
      * @param indexWriter Index writer
      * @param path Path of node with which the fields and values are related to
-     * @param document Lucene document containing the fields and values
+     * @param document Lucene document containing the new fields and new values
      */
-    private void updateDocument(IndexWriter indexWriter, String path, Document document) throws Exception {
+    private void updateDocument(IndexSearcher indexSearcher, IndexWriter indexWriter, String path, Document document) throws Exception {
+        Term pathTerm = new Term("_PATH", path);
+        Document oldDoc = null;
+
+        if (indexSearcher != null) {
+            TermQuery pathQuery = new TermQuery(pathTerm);
+            org.apache.lucene.search.TopDocs hits = indexSearcher.search(pathQuery, 10);
+            if (hits.scoreDocs.length == 0) {
+                log.warn("No matches in the index for the path: " + path);
+            } else if (hits.scoreDocs.length > 1) {
+                log.warn("Given path '" + path + "' matches more than one document in the index!");
+            } else {
+                log.warn("DEBUG: Retrieve old document and merge with new document: " + path);
+                oldDoc = indexSearcher.doc(hits.scoreDocs[0].doc);
+                java.util.List<Field> updatedFields = document.getFields();
+                for (Field field : updatedFields) {
+                    log.warn("DEBUG: Update field: " + field.name());
+                    if (oldDoc.get(field.name()) != null) {
+                        oldDoc.removeFields(field.name());
+                        oldDoc.add(field);
+                    } else {
+                        oldDoc.add(field);
+                    }
+                }
+            }
+        }
+
         if (indexWriter != null) {
             if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
-            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", path), document);
+            if (oldDoc != null) {
+                indexWriter.updateDocument(pathTerm, oldDoc); // INFO: Update old document which has been updated with new fields and values
+            } else {
+                indexWriter.updateDocument(pathTerm, document); // INFO: Add new document (no old document for path exists)
+            }
             indexWriter.close();
             //indexWriter.flush();
         } else {
@@ -347,5 +350,19 @@ public class LuceneIndexerV2 implements Indexer {
                         log.warn("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
                     }
         return fullText;
+    }
+
+    /**
+     * Get fulltext index searcher
+     */
+    private IndexSearcher getFulltextIndexSearcher() throws Exception {
+        return new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
+    }
+
+    /**
+     * Get properties index searcher
+     */
+    private IndexSearcher getPropertiesIndexSearcher() throws Exception {
+        return new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
     }
 }
