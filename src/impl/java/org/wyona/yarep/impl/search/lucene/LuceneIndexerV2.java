@@ -65,6 +65,7 @@ public class LuceneIndexerV2 implements Indexer {
      */
     public void index(Node node, Metadata metaData) throws SearchException {
         try {
+            log.warn("DEBUG: Trying to index fulltext of node: " + node.getPath());
             log.debug("Trying to index fulltext of node: " + node.getPath());
             org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
             if (metaData != null) {
@@ -81,12 +82,14 @@ public class LuceneIndexerV2 implements Indexer {
                 //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
                 //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
                     
-                String fullText = getFulltext(node, mimeType, tikaMetaData);
+                String fullText = getFulltext(node, mimeType, tikaMetaData) + " HUGO";
                 if (fullText != null && fullText.length() > 0) {
                     Document luceneDoc = getDocument(node.getPath());
 
-                    luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                    //luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+                    //luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
                     //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+                    luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
 
                     try {
                         updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
@@ -192,9 +195,11 @@ public class LuceneIndexerV2 implements Indexer {
             String path = node.getPath();
             if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
                 String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
+                log.warn("DEBUG: Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
+                log.warn("DEBUG: Index property '" + property.getName() + " of node: " + path);
                 log.debug("Index property '" + property.getName() + " of node: " + path);
             }
 
@@ -212,6 +217,7 @@ public class LuceneIndexerV2 implements Indexer {
 
             // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
             // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+//
             Property[] properties = node.getProperties();
             for (int i = 0; i < properties.length; i++) {
                 if (!properties[i].getName().equals(property.getName())) {
@@ -220,6 +226,7 @@ public class LuceneIndexerV2 implements Indexer {
                     }
                 }
             }
+//
 
             // INFO: Now add lucene document containing all properties to index
             try {
@@ -229,10 +236,8 @@ public class LuceneIndexerV2 implements Indexer {
             }
 
             // INFO: Add lucene document also to fulltext index
-            log.warn("TODO: Also add properties to fulltext index... (Property: " + property.getName() + ", " + property.getValueAsString() + ")");
-            // Also see http://hrycan.com/2009/11/26/updating-document-fields-in-lucene/
-            // Search doc, getFields(), delete old fields, add fields, ...
 /*
+            log.warn("TODO: Also add properties to fulltext index... (Property: " + property.getName() + ", " + property.getValueAsString() + ")");
             try {
                 updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
@@ -264,10 +269,12 @@ public class LuceneIndexerV2 implements Indexer {
         Term pathTerm = new Term("_PATH", path);
         Document oldDoc = null;
 
+/*
+        // WARN: Please note that fields which are not stored (e.g. using StringReader) behave differently!
+        // Also see http://hrycan.com/2009/11/26/updating-document-fields-in-lucene/
         if (indexSearcher != null) {
-            TermQuery pathQuery = new TermQuery(pathTerm);
-            org.apache.lucene.search.TopDocs hits = indexSearcher.search(pathQuery, 10);
-            if (hits.scoreDocs.length == 0) {
+            org.apache.lucene.search.TopDocs hits = indexSearcher.search(new TermQuery(pathTerm), 3);
+            if (hits.scoreDocs.length <= 0) {
                 log.warn("No matches in the index for the path: " + path);
             } else if (hits.scoreDocs.length > 1) {
                 log.warn("Given path '" + path + "' matches more than one document in the index!");
@@ -276,16 +283,30 @@ public class LuceneIndexerV2 implements Indexer {
                 oldDoc = indexSearcher.doc(hits.scoreDocs[0].doc);
                 java.util.List<Field> updatedFields = document.getFields();
                 for (Field field : updatedFields) {
-                    log.warn("DEBUG: Update field: " + field.name());
-                    if (oldDoc.get(field.name()) != null) {
+                    if (oldDoc.getField(field.name()) != null) {
+                        log.warn("DEBUG: Update existing field: " + field);
                         oldDoc.removeFields(field.name());
                         oldDoc.add(field);
                     } else {
+                        log.warn("DEBUG: Add new field: " + field);
                         oldDoc.add(field);
+                    }
+
+                    if (field.stringValue() != null) {
+                        log.warn("String value: " + field.stringValue());
+                    } else if (field.readerValue() != null) {
+                        log.warn("Reader value: " + field.readerValue());
+                    } else if (field.binaryValue() != null) {
+                        log.warn("Binary value: " + field.binaryValue());
+                    } else {
+                        log.warn("No value!");
                     }
                 }
             }
+        } else {
+            log.warn("No index seems to exist yet!");
         }
+*/
 
         if (indexWriter != null) {
             if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
@@ -318,18 +339,32 @@ public class LuceneIndexerV2 implements Indexer {
      */
     private String getFulltext(Node node, String mimeType, org.apache.tika.metadata.Metadata tikaMetaData) throws Exception {
         String fullText = null;
+
                     // Extract/parse text content:
                     Parser parser = config.getTikaConfig().getParser(mimeType);
                     if (parser != null) {
-                        StringWriter writer = new StringWriter();
                         try {
                             tikaMetaData.set("yarep-path", node.getPath());
+
+                            StringWriter writer = new StringWriter();
+/*
                             // The WriteOutContentHandler writes all character content out to the writer. Please note that Tika also contains various other utility classes to extract content, such as for example the BodyContentHandler (see http://lucene.apache.org/tika/apidocs/org/apache/tika/sax/package-summary.html)
-                            //parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
+                            parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
+                            // WARN: See http://www.mail-archive.com/tika-dev@lucene.apache.org/msg00743.html
+                            log.warn("Fulltext generation with WriteOutContentHandler does seem to be buggy (because title and body are not separated with a space): " + fullText);
+*/
+                            // NOTE: The body content handler generates xhtml ... instead just the words ...
                             parser.parse(node.getInputStream(), new BodyContentHandler(writer), tikaMetaData);
                             fullText = writer.toString();
-                            // See http://www.mail-archive.com/tika-dev@lucene.apache.org/msg00743.html
-                            //log.warn("Fulltext generation with WriteOutContentHandler does seem to be buggy (because title and body are not separated with a space): " + fullText);
+                            writer.close();
+/*
+                            BodyContentHandler textHandler = new BodyContentHandler();
+                            parser.parse(node.getInputStream(), textHandler, tikaMetaData);
+                            fullText = textHandler.toString();
+                            log.warn("DEBUG: Body: " + fullText);
+*/
+
+                            // TOOD: Strip all html tags ...
 
                             // TODO: Add more meta content to full text
                             String title = tikaMetaData.get(org.apache.tika.metadata.Metadata.TITLE);
@@ -354,15 +389,29 @@ public class LuceneIndexerV2 implements Indexer {
 
     /**
      * Get fulltext index searcher
+     * @return null if no index exists yet
      */
     private IndexSearcher getFulltextIndexSearcher() throws Exception {
-        return new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
+        try {
+            return new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
+        } catch(Exception e) {
+            log.error(e.getMessage());
+            //log.error(e, e);
+            return null;
+        }
     }
 
     /**
      * Get properties index searcher
+     * @return null if no index exists yet
      */
     private IndexSearcher getPropertiesIndexSearcher() throws Exception {
-        return new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
+        try {
+            return new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
+        } catch(Exception e) {
+            log.error(e.getMessage());
+            //log.error(e, e);
+            return null;
+        }
     }
 }
