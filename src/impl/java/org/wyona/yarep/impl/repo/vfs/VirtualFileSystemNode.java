@@ -197,12 +197,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     + e.getMessage());
         }
     }
-    
+
     /**
+     * @depecated Use {@link saveProperties(String)} instead
      * Save all properties within a meta file
      * @throws RepositoryException
      */
+/*
     protected void saveProperties() throws RepositoryException {
+        log.warn("DEPRECATED");
         try {
             log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
@@ -222,14 +225,64 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
 
                     // NOTE: Please note that the property is being indexed before it is being saved persistently. Does that make sense?
-                    if (getRepository().isAutoPropertyIndexingEnabled()) {
-                        log.debug("Index property '" + property.getName() + "' of node: " + this.getPath());
-                        getRepository().getIndexer().index(this, property);
-                    }
+//                    if (getRepository().isAutoPropertyIndexingEnabled()) {
+//                        log.debug("Index property '" + property.getName() + "' of node: " + this.getPath());
+//                        getRepository().getIndexer().index(this, property);
+//                    }
                 }
             }
             writer.flush();
             writer.close();
+        } catch (Exception e) {
+            log.error(e, e);
+            throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);
+        }
+    }
+*/
+
+    /**
+     * Save all properties within a meta file
+     * @param name Property name which has been set or removed (see setProperty(Property) and removeProperty(String))
+     * @throws RepositoryException
+     */
+    private void saveProperties(String name) throws RepositoryException {
+        try {
+            log.debug("Writing meta file: " + this.metaFile);
+            PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
+
+            writer.println("yarep_vfs-meta-file-version" + "<" + "string" + ">" + PROPERTY_SEPARATOR + "1.0");
+            if (vfsMetaFileVersion != null && !vfsMetaFileVersion.equals("1.0")) {
+                throw new RepositoryException("No such vfs meta file version supported: " + vfsMetaFileVersion);
+            }
+
+            Property modifiedProperty = null;
+            Iterator iterator = this.properties.values().iterator();
+            while (iterator.hasNext()) {
+                Property property = (Property)iterator.next();
+                if (!property.getName().equals("yarep_vfs-meta-file-version")) {
+                    if (property.getValueAsString() == null) {
+                        log.warn("Value as string of property '" + property.getName() + "' is null!");
+                    } else {
+                        if (property.getName().equals(name)) {
+                            modifiedProperty = property;
+                        }
+                    }
+                    writer.println(escapeSeparator(property.getName()) + "<" + PropertyType.getTypeName(property.getType()) + ">" + PROPERTY_SEPARATOR + escapeLinebreak(escapeSeparator(property.getValueAsString())));
+                }
+            }
+            writer.flush();
+            writer.close();
+
+/* NOTE: Already done by setProperty(Property) and removeProperty(String)
+            if (modifiedProperty != null) {
+                if (getRepository().isAutoPropertyIndexingEnabled()) {
+                    log.debug("Index property '" + modifiedProperty.getName() + "' of node: " + this.getPath());
+                    getRepository().getIndexer().index(this, modifiedProperty);
+                }
+            } else {
+                log.warn("Modified property '" + name + "' has not been indexed!");
+            }
+*/
         } catch (Exception e) {
             log.error(e, e);
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);
@@ -292,7 +345,17 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public void removeProperty(String name) throws RepositoryException {
         this.properties.remove(name);
-        saveProperties();
+        //saveProperties();
+        saveProperties(name);
+
+        try {
+            if (getRepository().isAutoPropertyIndexingEnabled()) {
+                log.debug("Remove property '" + name + "' of node: " + this.getPath() + " from index.");
+                getRepository().getIndexer().removeFromIndex(this, getProperty(name));
+            }
+        } catch(Exception e) {
+            log.error(e, e);
+        }
     }
     
     /**
@@ -301,7 +364,17 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     public void setProperty(Property property) throws RepositoryException {
         //log.debug("Set property: " + property.getName());
         this.properties.put(property.getName(), property);
-        saveProperties();
+        //saveProperties();
+        saveProperties(property.getName());
+
+        try {
+            if (getRepository().isAutoPropertyIndexingEnabled()) {
+                log.debug("Index property '" + property.getName() + "' of node: " + this.getPath());
+                getRepository().getIndexer().index(this, property);
+            }
+        } catch(Exception e) {
+            log.error(e, e);
+        }
     }
 
     /**
