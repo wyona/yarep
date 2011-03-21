@@ -315,6 +315,7 @@ public class LuceneIndexerV2 implements Indexer {
             } else {
                 indexWriter.updateDocument(pathTerm, document); // INFO: Add new document (no old document for path exists)
             }
+            indexWriter.optimize();
             indexWriter.close();
             //indexWriter.flush();
         } else {
@@ -364,7 +365,10 @@ public class LuceneIndexerV2 implements Indexer {
                             log.warn("DEBUG: Body: " + fullText);
 */
 
-                            // TOOD: Strip all html tags ...
+                            log.debug("Remove all html tags: " + fullText);
+                            fullText = fullText.replaceAll("\\<.*?>", " "); // INFO: Please make sure to replace by space, because otherwise words get concatenated and hence cannot be found anymore!
+                            //fullText = fullText.replaceAll("\\<.*?>", " ").replace("&#160;", " ");
+                            log.debug("Without HTML tags: " + fullText);
 
                             // TODO: Add more meta content to full text
                             String title = tikaMetaData.get(org.apache.tika.metadata.Metadata.TITLE);
