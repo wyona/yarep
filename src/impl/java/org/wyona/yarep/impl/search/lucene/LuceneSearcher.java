@@ -69,10 +69,7 @@ public class LuceneSearcher implements Searcher {
     }
 
     /**
-     * Search property
-     *
-     * @param pName Property name
-     * @param query Search query
+     * @see org.wyona.yarep.core.search.Searcher#searchProperty(String, String, String)
      */
     public Node[] searchProperty(String pName, String query, String path) throws SearchException {
         try {
@@ -83,7 +80,11 @@ public class LuceneSearcher implements Searcher {
             if (searcher != null) {
                 try {
                     log.debug("Search property '" + pName + "': " + query);
-                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(pName, config.getPropertyAnalyzer()).parse(query);
+
+                    String defaultField = pName;
+                    org.apache.lucene.queryParser.QueryParser queryParser = new org.apache.lucene.queryParser.QueryParser(defaultField, config.getPropertyAnalyzer());
+                    org.apache.lucene.search.Query luceneQuery = queryParser.parse(query);
+
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                     log.info("Number of matching documents: " + hits.length());
                     List results = new ArrayList();
@@ -91,24 +92,33 @@ public class LuceneSearcher implements Searcher {
                         try {
                             String resultPath = hits.doc(i).getField("_PATH").stringValue();
                             
-                            // subtree filter
+                            // subtree filter (WARN: Peformance/Scalability!)
                             if (resultPath.startsWith(path)) {
                                 if (resultPath.contains("#revision=")) {
                                     //log.debug("This seems to be a revision: " + resultPath);
                                     String resultPathWithoutRevision = resultPath.substring(0, resultPath.lastIndexOf("#revision="));
                                     String revisionName = resultPath.substring(resultPath.lastIndexOf("#revision=") + 10);
-                                    results.add(config.getRepo().getNode(resultPathWithoutRevision).getRevision(revisionName));
+                                    if (config.getRepo().existsNode(resultPathWithoutRevision)) {
+                                        try {
+                                            results.add(config.getRepo().getNode(resultPathWithoutRevision).getRevision(revisionName));
+                                        } catch(org.wyona.yarep.core.NoSuchRevisionException e) {
+                                            log.error("Revision found within search index, but no such revision within repository: " + resultPathWithoutRevision + "#" + revisionName);
+                                        }
+                                    } else {
+                                        log.error("Node found within search index, but no such node within repository: " + resultPathWithoutRevision);
+                                    }
                                 } else {
                                     results.add(config.getRepo().getNode(resultPath));
                                 }
                             }
+
                         } catch (NoSuchNodeException nsne) {
-                            log.warn("Found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
+                            log.warn("Node found within search index, but no such node within repository: " + hits.doc(i).getField("_PATH").stringValue());
                         }
                     }
                     searcher.close();
+
                     return (Node[])results.toArray(new Node[results.size()]);
-                    
                 } catch (Exception e) {
                     log.error(e, e);
                     throw new SearchException(e.getMessage(),e);
