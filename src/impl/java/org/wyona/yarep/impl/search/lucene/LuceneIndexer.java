@@ -14,7 +14,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.apache.tika.sax.WriteOutContentHandler;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.Repository;
@@ -23,6 +22,7 @@ import org.wyona.yarep.core.search.Metadata;
 import org.wyona.yarep.core.search.SearchException;
 import org.wyona.yarep.impl.repo.vfs.VirtualFileSystemNode;
 import org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository;
+import org.wyona.yarep.impl.search.lucene.LuceneConfig;
 
 /**
  * Lucene implementation of indexer
@@ -30,6 +30,11 @@ import org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository;
 public class LuceneIndexer implements Indexer {
     
     static Logger log = Logger.getLogger(LuceneIndexer.class);
+    private static final String LOCK = "lock";
+    private static enum INDEX_TYPE {FULLTEXT, PROPERTIES};
+    public static final String INDEX_PROPERTY_FULL = "_FULLTEXT";
+    public static final String INDEX_PROPERTY_YAREPPATH = "_PATH";
+    
     protected LuceneConfig config;
 
     /**
@@ -71,18 +76,18 @@ public class LuceneIndexer implements Indexer {
                 
                 // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
                 // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
-                //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
+                //indexWriter.deleteDocuments(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, node.getPath()));
                 //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
                     
                 String fullText = getFulltext(node, mimeType, tikaMetaData);
                 if (fullText != null && fullText.length() > 0) {
                     Document luceneDoc = getDocument(node.getPath());
 
-                    luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
-                    //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+                    luceneDoc.add(new Field(INDEX_PROPERTY_FULL, new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                    //luceneDoc.add(new Field(INDEX_PROPERTY_FULL, fullText, Field.Store.NO, Field.Index.TOKENIZED));
 
                     try {
-                        updateDocument(createFulltextIndexWriter(), node.getPath(), luceneDoc);
+                        updateDocument(INDEX_TYPE.FULLTEXT, node.getPath(), luceneDoc);
                     } catch(org.apache.lucene.store.LockObtainFailedException e) {
                         log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
                     }
@@ -105,17 +110,20 @@ public class LuceneIndexer implements Indexer {
         IndexWriter indexWriter = null;
         VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
         String nodePath = "Could not get Path of node.";
-        try {
-            nodePath = node.getPath();
-            indexWriter = createFulltextIndexWriter();
-            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
-            indexWriter.close();
-        } catch(Exception e) {
-            log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + nodePath + "' will not be deleted from the index!");
+        synchronized (LOCK) {
             try {
+                nodePath = node.getPath();
+                indexWriter = createFulltextIndexWriter();
+                indexWriter.deleteDocuments(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, node.getPath()));
                 indexWriter.close();
-            } catch (Exception e2) {
-                log.warn("Could not close indexWriter. Exception: " + e2.getMessage());
+                
+            } catch(Throwable e) {
+                log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + nodePath + "' will not be deleted from the index!");
+            } finally {
+                try {
+                    indexWriter.close();
+                } catch (Throwable e2) {
+                }
             }
         }
     }
@@ -123,7 +131,7 @@ public class LuceneIndexer implements Indexer {
     /**
      * Get index writer
      */
-   public IndexWriter createFulltextIndexWriter() throws Exception {
+   private IndexWriter createFulltextIndexWriter() throws Exception {
         log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
         return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
@@ -131,9 +139,9 @@ public class LuceneIndexer implements Indexer {
    }
 
    /**
-    *
+    * Get index writer
     */
-   public IndexWriter createPropertiesIndexWriter() throws Exception {
+   private IndexWriter createPropertiesIndexWriter() throws Exception {
        return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.propertiesIndexWriter;
@@ -219,7 +227,7 @@ public class LuceneIndexer implements Indexer {
                 log.debug("Number of documents of properties index: " + propsIndexReader.numDocs());
 
 /*
-                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term("_PATH", path));
+                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, path));
                 if (termDocs != null) {
                     log.debug("Number of documents matching term: " + termDocs.doc());
                     termDocs.close();
@@ -234,7 +242,7 @@ public class LuceneIndexer implements Indexer {
 
             // INFO: Now add lucene document containing all properties to index
             try {
-                updateDocument(createPropertiesIndexWriter(), path, luceneDoc);
+                updateDocument(INDEX_TYPE.PROPERTIES, path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init properties IndexWriter (maybe because of existing lock), hence properties of node '" + path + "' will not be indexed!");
             }
@@ -268,15 +276,36 @@ public class LuceneIndexer implements Indexer {
      * @param path Path of node with which the fields and values are related to
      * @param document Lucene document containing the fields and values
      */
-    private void updateDocument(IndexWriter indexWriter, String path, Document document) throws Exception {
-        if (indexWriter != null) {
-            if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
-            indexWriter.updateDocument(new org.apache.lucene.index.Term("_PATH", path), document);
-            indexWriter.close();
-            //indexWriter.flush();
-        } else {
-            throw new Exception("IndexWriter is null and hence node will not be indexed: " + path);
-            //log.warn("IndexWriter is null and hence node will not be indexed: " + path);
+    private void updateDocument(INDEX_TYPE type, String path, Document document) throws Exception {
+        IndexWriter indexWriter = null;
+        synchronized (LOCK) {
+            try {
+                if (type == INDEX_TYPE.FULLTEXT) {
+                    indexWriter = createFulltextIndexWriter();
+                } else if (type == INDEX_TYPE.PROPERTIES) {
+                    indexWriter = createPropertiesIndexWriter();
+                } else {
+                    throw new Exception("No such type: " + type);
+                }
+                if (indexWriter != null) {
+                    if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
+                    indexWriter.updateDocument(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, path), document);
+                    indexWriter.close();
+                    //indexWriter.flush();
+                } else {
+                    log.fatal("IndexWriter is null!");
+                    throw new Exception("IndexWriter is null and hence node will not be indexed: " + path);
+                    //log.warn("IndexWriter is null and hence node will not be indexed: " + path);
+                }
+            } catch (Throwable t) {
+                log.error(t,t);
+                
+            } finally {
+                try {
+                    indexWriter.close();
+                } catch (Throwable t) {
+                }
+            }
         }
     }
 
@@ -287,7 +316,7 @@ public class LuceneIndexer implements Indexer {
     private Document getDocument(String path) {
         Document luceneDoc = new Document();
         // INFO: Add path as field such that found properties can be related to a path
-        luceneDoc.add(new Field("_PATH", path, Field.Store.YES, Field.Index.UN_TOKENIZED));
+        luceneDoc.add(new Field(INDEX_PROPERTY_YAREPPATH, path, Field.Store.YES, Field.Index.UN_TOKENIZED));
         return luceneDoc;
     }
 
