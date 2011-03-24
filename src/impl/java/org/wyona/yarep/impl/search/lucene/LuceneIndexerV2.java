@@ -67,40 +67,27 @@ public class LuceneIndexerV2 implements Indexer {
         try {
             log.warn("DEBUG: Trying to index fulltext of node: " + node.getPath());
             log.debug("Trying to index fulltext of node: " + node.getPath());
-            org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
             if (metaData != null) {
                 log.warn("This indexer implementation '" + getClass().getName() + "' is currently not making use of the meta data argument!");
             }
+
+            Document luceneDoc = getDocument(node.getPath());
+
             String mimeType = node.getMimeType();
             if (mimeType != null) {
-                log.debug("Mime type: " + mimeType);
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
-
-                
-                // http://wiki.apache.org/lucene-java/LuceneFAQ#head-917dd4fc904aa20a34ebd23eb321125bdca1dea2
-                // http://mail-archives.apache.org/mod_mbox/lucene-java-dev/200607.mbox/%3C092330F8-18AA-45B2-BC7F-42245812855E@ix.netcom.com%3E
-                //indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
-                //log.debug("Number of deleted documents (" + node.getPath() + "): " + numberOfDeletedDocuments);
-                    
-                String fullText = getFulltext(node, mimeType, tikaMetaData) + " HUGO";
-                if (fullText != null && fullText.length() > 0) {
-                    Document luceneDoc = getDocument(node.getPath());
-
-                    //luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
-                    //luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
-                    //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
-                    luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
-
-                    try {
-                        updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
-                    } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                        log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
-                    }
-                } else {
-                    log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
-                }
+                luceneDoc = addFulltext(node, mimeType, luceneDoc);
             } else {
                 log.warn("Node '" + node.getPath() + "' has no mime-type set and hence will not be added to fulltext index.");
+            }
+
+            // TODO: Add properties to index
+            //luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+
+            try {
+                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
+            } catch(org.apache.lucene.store.LockObtainFailedException e) {
+                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
             }
         } catch (Exception e) {
             log.error(e, e);
@@ -315,7 +302,7 @@ public class LuceneIndexerV2 implements Indexer {
             } else {
                 indexWriter.updateDocument(pathTerm, document); // INFO: Add new document (no old document for path exists)
             }
-            indexWriter.optimize();
+            indexWriter.optimize(); // TODO: Make this configurable because of performance problem?!
             indexWriter.close();
             //indexWriter.flush();
         } else {
@@ -336,59 +323,77 @@ public class LuceneIndexerV2 implements Indexer {
     }
 
     /**
-     * Get fulltext
+     * Add fulltext to lucene document
      */
-    private String getFulltext(Node node, String mimeType, org.apache.tika.metadata.Metadata tikaMetaData) throws Exception {
+    private Document addFulltext(Node node, String mimeType, Document luceneDoc) throws Exception {
         String fullText = null;
 
-                    // Extract/parse text content:
-                    Parser parser = config.getTikaConfig().getParser(mimeType);
-                    if (parser != null) {
-                        try {
-                            tikaMetaData.set("yarep-path", node.getPath());
+        // Extract/parse text content:
+        Parser parser = config.getTikaConfig().getParser(mimeType);
+        if (parser != null) {
+            try {
+                org.apache.tika.metadata.Metadata tikaMetaData = new org.apache.tika.metadata.Metadata();
+                tikaMetaData.set("yarep-path", node.getPath());
 
-                            StringWriter writer = new StringWriter();
+                StringWriter writer = new StringWriter();
+
 /*
                             // The WriteOutContentHandler writes all character content out to the writer. Please note that Tika also contains various other utility classes to extract content, such as for example the BodyContentHandler (see http://lucene.apache.org/tika/apidocs/org/apache/tika/sax/package-summary.html)
                             parser.parse(node.getInputStream(), new WriteOutContentHandler(writer), tikaMetaData);
                             // WARN: See http://www.mail-archive.com/tika-dev@lucene.apache.org/msg00743.html
                             log.warn("Fulltext generation with WriteOutContentHandler does seem to be buggy (because title and body are not separated with a space): " + fullText);
 */
-                            // NOTE: The body content handler generates xhtml ... instead just the words ...
-                            parser.parse(node.getInputStream(), new BodyContentHandler(writer), tikaMetaData);
-                            fullText = writer.toString();
-                            writer.close();
-/*
+
+                // NOTE: The body content handler generates xhtml ... instead just the words ...
+                parser.parse(node.getInputStream(), new BodyContentHandler(writer), tikaMetaData);
+                fullText = writer.toString();
+                writer.close();
+/* INFO: Alternative to using a writer ...
                             BodyContentHandler textHandler = new BodyContentHandler();
                             parser.parse(node.getInputStream(), textHandler, tikaMetaData);
                             fullText = textHandler.toString();
                             log.warn("DEBUG: Body: " + fullText);
 */
 
-                            log.debug("Remove all html tags: " + fullText);
-                            fullText = fullText.replaceAll("\\<.*?>", " "); // INFO: Please make sure to replace by space, because otherwise words get concatenated and hence cannot be found anymore!
-                            //fullText = fullText.replaceAll("\\<.*?>", " ").replace("&#160;", " ");
-                            log.debug("Without HTML tags: " + fullText);
+                log.debug("Remove all html tags: " + fullText);
+                 fullText = fullText.replaceAll("\\<.*?>", " "); // INFO: Please make sure to replace by space, because otherwise words get concatenated and hence cannot be found anymore!
+                //fullText = fullText.replaceAll("\\<.*?>", " ").replace("&#160;", " ");
+                log.debug("Without HTML tags: " + fullText);
 
-                            // TODO: Add more meta content to full text
-                            String title = tikaMetaData.get(org.apache.tika.metadata.Metadata.TITLE);
-                            if (title != null && title.trim().length() > 0) fullText = fullText + " " + title;
+                // TODO: Add more meta content to full text
+                String title = tikaMetaData.get(org.apache.tika.metadata.Metadata.TITLE);
+                if (title != null && title.trim().length() > 0) {
+                    fullText = fullText + " " + title;
+                }
 
-                            String keywords = tikaMetaData.get(org.apache.tika.metadata.Metadata.KEYWORDS);
-                            if (keywords != null && keywords.trim().length() > 0) fullText = fullText + " " + keywords;
+                String keywords = tikaMetaData.get(org.apache.tika.metadata.Metadata.KEYWORDS);
+                if (keywords != null && keywords.trim().length() > 0) fullText = fullText + " " + keywords;
 
-                            String description = tikaMetaData.get(org.apache.tika.metadata.Metadata.DESCRIPTION);
-                            if (description != null && description.trim().length() > 0) fullText = fullText + " " + description;
+                String description = tikaMetaData.get(org.apache.tika.metadata.Metadata.DESCRIPTION);
+                if (description != null && description.trim().length() > 0) fullText = fullText + " " + description;
 
-                            //log.debug("debug: Fulltext including title and meta: " + fullText);
-                        } catch (Exception e) {
-                            log.error("Could not index node " + node.getPath() + ": error while extracting text: " + e, e);
-                            // don't propagate exception
-                        }
-                    } else {
-                        log.warn("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
-                    }
-        return fullText;
+                //log.debug("debug: Fulltext including title and meta: " + fullText);
+                if (fullText != null && fullText.length() > 0) {
+                    //luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                    //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
+                    luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
+                } else {
+                    log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
+                }
+
+                for (int i = 0; i < tikaMetaData.names().length; i++) {
+                    String tikaPropName = tikaMetaData.names()[i];
+                    luceneDoc.add(new Field("tika_" + tikaPropName, tikaMetaData.get(tikaPropName), Field.Store.YES, Field.Index.TOKENIZED));
+                }
+            } catch (Exception e) {
+                log.error("Could not index node " + node.getPath() + ": error while extracting text: " + e, e);
+                // INFO: Don't throw exception in order to be fault tolerant
+            }
+        } else {
+            log.warn("No parser available to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
+        }
+
+        return luceneDoc;
     }
 
     /**
