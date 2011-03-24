@@ -131,7 +131,7 @@ public class LuceneIndexer implements Indexer {
     /**
      * Get index writer
      */
-   private IndexWriter createFulltextIndexWriter() throws Exception {
+   protected IndexWriter createFulltextIndexWriter() throws Exception {
         log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
         return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
@@ -141,7 +141,7 @@ public class LuceneIndexer implements Indexer {
    /**
     * Get index writer
     */
-   private IndexWriter createPropertiesIndexWriter() throws Exception {
+   protected IndexWriter createPropertiesIndexWriter() throws Exception {
        return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.propertiesIndexWriter;
