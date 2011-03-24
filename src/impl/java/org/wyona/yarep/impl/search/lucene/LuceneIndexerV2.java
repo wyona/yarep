@@ -64,15 +64,17 @@ public class LuceneIndexerV2 implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Metadata)
      */
     public void index(Node node, Metadata metaData) throws SearchException {
+        // TODO: Also index revisions specifically, see indexing properties
         try {
-            log.warn("DEBUG: Trying to index fulltext of node: " + node.getPath());
-            log.debug("Trying to index fulltext of node: " + node.getPath());
+            log.warn("DEBUG: Trying to index node: " + node.getPath());
+            log.debug("Trying to index node: " + node.getPath());
             if (metaData != null) {
                 log.warn("This indexer implementation '" + getClass().getName() + "' is currently not making use of the meta data argument!");
             }
 
             Document luceneDoc = getDocument(node.getPath());
 
+            // INFO: Add fulltext and tika properties
             String mimeType = node.getMimeType();
             if (mimeType != null) {
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
@@ -81,9 +83,19 @@ public class LuceneIndexerV2 implements Indexer {
                 log.warn("Node '" + node.getPath() + "' has no mime-type set and hence will not be added to fulltext index.");
             }
 
-            // TODO: Add properties to index
-            //luceneDoc.add(new Field(property.getName(), property.getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+            // INFO: Add properties
+            Property[] properties = node.getProperties();
+            if (properties != null) {
+                for (int i = 0; i < properties.length; i++) {
+                    if (properties[i].getValueAsString() != null) {
+                        luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
+                    }
+                }
+            } else {
+                log.info("Node '" + node.getPath() + "' has no properties.");
+            }
 
+            // INFO: Update index
             try {
                 updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
@@ -383,6 +395,9 @@ public class LuceneIndexerV2 implements Indexer {
 
                 for (int i = 0; i < tikaMetaData.names().length; i++) {
                     String tikaPropName = tikaMetaData.names()[i];
+                    if (tikaMetaData.isMultiValued(tikaPropName)) {
+                        log.warn("Tika property is multi valued: " + tikaPropName);
+                    }
                     luceneDoc.add(new Field("tika_" + tikaPropName, tikaMetaData.get(tikaPropName), Field.Store.YES, Field.Index.TOKENIZED));
                 }
             } catch (Exception e) {
