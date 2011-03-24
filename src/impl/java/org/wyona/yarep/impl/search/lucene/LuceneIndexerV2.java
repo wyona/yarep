@@ -64,15 +64,23 @@ public class LuceneIndexerV2 implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Metadata)
      */
     public void index(Node node, Metadata metaData) throws SearchException {
-        // TODO: Also index revisions specifically, see indexing properties
         try {
-            log.warn("DEBUG: Trying to index node: " + node.getPath());
-            log.debug("Trying to index node: " + node.getPath());
+            String path = node.getPath();
+            if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
+                String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
+                log.warn("DEBUG: Trying to index revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
+                log.debug("Trying to index revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
+                path = path + "#revision=" + revisionName; // TODO: Discuss the separator
+            } else {
+                log.warn("DEBUG: Trying to index node: " + path);
+                log.debug("Trying to index node: " + path);
+            }
+
             if (metaData != null) {
                 log.warn("This indexer implementation '" + getClass().getName() + "' is currently not making use of the meta data argument!");
             }
 
-            Document luceneDoc = getDocument(node.getPath());
+            Document luceneDoc = getDocument(path);
 
             // INFO: Add fulltext and tika properties
             String mimeType = node.getMimeType();
@@ -80,26 +88,27 @@ public class LuceneIndexerV2 implements Indexer {
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
                 luceneDoc = addFulltext(node, mimeType, luceneDoc);
             } else {
-                log.warn("Node '" + node.getPath() + "' has no mime-type set and hence will not be added to fulltext index.");
+                log.warn("Node '" + path + "' has no mime-type set and hence will not be added to fulltext index.");
             }
 
             // INFO: Add properties
             Property[] properties = node.getProperties();
             if (properties != null) {
                 for (int i = 0; i < properties.length; i++) {
+                    //log.debug("Add property to fulltext index: " + properties[i].getName());
                     if (properties[i].getValueAsString() != null) {
                         luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
                     }
                 }
             } else {
-                log.info("Node '" + node.getPath() + "' has no properties.");
+                log.info("Node '" + path + "' has no properties.");
             }
 
             // INFO: Update index
             try {
-                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), node.getPath(), luceneDoc);
+                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
+                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + path + "' will not be indexed!");
             }
         } catch (Exception e) {
             log.error(e, e);
@@ -117,7 +126,7 @@ public class LuceneIndexerV2 implements Indexer {
         try {
             nodePath = node.getPath();
             indexWriter = createFulltextIndexWriter();
-            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", node.getPath()));
+            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", nodePath));
             indexWriter.close();
         } catch(Exception e) {
             log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + nodePath + "' will not be deleted from the index!");
@@ -233,16 +242,6 @@ public class LuceneIndexerV2 implements Indexer {
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init properties IndexWriter (maybe because of existing lock), hence properties of node '" + path + "' will not be indexed!");
             }
-
-            // INFO: Add lucene document also to fulltext index
-/*
-            log.warn("TODO: Also add properties to fulltext index... (Property: " + property.getName() + ", " + property.getValueAsString() + ")");
-            try {
-                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
-            } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + node.getPath() + "' will not be indexed!");
-            }
-*/
         } catch (Exception e) {
             log.error(e, e);
             throw new SearchException(e.getMessage());
