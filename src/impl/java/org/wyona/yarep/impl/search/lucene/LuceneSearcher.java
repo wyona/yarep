@@ -37,7 +37,7 @@ public class LuceneSearcher implements Searcher {
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
                 try {
-                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser("_FULLTEXT", config.getFulltextAnalyzer()).parse(query);
+                    org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(LuceneIndexer.INDEX_PROPERTY_FULL, config.getFulltextAnalyzer()).parse(query);
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
                     log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
 
