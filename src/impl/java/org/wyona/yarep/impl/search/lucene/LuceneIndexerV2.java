@@ -385,9 +385,9 @@ public class LuceneIndexerV2 implements Indexer {
 
                 //log.debug("debug: Fulltext including title and meta: " + fullText);
                 if (fullText != null && fullText.length() > 0) {
-                    //luceneDoc.add(new Field("_FULLTEXT", new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
-                    //luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.NO, Field.Index.TOKENIZED));
-                    luceneDoc.add(new Field("_FULLTEXT", fullText, Field.Store.YES, Field.Index.TOKENIZED));
+                    //luceneDoc.add(new Field(LuceneIndexer.INDEX_PROPERTY_FULL, new StringReader(fullText))); // INFO: http://lucene.apache.org/java/2_0_0/api/org/apache/lucene/document/Field.html#Field(java.lang.String,%20java.io.Reader)
+                    //luceneDoc.add(new Field(LuceneIndexer.INDEX_PROPERTY_FULL, fullText, Field.Store.NO, Field.Index.TOKENIZED));
+                    luceneDoc.add(new Field(LuceneIndexer.INDEX_PROPERTY_FULL, fullText, Field.Store.YES, Field.Index.TOKENIZED));
                 } else {
                     log.warn("No fulltext has been extracted to index node with mimeType " + mimeType + " (node: " + node.getPath() + ")");
                 }
