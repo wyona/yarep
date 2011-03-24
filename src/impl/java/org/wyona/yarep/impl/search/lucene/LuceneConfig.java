@@ -239,7 +239,7 @@ public class LuceneConfig {
     /**
      * Check whether revisions should be indexed
      */
-    boolean doIndexRevisions() {
+    public boolean doIndexRevisions() {
         return indexRevisions;
     }
 }
