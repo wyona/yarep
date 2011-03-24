@@ -44,10 +44,25 @@ public class LuceneSearcher implements Searcher {
                     java.util.List<Node> results = new java.util.ArrayList<Node>();
                     for (int i = 0; i < hits.length();i++) {
                         String path = hits.doc(i).getField("_PATH").stringValue();
-                        if (config.getRepo().existsNode(path)) {
-                            results.add(config.getRepo().getNode(path));
+                        if (path.contains("#revision=")) {
+                            //log.debug("This seems to be a revision: " + resultPath);
+                            String resultPathWithoutRevision = path.substring(0, path.lastIndexOf("#revision="));
+                            String revisionName = path.substring(path.lastIndexOf("#revision=") + 10);
+                            if (config.getRepo().existsNode(resultPathWithoutRevision)) {
+                                try {
+                                    results.add(config.getRepo().getNode(resultPathWithoutRevision).getRevision(revisionName));
+                                } catch(org.wyona.yarep.core.NoSuchRevisionException e) {
+                                    log.error("Revision found within search index, but no such revision within repository: " + resultPathWithoutRevision + "#" + revisionName);
+                                }
+                            } else {
+                                log.error("Node found within search index, but no such node within repository: " + resultPathWithoutRevision);
+                            }
                         } else {
-                            log.error("No such node '" + path + "'. Search index (Fulltext: '" + config.getFulltextSearchIndexFile() + "', Properties: '" + config.getPropertiesSearchIndexFile() + "') seems to be out of sync!");
+                            if (config.getRepo().existsNode(path)) {
+                                results.add(config.getRepo().getNode(path));
+                            } else {
+                                log.error("No such node '" + path + "'. Search index (Fulltext: '" + config.getFulltextSearchIndexFile() + "', Properties: '" + config.getPropertiesSearchIndexFile() + "') seems to be out of sync!");
+                            }
                         }
                     }
                     searcher.close();
