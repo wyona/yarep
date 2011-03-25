@@ -141,7 +141,7 @@ public class LuceneIndexerV2 implements Indexer {
     /**
      * Get index writer
      */
-   public IndexWriter createFulltextIndexWriter() throws Exception {
+   protected IndexWriter createFulltextIndexWriter() throws Exception {
         log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
         return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
@@ -151,7 +151,7 @@ public class LuceneIndexerV2 implements Indexer {
    /**
     *
     */
-   public IndexWriter createPropertiesIndexWriter() throws Exception {
+   protected IndexWriter createPropertiesIndexWriter() throws Exception {
        return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.propertiesIndexWriter;
@@ -264,6 +264,7 @@ public class LuceneIndexerV2 implements Indexer {
      * @param document Lucene document containing the new fields and new values
      */
     private void updateDocument(IndexSearcher indexSearcher, IndexWriter indexWriter, String path, Document document) throws Exception {
+        // TODO: Synchronize index writing and make sure that index writer is always closed (see LuceneIndexer.java)
         Term pathTerm = new Term("_PATH", path);
         Document oldDoc = null;
 
