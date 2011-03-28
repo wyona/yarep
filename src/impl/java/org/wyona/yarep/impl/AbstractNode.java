@@ -318,6 +318,7 @@ public abstract class AbstractNode implements Node {
         if (lastModified != null) {
             return lastModified.getLong();
         } else {
+            //log.warn("No last modified set: " + getPath());
             return 0;
         }
     }
