@@ -62,7 +62,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
         out.close();
         try {
             //node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
-            //node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
+            node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
 
             VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
             
