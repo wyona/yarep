@@ -94,7 +94,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * Init repository
+     * Init node
      */
     protected void init() throws RepositoryException {
         
@@ -130,7 +130,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         // defer reading of revisions for performance reasons
         // readRevisions();
     }
-    
+
+    /**
+     * Create meta file
+     */
     protected void createMetaFile() throws RepositoryException {
         log.debug("creating new meta file in dir: " + metaDir);
         if (!metaDir.exists()) {
@@ -142,8 +145,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         } else {
             this.setProperty(PROPERTY_TYPE, NodeType.TYPENAME_RESOURCE);
             //this.setProperty(PROPERTY_SIZE, this.contentFile.length());
-            //this.setProperty(PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
         }
+        this.setProperty(PROPERTY_LAST_MODIFIED, this.metaFile.lastModified());
     }
     
     /**
@@ -242,6 +245,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Save all properties within a meta file
+     * TODO: Changing a property should update the last modified date. This implementation does not change the last modified date if a property changes.
      * @param name Property name which has been set or removed (see setProperty(Property) and removeProperty(String))
      * @throws RepositoryException
      */
@@ -605,12 +609,17 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * Changing a property should update the last modified date.
-     * FIXME: This implementation does not change the last modified date if a property changes.
      * @see org.wyona.yarep.impl.AbstractNode#getLastModified()
      */
+    @Override
     public long getLastModified() throws RepositoryException {
-        return this.contentFile.lastModified();
+        long lm = super.getLastModified();
+        if (lm > 0) {
+            return lm;
+        } else {
+            //log.warn("No last modified set: " + getPath());
+            return this.contentFile.lastModified();
+        }
     }
     
     /**
