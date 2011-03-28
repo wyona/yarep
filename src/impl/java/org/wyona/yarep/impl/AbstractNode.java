@@ -39,7 +39,8 @@ public abstract class AbstractNode implements Node {
     public static final String PROPERTY_TYPE = "yarep_type";
     //public static final String PROPERTY_CONTENT = "yarep_content";
     public static final String PROPERTY_SIZE = "yarep_size";
-    public static final String PROPERTY_LAST_MODIFIED = "yarep_lastModifed";
+    //public static final String PROPERTY_LAST_MODIFIED = "yarep_lastModifed"; // INFO: Typo, but maybe needs to be re-introduced because of backwards compatibility
+    public static final String PROPERTY_LAST_MODIFIED = "yarep_lastModified";
     public static final String PROPERTY_MIME_TYPE = "yarep_mimeType";
     public static final String PROPERTY_ENCODING = "yarep_encoding";
     public static final String PROPERTY_IS_CHECKED_OUT = "yarep_isCheckedOut";
