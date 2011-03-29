@@ -21,7 +21,7 @@ public class VFSRevisionIterator implements java.util.Iterator {
      * @param node Yarep node which is supposed to have revisions
      * @param metaDir Meta directory containing revisions index
      */
-    public VFSRevisionIterator(Node node, File metaDir) throws Exception {
+    public VFSRevisionIterator(Node node, File metaDir, boolean reverse) throws Exception {
         dis = new DateIndexerSearcher(node, metaDir);
         if (!dis.indexExists()) {
             dis.buildDateIndex();
@@ -40,8 +40,14 @@ public class VFSRevisionIterator implements java.util.Iterator {
                 return false;
             }
         } else {
-            log.warn("TODO ...");
-            return false;
+            try {
+                java.util.Date currentDate = currentRevision.getCreationDate();
+                log.warn("TODO: Check whether revision older than '" + currentDate + "' exists ...");
+                return false;
+            } catch(Exception e) {
+                log.error(e, e);
+                return false;
+            }
         }
     }
 
