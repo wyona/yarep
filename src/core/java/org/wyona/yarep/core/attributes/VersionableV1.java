@@ -31,4 +31,11 @@ public interface VersionableV1 {
      * @return If no revision can be found for the specified point in time (or just before), then null shall be returned
      */
     public Revision getRevision(Date date) throws Exception;
+
+    /**
+     * Get all revisions ordered by date (most recent (head) revision first and oldest revision last)
+     * @param reverse Reversed order, if set to true, then oldest revision first and most recent (head) last
+     * @return If no revision can be found, then null shall be returned
+     */
+    public java.util.Iterator<Revision> getRevisions(boolean reverse) throws Exception;
 }
