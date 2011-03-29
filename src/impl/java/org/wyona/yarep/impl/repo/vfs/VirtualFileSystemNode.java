@@ -774,6 +774,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
+     * @see org.wyona.yarep.core.attributes.VersionableV1#getRevisions(boolean)
+     */
+    public java.util.Iterator<Revision> getRevisions(boolean reverse) throws Exception {
+        return new VFSRevisionIterator(this, this.metaDir);
+    }
+
+    /**
      * @see org.wyona.yarep.core.Node#getRevision(String)
      */
     public Revision getRevision(String revisionName) throws NoSuchRevisionException, RepositoryException {
