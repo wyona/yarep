@@ -42,8 +42,11 @@ public class VFSRevisionIterator implements java.util.Iterator {
         } else {
             try {
                 java.util.Date currentDate = currentRevision.getCreationDate();
-                log.warn("TODO: Check whether revision older than '" + currentDate + "' exists ...");
-                return false;
+                if (dis.getRevisionOlderThan(currentDate) != null) {
+                    return true;
+                } else {
+                    return false;
+                }
             } catch(Exception e) {
                 log.error(e, e);
                 return false;
@@ -59,8 +62,17 @@ public class VFSRevisionIterator implements java.util.Iterator {
             currentRevision = dis.getMostRecentRevision();
             return currentRevision;
         } else {
-            log.warn("TODO ...");
-            return null;
+            try {
+                java.util.Date currentDate = currentRevision.getCreationDate();
+                currentRevision = dis.getRevisionOlderThan(currentDate);
+                if (currentRevision != null) {
+                    return currentRevision;
+                } else {
+                    throw new java.util.NoSuchElementException();
+                }
+            } catch(Exception e) {
+                throw new java.util.NoSuchElementException(e.getMessage());
+            }
         }
     }
 
