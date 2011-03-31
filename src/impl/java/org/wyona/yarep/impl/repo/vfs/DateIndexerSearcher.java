@@ -88,7 +88,7 @@ public class DateIndexerSearcher {
             File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
             String[] years = sortAlphabeticallyAscending(dateIndexBaseDir.list());
             if (years != null && years.length > 0) {
-                log.warn("DEBUG: Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
+                //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
                 return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]));
             }
             log.warn("No year and hence no revision: " + dateIndexBaseDir);
