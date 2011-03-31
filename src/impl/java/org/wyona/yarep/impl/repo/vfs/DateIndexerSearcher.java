@@ -71,6 +71,15 @@ public class DateIndexerSearcher {
     }
 
     /**
+     * Get (next) revision older than a specific date
+     * @param date Date which is used as reference
+     */
+    public Revision getRevisionOlderThan(Date date) throws Exception {
+        Date olderThan = new Date(date.getTime() - 1);
+        return getRevision(olderThan);
+    }
+
+    /**
      * Get most recent revision
      * @return Most recent (head) revision, and if such revision exists, then return null
      */
@@ -442,6 +451,8 @@ public class DateIndexerSearcher {
 
     /**
      * Get revision by millisecond
+     * @param secondDir TODO
+     * @param cal TODO
      */
     private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
         String[] millis = sortAlphabeticallyAscending(secondDir.list()); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
