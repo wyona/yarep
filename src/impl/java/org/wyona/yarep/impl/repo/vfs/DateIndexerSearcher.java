@@ -75,8 +75,15 @@ public class DateIndexerSearcher {
      * @param date Date which is used as reference
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
-        Date olderThan = new Date(date.getTime() - 1);
-        return getRevision(olderThan);
+        Date olderThanDate = new Date(date.getTime() - 1);
+
+        Revision revision = getRevision(olderThanDate);
+        if (revision != null && date.getTime() > revision.getCreationDate().getTime()) {
+            return revision;
+        } else {
+            log.warn("There seems to be NO revision older than: " + format(date));
+            return null;
+        }
     }
 
     /**
@@ -100,7 +107,8 @@ public class DateIndexerSearcher {
     }
 
     /**
-     * Get revision via date index
+     * Get revision (based on date index) with a creation date which is equal or just the next older revision than the specified date, e.g. specified date=2011.03.17T17:23:57:09:690, then a revision which has either exactly this creation date or which is the next older revision, e.g. 2011.03.17T17:23:57:09:698
+     * @param date Date for which a revision shall be found
      */
     public Revision getRevision(Date date) throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
@@ -150,7 +158,7 @@ public class DateIndexerSearcher {
     }
 
     /**
-     * Get youngest revision of year, whereas the algorithm assumes that the order of months is ascending 01, 02, ..., 12
+     * Get youngest (most recent) revision of year, whereas the algorithm assumes that the order of months is ascending 01, 02, ..., 12
      * @param yearDir Directory of year containing months
      */
     private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
@@ -545,5 +553,12 @@ public class DateIndexerSearcher {
 */
 
         return array;
+    }
+
+    /**
+     * Format date
+     */
+    private String format(Date date) {
+        return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/S").format(date);
     }
 }
