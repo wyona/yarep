@@ -47,7 +47,10 @@ import org.wyona.yarep.impl.DefaultProperty;
 public class DateIndexerSearcher {
     private static Logger log = Logger.getLogger(DateIndexerSearcher.class);
 
-    private static final String DATE_INDEX_BASE_DIR = "index_date";
+    private String TIME_ZONE_ID = "UTC";
+
+    //private static final String DATE_INDEX_BASE_DIR = "index_date";
+    private static final String DATE_INDEX_BASE_DIR = "index_date_utc"; // INFO: Introduced new directory, because the directory structure is now using for setting/getting UTC (instead the local time), because this will make sure that timezone changes or winter/summer does not cause problems anymore
     private static final String DATE_INDEX_ID_FILENAME = "id.txt";
 
     private File metaDir;
@@ -75,6 +78,7 @@ public class DateIndexerSearcher {
      * @param date Date which is used as reference
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
+        //log.debug("Get revision older than: " + format(date));
         Date olderThanDate = new Date(date.getTime() - 1);
 
         Revision revision = getRevision(olderThanDate);
@@ -111,9 +115,11 @@ public class DateIndexerSearcher {
      * @param date Date for which a revision shall be found
      */
     public Revision getRevision(Date date) throws Exception {
+        //log.debug("Get revision for date: " + format(date));
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         log.debug("Use vfs-repo specific implementation: " + node.getPath() + ", " + date);
         Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID));
         cal.setTime(date);
 
         return getRevisionByYear(dateIndexBaseDir, cal);
@@ -498,7 +504,9 @@ public class DateIndexerSearcher {
         //Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
         log.debug("Creation date: " + creationDate);
 
-        String dateDirS = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S").format(creationDate);
+        java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S");
+        df.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID)); // INFO: Write index in UTC
+        String dateDirS = df.format(creationDate);
         log.debug("Date directory of revision '" + revisionName + "': " + dateDirS);
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         File dateDirF = new File(dateIndexBaseDir, dateDirS);
@@ -559,6 +567,6 @@ public class DateIndexerSearcher {
      * Format date
      */
     private String format(Date date) {
-        return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/S").format(date);
+        return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/SZ").format(date);
     }
 }
