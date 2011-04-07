@@ -774,6 +774,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
+     * @see org.wyona.yarep.core.attributes.VersionableV1#getTotalNumberOfRevisions()
+     */
+    public int getTotalNumberOfRevisions() throws Exception {
+        log.warn("TODO: Not implemented yet!");
+        return -1;
+    }
+
+    /**
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevisions(boolean)
      */
     public java.util.Iterator<Revision> getRevisions(boolean reverse) throws Exception {

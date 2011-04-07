@@ -46,4 +46,9 @@ public interface VersionableV1 {
      * @return If no revision can be found, then null shall be returned
      */
     public java.util.Iterator<Revision> getRevisions(Date date, boolean reverse) throws Exception;
+
+    /**
+     * Get total number of revisions (e.g. for pagening). In order to peform/scale well this method should be implemented independently of accessing the revisions.
+     */
+    public int getTotalNumberOfRevisions() throws Exception;
 }
