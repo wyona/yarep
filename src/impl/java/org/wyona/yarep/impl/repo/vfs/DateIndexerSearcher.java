@@ -374,6 +374,7 @@ public class DateIndexerSearcher {
      * Get revision by hour 
      */
     private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
+        //log.debug("Try to find revision for UTC hour: " + cal.get(Calendar.HOUR_OF_DAY));
         String[] hours = sortAlphabeticallyAscending(dayDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
         for (int k = hours.length - 1; k >= 0; k--) {
             log.debug("Hour: " + hours[k]);
