@@ -49,8 +49,9 @@ public class DateIndexerSearcher {
 
     private String TIME_ZONE_ID = "UTC";
 
-    //private static final String DATE_INDEX_BASE_DIR = "index_date";
-    private static final String DATE_INDEX_BASE_DIR = "index_date_utc"; // INFO: Introduced new directory, because the directory structure is now using for setting/getting UTC (instead the local time), because this will make sure that timezone changes or winter/summer does not cause problems anymore
+    //private static final String DATE_INDEX_BASE_DIR = "index_date"; // DEPRECATED
+    private static final String DATE_INDEX_BASE_DIR = "index_date_utc"; // INFO: Introduced new directory, because the directory structure is now using for setting/getting UTC (instead the local time), because this will make sure that timezone changes or winter/summer does not cause problems anymore (Also see http://www.odi.ch/prog/design/datetime.php)
+
     private static final String DATE_INDEX_ID_FILENAME = "id.txt";
 
     private File metaDir;
