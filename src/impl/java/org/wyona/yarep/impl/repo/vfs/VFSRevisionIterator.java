@@ -80,6 +80,7 @@ public class VFSRevisionIterator implements java.util.Iterator {
             if (pointInTime != null) {
                 try {
                     currentRevision = dis.getRevision(pointInTime);
+                    //log.debug("First revision found '" + format(currentRevision.getCreationDate()) + "' for point in time: " + format(pointInTime));
                 } catch(Exception e) {
                     throw new java.util.NoSuchElementException(e.getMessage());
                 }
