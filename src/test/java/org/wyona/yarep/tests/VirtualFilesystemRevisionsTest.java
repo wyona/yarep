@@ -109,16 +109,54 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         log.info(String.format("Splitpath backwards compatibility example file has been read, content: \"%s\"", s));
     }
 
+    /**
+     * Test get most recent revision
+     */
+/*
+    public void testGetMostRecentRevision() throws Exception {
+        String path = "/" + NODE_NAME;
+
+        //java.util.Iterator it = ((org.wyona.yarep.core.attributes.VersionableV1)repo.getNode(path)).getRevisions(false);
+        //int count = 0;
+        //while(it.hasNext()) {
+        //    Revision revision = (Revision)it.next(); 
+        //    log.info("Revision '" + revision.getPath() + "#" + revision.getRevisionName() + "' (" + formatDate(revision.getCreationDate()) + ") has been found.");
+        //    count++;
+        //}
+        //assertTrue("Number of revisions expected: 8 (counted: " + count + ")", count == 16);
+
+        // Revision data-repo/yarep-meta/homepage/de/de-item.xml.yarep/revisions/1301586836065/meta: 2011-03-31T16:53:56:200+0100
+        java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S");
+        df.setTimeZone(java.util.TimeZone.getTimeZone("GMT+2:00"));
+        Date pointInTime = df.parse("2011/03/31T17:53:56/200");
+        java.util.Iterator it = ((org.wyona.yarep.core.attributes.VersionableV1)repo.getNode(path)).getRevisions(pointInTime, false);
+        int count = 0;
+        while(it.hasNext()) {
+            Revision revision = (Revision)it.next(); 
+            log.info("Revision '" + revision.getPath() + "#" + revision.getRevisionName() + "' (" + formatDate(revision.getCreationDate()) + ") has been found.");
+            count++;
+        }
+        assertTrue("Number of revisions expected: 2 (counted: " + count + ")", count == 2);
+    }
+*/
 
     /**
      * Test get revision by date (point in time)
      */
     public void testGetRevisionByDate() throws Exception {
         String path = "/" + NODE_NAME;
-        //Date pointInTime = new Date(Long.parseLong("1000"));
-        Date pointInTime = new Date();
+
+        java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd'T'HH:mm:ss/S");
+        df.setTimeZone(java.util.TimeZone.getTimeZone("GMT+1:00"));
+
+        Date pointInTime = df.parse("2011/03/17T23:57:09/690");
+
         Revision revision = org.wyona.yarep.util.YarepUtil.getRevision(repo.getNode(path), pointInTime);
-        log.info("Revision '" + revision.getRevisionName() + "' (" + new Date(Long.parseLong(revision.getRevisionName())) + ") has been found for point in time: " + pointInTime);
+        if (revision != null) {
+            log.info("Revision '" + revision.getPath() + "#" + revision.getRevisionName() + "' (" + formatDate(revision.getCreationDate()) + ") has been found for point in time: " + formatDate(pointInTime));
+        } else {
+            log.info("No revision found for point in time: " + formatDate(pointInTime));
+        }
         assertTrue("Revision has been found: " + revision.getRevisionName(), revision != null);
     }
 
@@ -197,4 +235,11 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         assertTrue("Revisions have been created.", true);
     }
 */
+
+    /**
+     * Format date
+     */
+    private String formatDate(Date date) {
+        return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/SZ").format(date);
+    }
 }
