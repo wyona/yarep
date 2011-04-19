@@ -67,31 +67,34 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
 
         for (String path : PATHS) {
             if (repo.existsNode(path)) {
+                log.warn("Delete node: " + path);
                 repo.getNode(path).delete();
             }
 
-            Node node = repo.getRootNode().addNode(path.substring(1, path.length()), NodeType.RESOURCE);
+            log.warn("DEBUG: Create node: " + path);
+            Node node = org.wyona.yarep.util.YarepUtil.addNodes(repo, path, NodeType.RESOURCE);
+            log.info("Node '" + node.getPath() + "' has been created successfully.");
+
+            log.warn("DEBUG: Add some content to node: " + path);
             node.checkout("bob");
             node.setMimeType("text/plain");
             java.io.PrintWriter pw = new java.io.PrintWriter(node.getOutputStream());
             pw.print(MESSAGE);
             pw.close();
             Revision revision = node.checkin("My first revision");
-
             java.io.InputStream in = repo.getNode(path).getInputStream();
             byte[] b = new byte[MESSAGE.length()];
             in.read(b);
             String s = new String(b);
             log.info(String.format("File has been read, content: \"%s\"", s));
-
-            Node[] nodes = repo.getRootNode().getNodes();
-
-            for (Node n : nodes) {
-                log.info(String.format("got type: %d", n.getType()));
-                log.info("got name: " + n.getName());
-            }
         }
 
+        Node[] nodes = repo.getNode("/splitpath-example").getNodes();
+        for (Node n : nodes) {
+            log.info("Node: " + n.getPath() + " , " + n.getName() + " , " + n.getType());
+        }
+
+        // INFO: Check node which is outside of split path root directory
         java.io.InputStream in = repo.getNode("/hello-world.txt").getInputStream();
         byte[] b = new byte[256];
         String s = ""; 
@@ -100,6 +103,7 @@ public class VirtualFilesystemRevisionsTest extends TestCase {
         }
         log.info(String.format("HelloWorld file has been read, content: \"%s\"", s));
 
+        // INFO: Check backwards compatibility of non splitted nodes
         in = repo.getNode("/splitpath-example/backwards-compatible.txt").getInputStream();
         b = new byte[256];
         s = ""; 
