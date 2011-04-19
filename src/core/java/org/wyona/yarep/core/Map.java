@@ -25,7 +25,8 @@ public interface Map {
     public boolean isCollection(Path path) throws RepositoryException;
 
     /**
-     *
+     * Check whether node with a particular path exists
+     * @param path Path of node
      */
     public boolean exists(Path path) throws RepositoryException;
 
