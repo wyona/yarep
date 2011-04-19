@@ -629,9 +629,15 @@ public class VirtualFileSystemRepository implements Repository {
      * in:  lorem, 3, 10
      * out: lorem
      *
-     * An example with "/" characters:
+     * An example with "/" characters (whereas "-" is the default escape character):
      * in:  /foobar/lorem/ipsum.txt, parts = 3, length = 3
      * out: /foo/bar/-lo/rem/ipsum.txt
+     *
+     * Depending on the path and split length, the physical nodes do not have reflect the parent-child relationship as the logical path, e.g.
+     * - Assume length = 2
+     * - The logical path /aa/ will be split as phyisical path /aa/+
+     * - The logical path /aa/bb/ will be split as physical path /aa/+b/b+
+     * which demonstrates that although "bb" is a logical child of "/aa", physically "+b" is not a child of "/aa/+"
      *
      * @param path A yarep path
      * @return splitted path or unsplit if it does not match any of the include patters
@@ -661,7 +667,7 @@ public class VirtualFileSystemRepository implements Repository {
         // remove the leading base string, will be added again later
         path = path.substring(base.length(), path.length());
 
-        // replace "/" characters where needed
+        // Escape/replace "/" characters where necessary
         if (path.length() <= splitparts * splitlength) {
             path = path.replaceAll("/", dummySeparator);
         } else {
