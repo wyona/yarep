@@ -396,14 +396,19 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#existsNode(java.lang.String)
      */
     public boolean existsNode(String path) throws RepositoryException {
-        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
+        log.debug("Check whether node exists: " + path);
+
+        // INFO: Strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
+        String pathWithoutTrailingSlash = path;
         if (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
+            pathWithoutTrailingSlash = path.substring(0, path.length() - 1);
         }
+
         if (splitPathEnabled) {
-            return map.exists(new Path(splitPath(path))) || map.exists(new Path(path)); // INFO: The OR is because of backwards compatibility in case that a node exists with an unsplitted path, because it has not been migrated yet (which can happen if it has only been read so far, but never written since introducing the split path configuration)
+            String splittedPath = splitPath(path); // IMPORTANT: If a trailing slash exists, then it is important for split path to know about it, because it will be escaped and matched accordingly!
+            return map.exists(new Path(splittedPath)) || map.exists(new Path(pathWithoutTrailingSlash)); // INFO: The OR is because of backwards compatibility in case that a node exists with an unsplitted path, because it has not been migrated yet (which can happen if it has only been read so far, but never written since introducing the split path configuration)
         } else {
-            return map.exists(new Path(path));
+            return map.exists(new Path(pathWithoutTrailingSlash));
         }
     }
 
@@ -411,12 +416,9 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#getNode(java.lang.String)
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
-        if (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
+        log.debug("Get node: " + path);
 
-        if ((splitPathEnabled && map.exists(new Path(splitPath(path)))) || map.exists(new Path(path))) {
+        if (existsNode(path)) {
             String uuid = new UID(path).toString();
             return new VirtualFileSystemNode(this, path, uuid);
         } else {
@@ -625,18 +627,18 @@ public class VirtualFileSystemRepository implements Repository {
      * out: lorem
      *
      * An example with "/" characters:
-     * in:  /foobar/lorem/ipsum.txt, parts = 3, lenght = 3
+     * in:  /foobar/lorem/ipsum.txt, parts = 3, length = 3
      * out: /foo/bar/-lo/rem/ipsum.txt
      *
-     * @param uuid
-     * @return split uuid
+     * @param path A yarep path
+     * @return splitted path or unsplit if it does not match any of the include patters
      */
     String splitPath(String path) {
-        // NOTE: uuid should be a full yarep path, so we can safely remove
-        // the leading slash
+        log.debug("Split path: " + path);
+
+        // NOTE: uuid should be a full yarep path, so we can safely remove the leading slash
         
-        // check if the given path matches any of the include values
-        // in the configuration
+        // INFO: Check if the given path matches any of the include values in the configuration
         boolean include = false;
         String base = "";
         for (String s : includepaths) {
@@ -647,9 +649,9 @@ public class VirtualFileSystemRepository implements Repository {
             }
         }
 
-        // return the path unchanged if it doesn't match
-        // any of the include values
+        // INFO: Return the path unchanged if it doesn't match any of the include values
         if (!include) {
+            log.debug("Path '" + path + "' does not need to be splitted.");
             return path;
         }
         
@@ -694,7 +696,9 @@ public class VirtualFileSystemRepository implements Repository {
         }
 
         // finally, add the leading zero again and return the new path
-        return base + out;
+        String splittedPath = base + out;
+        log.debug("Splitted path: " + splittedPath);
+        return splittedPath;
     }
 
     /**
