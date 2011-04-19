@@ -675,6 +675,7 @@ public class VirtualFileSystemRepository implements Repository {
                     path.substring(0, splitparts * splitlength).replaceAll("/", dummySeparator),
                     path.substring(splitparts * splitlength));
         }
+        log.debug("Escaped path: " + path);
 
         // now do the actual splitting
         int len = path.length();
@@ -695,13 +696,20 @@ public class VirtualFileSystemRepository implements Repository {
             len -= w;
 
             if (len > 0) {
+                //log.debug("Append slash: " + out);
                 out += "/";
             }
         }
 
-        // append remainder
+        // append remainder/rest
         if (len > 0) {
-            out += path.substring(pos, pos + len);
+            //log.debug("Append rest: " + out + ", " + path.substring(pos, pos + len));
+            if (out.endsWith("/") && path.substring(pos, pos + len).startsWith("/")) {
+                //log.info("Remove one of the two slashes" + path.substring(pos + 1, pos + len));
+                out += path.substring(pos + 1, pos + len);
+            } else {
+                out += path.substring(pos, pos + len);
+            }
         }
 
         // finally, add the leading zero again and return the new path
