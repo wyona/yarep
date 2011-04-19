@@ -137,9 +137,13 @@ public class YarepUtil {
 
     /**
      * Creates the node named by this abstract pathname, including any necessary but nonexistent parent nodes (similar to java.io.File.mkdirs()).
+     * @param repo Repository within the node shall be created
+     * @param path Node path
+     * @param nodeType Type of node (e.g. resource or collection)
      */
     public static Node addNodes(Repository repo, String path, int nodeType) throws RepositoryException {
         if (repo.existsNode(path)) {
+            log.warn("Node '" + path + "' already exists, hence ignore creation, but return existing node instance.");
             return repo.getNode(path);
         } else {
             org.wyona.commons.io.Path parentPath = new org.wyona.commons.io.Path(path).getParent();
