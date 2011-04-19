@@ -460,8 +460,11 @@ public class VirtualFileSystemRepository implements Repository {
     public File getMetaDir() {
         return this.metaDir;
     }
-    
-    public Map getMap() {
+
+    /**
+     * Get map
+     */
+    Map getMap() {
         return this.map;
     }
 
