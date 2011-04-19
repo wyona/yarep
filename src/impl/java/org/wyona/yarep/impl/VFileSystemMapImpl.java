@@ -16,19 +16,18 @@ import java.io.FilenameFilter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 
 /**
- *
+ * Virtual file system map which is basically a one to one map
  */
 public class VFileSystemMapImpl implements Map {
 
-    private static Category log = Category.getInstance(VFileSystemMapImpl.class);
+    private static Logger log = Logger.getLogger(VFileSystemMapImpl.class);
 
     protected File pathsDir;
     protected Pattern[] ignorePatterns;
     protected ChildrenFilter childrenFilter = new ChildrenFilter();
-    
 
     /**
      *
@@ -94,7 +93,7 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     *
+     * @see org.wyona.yarep.core.Map#exists(Path)
      */
     public boolean exists(Path path) throws RepositoryException {
         File file = new File(pathsDir + path.toString());
@@ -163,20 +162,34 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     * Create UID
+     * Create UID and corresponding map entries
      */
     public synchronized UID create(Path path, int type) throws RepositoryException {
         // TODO: Check if leading slash should be removed ...
+
         File parent = new File(pathsDir + File.separator + path.getParent().toString());
         if (!parent.exists()) {
-            log.warn("Directory will be created: " + parent);
+            log.info("Parent directories will be created: " + parent);
             parent.mkdirs();
         }
+
         if (type == org.wyona.yarep.core.NodeType.COLLECTION) {
-            new File(parent, path.getName()).mkdir();
+            File dir = new File(parent, path.getName());
+            boolean created = dir.mkdir();
+            if (created) {
+                log.info("Collection has been created: " + dir.getAbsolutePath());
+            } else {
+                log.warn("Collection has NOT been created: " + dir.getAbsolutePath());
+            }
         } else {
             try {
-                if(!new File(parent, path.getName()).createNewFile()) log.warn("File has not been created: " + new File(parent, path.getName()));
+                File file = new File(parent, path.getName());
+                boolean created = file.createNewFile();
+                if(!created) {
+                    log.warn("File has NOT been created: " + file);
+                } else {
+                    log.info("Resource has been created: " + file.getAbsolutePath());
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
