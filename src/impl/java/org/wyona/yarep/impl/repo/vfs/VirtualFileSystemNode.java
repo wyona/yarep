@@ -97,6 +97,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Init node
      */
     protected void init() throws RepositoryException {
+        log.debug("Try to init node: " + this.uuid);
         
         this.contentDir = getRepository().getContentDir();
         this.contentFile = new File(this.contentDir, getRepository().splitPath(this.uuid));
@@ -322,19 +323,38 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         if (getPath().endsWith("/")) {
             newPath = getPath() + name;
         }
-        log.debug("adding node: " + newPath);
+        if (type == NodeType.COLLECTION && !name.endsWith("/")) {
+            newPath = newPath + "/";
+        }
+        log.debug("Adding node: " + newPath);
+
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-        UID uid = getRepository().getMap().create(new Path(getRepository().splitPath(newPath)), type);
-        // create file:
+
+        String splittedPath = getRepository().splitPath(newPath);
+        log.debug("Splitted path (if applicable): " + splittedPath);
+        UID uid = getRepository().getMap().create(new Path(splittedPath), type);
+
+        // INFO: The VFileSystemMapImpl already adds the files and directories (see obsolete code below)
+
+        return this.repository.getNode(newPath);
+
+/*
+        // INFO: Create file/directory
         File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
-                file.mkdirs();
+                boolean created = file.mkdirs();
+                if (!created) {
+                    log.warn("File '" + file + "' seems to exist already!");
+                }
             } else if (type == NodeType.RESOURCE) {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
+                boolean parentCreated = file.getParentFile().mkdirs();
+                boolean created = file.createNewFile();
+                if (!created) {
+                    log.warn("File '" + file + "' seems to exist already!");
+                }
             } else {
                 throw new RepositoryException("Unknown node type: " + type);
             }
@@ -342,6 +362,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         } catch (IOException e) {
             throw new RepositoryException("Could not access file " + file, e);
         }
+*/
     }
     
     /**
