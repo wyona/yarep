@@ -161,7 +161,9 @@ public class RepositoryFactory {
     }
 
     /**
-     * Get repository from specified config, whereas config is being resolved relative to classpath
+     * Get repository from specified config, whereas config is being resolved relative to classpath if path is not absolute
+     * @param rid Repository ID
+     * @param configFile Repository configuration file (either absolute or relative path, whereas if relative path, then it is resolved relative to classpath)
      */
     public Repository newRepository(String rid, File configFile) throws RepositoryException {
         if (exists(rid)) {
