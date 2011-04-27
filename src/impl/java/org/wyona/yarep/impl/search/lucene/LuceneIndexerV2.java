@@ -68,7 +68,6 @@ public class LuceneIndexerV2 implements Indexer {
             String path = node.getPath();
             if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
                 String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
-                log.warn("DEBUG: Trying to index revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 log.debug("Trying to index revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
@@ -203,11 +202,9 @@ public class LuceneIndexerV2 implements Indexer {
             String path = node.getPath();
             if (config.doIndexRevisions() && org.wyona.yarep.util.YarepUtil.isRevision(node)) {
                 String revisionName = ((org.wyona.yarep.core.Revision)node).getRevisionName();
-                log.warn("DEBUG: Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 log.debug("Index property '" + property.getName() + " of revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
-                log.warn("DEBUG: Index property '" + property.getName() + " of node: " + path);
                 log.debug("Index property '" + property.getName() + " of node: " + path);
             }
 
