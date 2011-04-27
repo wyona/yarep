@@ -71,7 +71,6 @@ public class LuceneIndexerV2 implements Indexer {
                 log.debug("Trying to index revision: " + path + " (" + revisionName + "), " + node.getClass().getName());
                 path = path + "#revision=" + revisionName; // TODO: Discuss the separator
             } else {
-                log.warn("DEBUG: Trying to index node: " + path);
                 log.debug("Trying to index node: " + path);
             }
 
