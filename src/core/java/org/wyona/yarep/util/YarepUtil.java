@@ -146,6 +146,7 @@ public class YarepUtil {
             log.warn("Node '" + path + "' already exists, hence ignore creation, but return existing node instance.");
             return repo.getNode(path);
         } else {
+            log.debug("Try to create node: " + path);
             org.wyona.commons.io.Path parentPath = new org.wyona.commons.io.Path(path).getParent();
             if (parentPath != null) {
                 Node parentNode = null;
@@ -154,7 +155,10 @@ public class YarepUtil {
                 } else {
                     parentNode = addNodes(repo, parentPath.toString(), org.wyona.yarep.core.NodeType.COLLECTION);
                 }
-                return parentNode.addNode(new Path(path).getName().toString(), nodeType);
+                log.debug("Parent node: " + parentNode.getPath());
+                Node childNode = parentNode.addNode(new Path(path).getName().toString(), nodeType);
+                log.info("Child node has been created: " + childNode.getPath());
+                return childNode;
             } else {
                 throw new RepositoryException("Root node does not have a parent!");
             }
