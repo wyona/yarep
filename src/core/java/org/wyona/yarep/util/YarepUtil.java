@@ -231,18 +231,28 @@ public class YarepUtil {
     /**
      * Index nodes recursively
      * @param node Node to be indexed
-     * @param repo Repository to which node belongs to
+     * @param indexer Indexer of repository
      * @throws RepositoryException
      */
     protected static void indexNodeRecursively(Node node, org.wyona.yarep.core.search.Indexer indexer) throws RepositoryException {
         try {
-            // TODO: Make the ignore configurable
+            // TODO: Make the ignore configurable. Actually the ignore should already be configurable by the repository (see for example src/test/repository/new-vfs-example/repository.xml)!
             if (node.getName().equals(".svn")) {
-                log.info("Ignore .svn directories.");
+                log.warn("Ignore .svn directories.");
                 return;
             }
 
+            log.warn("DEBUG: Index node (inluding properties, but no revisions): " + node.getPath());
             indexer.index(node);
+
+            org.wyona.yarep.core.Property[] properties = node.getProperties();
+            if (properties != null) {
+                for (org.wyona.yarep.core.Property property : properties) { 
+                    indexer.index(node, property);
+                }
+            }
+
+            // TODO: Index also revisions ...
 
             // INFO: Index children recursively
             Node[] childNodes = node.getNodes();
