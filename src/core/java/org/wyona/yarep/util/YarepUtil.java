@@ -252,7 +252,14 @@ public class YarepUtil {
                 }
             }
 
-            // TODO: Index also revisions ...
+            // TODO: Index also revisions ... (Use iterator if versioning interface available)
+/*
+            if (VersionableV1) {
+                Iterator it = (VersionableV1).getRevisions(false);
+            } else {
+                Revision[] revisions = node.getRevisions();
+            }
+*/
 
             // INFO: Index children recursively
             Node[] childNodes = node.getNodes();
