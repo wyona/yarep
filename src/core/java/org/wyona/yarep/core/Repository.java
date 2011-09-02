@@ -227,10 +227,10 @@ public interface Repository {
     public void copy(String srcPath, String destPath) throws RepositoryException;
     
     /**
-     * Moves the node given by srcPath to destPath, including its subtree.
-     * destPath must not exist yet, but the parent must exist.
-     * @param srcPath
-     * @param destPath
+     * Moves the node given by source path 'srcPath' to destination path 'destPath', including its subtree.
+     * Destination path must not exist yet, but the parent of the destination path must exist, otherwise a repository exception will be thrown
+     * @param srcPath Absolute source path
+     * @param destPath Absolute destination path
      * @throws RepositoryException repository error
      */
     public void move(String srcPath, String destPath) throws RepositoryException;
