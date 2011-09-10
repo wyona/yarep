@@ -88,4 +88,3 @@
      4) Change directory: build/svn-export-trunk-rREVISION
      4.1) Update build.properties (revision number) and local.build.properties (credentials) accordingly
      5) Run ./build.sh deploy-jars
-
