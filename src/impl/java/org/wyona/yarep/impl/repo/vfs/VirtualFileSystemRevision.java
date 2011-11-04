@@ -34,6 +34,8 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     
     /**
      * Constructor
+     * @param node Node to which this revision belongs to
+     * @param revisionName Name of this revision
      * @throws RepositoryException
      */
     public VirtualFileSystemRevision(VirtualFileSystemNode node, String revisionName) throws RepositoryException {
@@ -223,10 +225,23 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         return s;
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#delete()
+     */
+    @Override
     public void delete() throws RepositoryException {
         if (!isInitialized) {
             init();
         }
+
+        // INFO: Delete from index first, before deleting revision itself!
+        DateIndexerSearcher dis = new DateIndexerSearcher(node, node.metaDir);
+        try {
+            dis.deleteRevision(revisionName);
+        } catch(Exception e) {
+            log.error(e, e);
+        }
+
         super.delete();
     }
 
