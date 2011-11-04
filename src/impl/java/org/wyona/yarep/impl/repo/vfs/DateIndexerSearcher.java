@@ -101,7 +101,8 @@ public class DateIndexerSearcher {
             String[] years = sortAlphabeticallyAscending(dateIndexBaseDir.list());
             if (years != null && years.length > 0) {
                 //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
-                return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]));
+                return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
+                //return node.getRevision(getRevisionName(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]))));
             }
             log.warn("No year and hence no revision: " + dateIndexBaseDir);
             return null;
@@ -123,7 +124,25 @@ public class DateIndexerSearcher {
         cal.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID));
         cal.setTime(date);
 
-        return getRevisionByYear(dateIndexBaseDir, cal);
+        String path = getRevisionByYear(dateIndexBaseDir, cal);
+        if (path == null) {
+            log.debug("No index file found for date: " + date);
+            return null;
+        }
+        if (path != null && !new File(path).isFile()) {
+            log.warn("No such index file: " + path);
+            return null;
+        }
+        String revisionName = getRevisionName(path);
+        try {
+            return node.getRevision(revisionName);
+        } catch(NoSuchRevisionException e) {
+            if (new File(path).isFile()) {
+                log.warn("It seems that the index is out of sync, because an index file exists '" + path + "', but no such revision: " + revisionName);
+            }
+            throw e;
+        }
+        //return getRevisionByYear(dateIndexBaseDir, cal);
     }
 
     /**
@@ -131,7 +150,7 @@ public class DateIndexerSearcher {
      * @param dateIndexBaseDir Directory where date index is located
      * @param cal Point in time for which a revision shall be found
      */
-    private Revision getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
+    private String getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
 /* DEBUG
         String[] unsortedYears = {"2018", "1989", "2010" ,"2009", "2017"};
         String[] years = sortAlphabeticallyAscending(unsortedYears);
@@ -148,9 +167,9 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[i]));
                 } else if (year == cal.get(Calendar.YEAR)) {
                     log.debug("Year '" + year + "' which matched is equals, hence start comparing within this particular year.");
-                    Revision revision = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
-                    if (revision != null) {
-                        return revision;
+                    String path = getRevisionByMonth(new File(dateIndexBaseDir, years[i]), cal);
+                    if (getRevisionFromIndexFile(path) != null) {
+                        return path;
                     } else {
                         log.debug("Try next year lower ...");
                     }
@@ -168,7 +187,7 @@ public class DateIndexerSearcher {
      * Get youngest (most recent) revision of year, whereas the algorithm assumes that the order of months is ascending 01, 02, ..., 12
      * @param yearDir Directory of year containing months
      */
-    private Revision getYoungestRevisionOfYear(File yearDir) throws Exception {
+    private String getYoungestRevisionOfYear(File yearDir) throws Exception {
         String[] months = sortAlphabeticallyAscending(yearDir.list());
         for (int k = months.length - 1; k >= 0; k--) {
             try {
@@ -192,7 +211,7 @@ public class DateIndexerSearcher {
      * Get youngest revision of month, whereas the algorithm assumes that the order of days is ascending 01, 02, ..., 31
      * @param monthDir Directory of month containing days
      */
-    private Revision getYoungestRevisionOfMonth(File monthDir) throws Exception {
+    private String getYoungestRevisionOfMonth(File monthDir) throws Exception {
         String[] days = sortAlphabeticallyAscending(monthDir.list());
         for (int k = days.length - 1; k >= 0; k--) {
             try {
@@ -215,7 +234,7 @@ public class DateIndexerSearcher {
      * Get youngest revision of day, whereas the algorithm assumes that the order of hours is ascending 00, 01, ..., 23
      * @param dayDir Directory of day containing hours
      */
-    private Revision getYoungestRevisionOfDay(File dayDir) throws Exception {
+    private String getYoungestRevisionOfDay(File dayDir) throws Exception {
         String[] hours = sortAlphabeticallyAscending(dayDir.list());
         for (int k = hours.length - 1; k >= 0; k--) {
             try {
@@ -238,7 +257,7 @@ public class DateIndexerSearcher {
      * Get youngest revision of hour, whereas the algorithm assumes that the order of minutes is ascending 00, 01, ..., 59
      * @param hourDir Directory of hour containing minutes
      */
-    private Revision getYoungestRevisionOfHour(File hourDir) throws Exception {
+    private String getYoungestRevisionOfHour(File hourDir) throws Exception {
         String[] minutes = sortAlphabeticallyAscending(hourDir.list());
         for (int k = minutes.length - 1; k >= 0; k--) {
             try {
@@ -261,7 +280,7 @@ public class DateIndexerSearcher {
      * Get youngest revision of minute, whereas the algorithm assumes that the order of seconds is ascending 00, 01, ..., 59
      * @param minuteDir Directory of minute containing seconds
      */
-    private Revision getYoungestRevisionOfMinute(File minuteDir) throws Exception {
+    private String getYoungestRevisionOfMinute(File minuteDir) throws Exception {
         String[] seconds = sortAlphabeticallyAscending(minuteDir.list());
         for (int k = seconds.length - 1; k >= 0; k--) {
             try {
@@ -284,7 +303,7 @@ public class DateIndexerSearcher {
      * Get youngest revision of second, whereas the algorithm assumes that the order of milliseconds is ascending 0, 1, ..., 999
      * @param secondDir Directory of second containing milliseconds 
      */
-    private Revision getYoungestRevisionOfSecond(File secondDir) throws Exception {
+    private String getYoungestRevisionOfSecond(File secondDir) throws Exception {
         String[] millis = sortAlphabeticallyAscending(secondDir.list());
         for (int k = millis.length - 1; k >= 0; k--) {
             try {
@@ -294,10 +313,13 @@ public class DateIndexerSearcher {
 
                     String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
                     log.debug("ID File: " + path);
-                    BufferedReader br = new BufferedReader(new FileReader(new File(path)));
-                    String revisionName = br.readLine();
-                    br.close();
-                    return node.getRevision(revisionName);
+
+                    if (new File(path).isFile()) {
+                        return path;
+                    } else {
+                        log.warn("No such index file: " + path + " (Probably has been deleted by accident, please delete the millisec directory to clean this up)");
+                        return null;
+                    }
                 } else {
                     log.warn("Does not seem to be a millisecond '" + milli + "' and hence will be ignored.");
                 }
@@ -312,7 +334,7 @@ public class DateIndexerSearcher {
     /**
      * Get revision by month
      */
-    private Revision getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
+    private String getRevisionByMonth(File yearDir, Calendar cal) throws Exception {
         String[] months = sortAlphabeticallyAscending(yearDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 12
         for (int k = months.length - 1; k >= 0; k--) {
             if(log.isDebugEnabled()) log.debug("Month: " + months[k] + " (" + cal + ")");
@@ -324,9 +346,9 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfMonth(new File(yearDir, months[k]));
                 } else if (month == cal.get(Calendar.MONTH) + 1) {
                     log.debug("Month '" + month + "' which matched is equals, hence start comparing within this particular month.");
-                    Revision revision = getRevisionByDay(new File(yearDir, months[k]), cal);
-                    if (revision != null) {
-                        return revision;
+                    String path = getRevisionByDay(new File(yearDir, months[k]), cal);
+                    if (getRevisionFromIndexFile(path) != null) {
+                        return path;
                     } else {
                         log.debug("Try next month lower ...");
                     }
@@ -343,7 +365,7 @@ public class DateIndexerSearcher {
     /**
      * Get revision by day
      */
-    private Revision getRevisionByDay(File monthDir, Calendar cal) throws Exception {
+    private String getRevisionByDay(File monthDir, Calendar cal) throws Exception {
         String[] days = sortAlphabeticallyAscending(monthDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, ..., 31
         for (int k = days.length - 1; k >= 0; k--) {
             log.debug("Day: " + days[k]);
@@ -355,9 +377,9 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfDay(new File(monthDir, days[k]));
                 } else if (day == cal.get(Calendar.DAY_OF_MONTH)) {
                     log.debug("Day '" + day + "' which matched is equals, hence start comparing within this particular day.");
-                    Revision revision = getRevisionByHour(new File(monthDir, days[k]), cal);
-                    if (revision != null) {
-                        return revision;
+                    String path = getRevisionByHour(new File(monthDir, days[k]), cal);
+                    if (getRevisionFromIndexFile(path) != null) {
+                        return path;
                     } else {
                         log.debug("Try next day lower ...");
                     }
@@ -374,7 +396,7 @@ public class DateIndexerSearcher {
     /**
      * Get revision by hour 
      */
-    private Revision getRevisionByHour(File dayDir, Calendar cal) throws Exception {
+    private String getRevisionByHour(File dayDir, Calendar cal) throws Exception {
         //log.debug("Try to find revision for UTC hour: " + cal.get(Calendar.HOUR_OF_DAY));
         String[] hours = sortAlphabeticallyAscending(dayDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
         for (int k = hours.length - 1; k >= 0; k--) {
@@ -387,9 +409,9 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfHour(new File(dayDir, hours[k]));
                 } else if (hour == cal.get(Calendar.HOUR_OF_DAY)) {
                     log.debug("Hour '" + hour + "' which matched is equals, hence start comparing within this particular hour.");
-                    Revision revision = getRevisionByMinute(new File(dayDir, hours[k]), cal);
-                    if (revision != null) {
-                        return revision;
+                    String path = getRevisionByMinute(new File(dayDir, hours[k]), cal);
+                    if (getRevisionFromIndexFile(path) != null) {
+                        return path;
                     } else {
                         log.debug("Try next hour lower ...");
                     }
@@ -406,7 +428,7 @@ public class DateIndexerSearcher {
     /**
      * Get revision by minute 
      */
-    private Revision getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
+    private String getRevisionByMinute(File hourDir, Calendar cal) throws Exception {
         String[] minutes = sortAlphabeticallyAscending(hourDir.list()); // IMPORTANT: Make sure the order is ascending: 1, 2, 3, ...
         for (int k = minutes.length - 1; k >= 0; k--) {
             log.debug("Minute: " + minutes[k]);
@@ -418,11 +440,16 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfMinute(new File(hourDir, minutes[k]));
                 } else if (minute == cal.get(Calendar.MINUTE)) {
                     log.debug("Minute '" + minute + "' which matched is equals, hence start comparing within this particular minute.");
-                    Revision revision = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
-                    if (revision != null) {
-                        return revision;
-                    } else {
-                        log.debug("Try next minute lower ...");
+                    String path = getRevisionBySecond(new File(hourDir, minutes[k]), cal);
+                    try {
+                        if (getRevisionFromIndexFile(path) != null) {
+                            return path;
+                        } else {
+                            log.debug("Try next minute lower ...");
+                        }
+                    } catch(IndexOutOfSyncException e) {
+                        // TODO: We should rather just check one millisec lower, because we might also ignore other revisions, which are fine
+                        log.warn("There seems to be an index file '" + e.getPath() + "' which is out of sync, whereas we will ignore it and continue with next minute lower...");
                     }
                 } else {
                     log.debug("Try next minute lower ...");
@@ -437,7 +464,7 @@ public class DateIndexerSearcher {
     /**
      * Get revision by second
      */
-    private Revision getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
+    private String getRevisionBySecond(File minuteDir, Calendar cal) throws Exception {
         String[] seconds = sortAlphabeticallyAscending(minuteDir.list()); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 60
         for (int k = seconds.length - 1; k >= 0; k--) {
             log.debug("Second: " + seconds[k]);
@@ -449,9 +476,9 @@ public class DateIndexerSearcher {
                     return getYoungestRevisionOfSecond(new File(minuteDir, seconds[k]));
                 } else if (second == cal.get(Calendar.SECOND)) {
                     log.debug("Second '" + second + "' which matched is equals, hence start comparing within this particular second.");
-                    Revision revision = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
-                    if (revision != null) {
-                        return revision;
+                    String path = getRevisionByMillisecond(new File(minuteDir, seconds[k]), cal);
+                    if (getRevisionFromIndexFile(path) != null) {
+                        return path;
                     } else {
                         log.debug("Try next second lower ...");
                     }
@@ -470,7 +497,7 @@ public class DateIndexerSearcher {
      * @param secondDir TODO
      * @param cal TODO
      */
-    private Revision getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
+    private String getRevisionByMillisecond(File secondDir, Calendar cal) throws Exception {
         String[] millis = sortAlphabeticallyAscending(secondDir.list()); // IMPORTANT: Make sure the order is ascending: 0, 1, 2, 3, ..., 999
         for (int k = millis.length - 1; k >= 0; k--) {
             log.debug("Millisecond: " + millis[k]);
@@ -481,10 +508,13 @@ public class DateIndexerSearcher {
 
                     String path = secondDir.getAbsolutePath() + File.separator + millis[k] + File.separator + DATE_INDEX_ID_FILENAME;
                     log.debug("ID File: " + path);
-                    BufferedReader br = new BufferedReader(new FileReader(new File(path)));
-                    String revisionName = br.readLine();
-                    br.close();
-                    return node.getRevision(revisionName);
+
+                    if (new File(path).isFile()) {
+                        return path;
+                    } else {
+                        log.warn("No such index file: " + path + " (Probably has been deleted by accident, please delete the millisec directory to clean this up)");
+                        return null;
+                    }
                 }
             } catch(NumberFormatException e) {
                 log.warn("Does not seem to be a millisecond: " + millis[k]);
@@ -498,7 +528,6 @@ public class DateIndexerSearcher {
      * @param revisionName Name of revision to be deleted
      */
     public void deleteRevision(String revisionName) throws Exception {
-        log.warn("TODO: Finish implementation!");
         if (!indexExists()) {
             log.warn("No index yet, hence cannot delete revision '" + revisionName + "' from index.");
             return;
@@ -507,12 +536,13 @@ public class DateIndexerSearcher {
         File dateDirF = getRevisionDateDir(revisionName);
         File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
         if (revisionIdFile.isFile()) {
-            log.warn("TODO: Check and delete revision date/ID file: " + revisionIdFile);
-/*
-            PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
-            pw.print(revisionName);
-            pw.close();
-*/
+            String indexedRevisionName = getRevisionName(revisionIdFile.getAbsolutePath());
+            if (indexedRevisionName.equals(revisionName)) {
+                log.warn("Delete revision date/ID file: " + revisionIdFile);
+                revisionIdFile.delete(); // TODO: What about deleting milliseconds directory, etc.?!
+            } else {
+                log.warn("Revision name '" + revisionName + "' is not equals revision name inside index file: " + revisionIdFile);
+            }
         } else {
            log.warn("No such revision date file: " + revisionIdFile);
         }
@@ -604,5 +634,67 @@ public class DateIndexerSearcher {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
         File dateDirF = new File(dateIndexBaseDir, dateDirS);
         return dateDirF;
+    }
+
+    /**
+     * Get revision name from index file
+     * @param path Path of revision name index file
+     */
+    private String getRevisionName(String path) throws Exception {
+        BufferedReader br = new BufferedReader(new FileReader(new File(path)));
+        String revisionName = br.readLine();
+        br.close();
+        return revisionName;
+    }
+
+    /**
+     * Get revision from index file
+     * @param path Absolute path of index file
+     */
+    private Revision getRevisionFromIndexFile(String path) throws Exception, IndexOutOfSyncException {
+        if (path != null) {
+        if (new File(path).isFile()) {
+            String revisionName = getRevisionName(path);
+            if (revisionName != null) {
+                try {
+                    return node.getRevision(revisionName);
+                } catch (NoSuchRevisionException e) {
+                    log.warn("No revision for revision name '" + revisionName + "' of index file: " + path);
+                    throw new IndexOutOfSyncException(path);
+                }
+            } else {
+                log.warn("Index file '" + path + "' does not seem to contain a revision name!");
+                return null;
+            }
+        } else {
+            log.warn("No such index file: " + path);
+            return null;
+        }
+        } else {
+            //log.debug("No path.");
+            return null;
+        }
+    }
+}
+
+/**
+ *
+ */
+class IndexOutOfSyncException extends Exception {
+
+    private String path;
+
+    /**
+     * @param path Path of index file which is out of sync
+     */
+    public IndexOutOfSyncException(String path) {
+        this.path = path;
+    }
+
+    /**
+     * Get path of index file which is out of sync
+     */
+    public String getPath() {
+        return path;
     }
 }
