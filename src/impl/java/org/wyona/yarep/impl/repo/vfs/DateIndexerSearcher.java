@@ -494,6 +494,31 @@ public class DateIndexerSearcher {
     }
 
     /**
+     * Delete revision from date index
+     * @param revisionName Name of revision to be deleted
+     */
+    public void deleteRevision(String revisionName) throws Exception {
+        log.warn("TODO: Finish implementation!");
+        if (!indexExists()) {
+            log.warn("No index yet, hence cannot delete revision '" + revisionName + "' from index.");
+            return;
+        }
+
+        File dateDirF = getRevisionDateDir(revisionName);
+        File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
+        if (revisionIdFile.isFile()) {
+            log.warn("TODO: Check and delete revision date/ID file: " + revisionIdFile);
+/*
+            PrintWriter pw = new PrintWriter(new FileOutputStream(revisionIdFile));
+            pw.print(revisionName);
+            pw.close();
+*/
+        } else {
+           log.warn("No such revision date file: " + revisionIdFile);
+        }
+    }
+
+    /**
      * Add revision to date index
      */
     public void addRevision(String revisionName) throws Exception {
@@ -502,16 +527,7 @@ public class DateIndexerSearcher {
             buildDateIndex();
         }
 
-        Date creationDate = node.getRevision(revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
-        //Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
-        log.debug("Creation date: " + creationDate);
-
-        java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S");
-        df.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID)); // INFO: Write index in UTC
-        String dateDirS = df.format(creationDate);
-        log.debug("Date directory of revision '" + revisionName + "': " + dateDirS);
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        File dateDirF = new File(dateIndexBaseDir, dateDirS);
+        File dateDirF = getRevisionDateDir(revisionName);
         if (!dateDirF.isDirectory()) {
             dateDirF.mkdirs();
             File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
@@ -570,5 +586,23 @@ public class DateIndexerSearcher {
      */
     private String format(Date date) {
         return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/SZ").format(date);
+    }
+
+    /**
+     * Get revision date directory, e.g. '/Users/michaelwechner/my-realm/data-repo/yarep-meta/foo/bar.html.yarep/index_date_utc/2011/11/04/09/28/51/526'
+     * @param revisionName Name of revision
+     */
+    private File getRevisionDateDir(String revisionName) throws Exception {
+        Date creationDate = node.getRevision(revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
+        //Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+        log.debug("Creation date: " + creationDate);
+
+        java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd/HH/mm/ss/S");
+        df.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID)); // INFO: Write index in UTC
+        String dateDirS = df.format(creationDate);
+        log.debug("Date directory of revision '" + revisionName + "': " + dateDirS);
+        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+        File dateDirF = new File(dateIndexBaseDir, dateDirS);
+        return dateDirF;
     }
 }
