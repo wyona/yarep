@@ -540,6 +540,7 @@ public class DateIndexerSearcher {
             if (indexedRevisionName.equals(revisionName)) {
                 log.warn("Delete revision date/ID file: " + revisionIdFile);
                 revisionIdFile.delete(); // TODO: What about deleting milliseconds directory, etc.?!
+                deleteEmptyDirectories(revisionIdFile.getParentFile());
             } else {
                 log.warn("Revision name '" + revisionName + "' is not equals revision name inside index file: " + revisionIdFile);
             }
@@ -674,6 +675,37 @@ public class DateIndexerSearcher {
             //log.debug("No path.");
             return null;
         }
+    }
+
+    /**
+     * Delete empty directories recursively upwards
+     * @param dir Directory which will be deleted if it is empty
+     */
+    private void deleteEmptyDirectories(File dir) {
+        if (dir.isDirectory()) {
+            if (isEmpty(dir)) {
+                File parentDir = dir.getParentFile();
+                dir.delete();
+                deleteEmptyDirectories(parentDir);
+            }
+        } else {
+            log.warn("No such directory: " + dir.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Check whether a directory is empty
+     * @param dir Directory to be checked
+     * @return true if directory is empty and false otherwise
+     */
+    private boolean isEmpty(File dir) {
+        String[] filesAndDirs = dir.list();
+        if (filesAndDirs !=  null && filesAndDirs.length > 0) {
+            log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is NOT empty.");
+            return false;
+        }
+        log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is empty.");
+        return true;
     }
 }
 
