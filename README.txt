@@ -83,8 +83,8 @@
      ------------------
 
      1) Update revision number (subversion.revision) within build.properties
-     2) Set credentials (usernam and password) within local.build.properties
-     3) Run ./build.sh svn-export
-     4) Change directory: build/svn-export-trunk-rREVISION
+     2) Set credentials (username and password) within local.build.properties
+     3) Run ./build.sh git-clone
+     4) Change directory: build/git-clone-master-rREVISION
      4.1) Update build.properties (revision number) and local.build.properties (credentials) accordingly
      5) Run ./build.sh deploy-jars
