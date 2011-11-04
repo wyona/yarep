@@ -214,6 +214,15 @@
     </artifact:deploy>
   </target>
 
+  <target name="git-clone" description="Git clone master branch" depends="init">
+    <echo>Start cloning source from Git, revision: ${subversion.revision}</echo>
+    <exec executable="git">
+      <arg value="clone"/>
+      <arg value="https://github.com/wyona/yarep.git"/>
+      <arg value="${build.dir}/git-clone-master-r${subversion.revision}"/>
+    </exec>
+  </target>
+
   <target name="svn-export" description="Export a particular revision of SVN trunk" depends="init">
     <echo>Start exporting source from SVN, revision: ${subversion.revision}</echo>
     <exec executable="svn">
