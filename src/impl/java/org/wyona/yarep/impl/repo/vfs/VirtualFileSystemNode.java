@@ -11,23 +11,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.index.IndexWriter;
-
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
@@ -39,6 +33,7 @@ import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.UID;
 import org.wyona.yarep.core.attributes.VersionableV1;
+import org.wyona.yarep.core.impl.vfs.SplitPathConfig;
 import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
 
@@ -97,13 +92,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Init node
      */
     protected void init() throws RepositoryException {
-        log.debug("Try to init node: " + this.uuid);
         
         this.contentDir = getRepository().getContentDir();
-        this.contentFile = new File(this.contentDir, getRepository().splitPath(this.uuid));
+        this.contentFile = new File(this.contentDir, SplitPathConfig.splitPathIfRequired(this.uuid, getRepository().getSplitPathConfig()));
         this.backupContentFile = new File(this.contentDir, this.uuid);
         
-        String metauuid = getRepository().splitPath(uuid + META_DIR_SUFFIX);
+        String metauuid = SplitPathConfig.splitPathIfRequired(uuid + META_DIR_SUFFIX, getRepository().getSplitPathConfig());
         if (getRepository().getMetaDir() != null) {
             this.metaDir = new File(getRepository().getMetaDir(), metauuid);
             this.backupMetaDir = new File(getRepository().getMetaDir(), uuid + META_DIR_SUFFIX);
@@ -294,27 +288,173 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
     }
     
-    /**
-     * @see org.wyona.yarep.core.Node#getNodes()
-     */
     public Node[] getNodes() throws RepositoryException {
-        //log.debug("Get nodes from repository: " + getRepository().getClass().getName() + ", " + getRepository().getConfigFile());
-        Path[] childPaths;
-        if (getRepository().isSplitPathEnabled()) {
-            // TODO: Unsplit paths
-            log.warn("TODO: Unsplit paths...");
-            childPaths = getRepository().getMap().getChildren(new Path(this.path));
-        } else {
-            childPaths = getRepository().getMap().getChildren(new Path(this.path));
-        }
-        
-        Node[] childNodes = new Node[childPaths.length];
-        for (int i=0; i<childPaths.length; i++) {
-            childNodes[i] = this.repository.getNode(childPaths[i].toString());
-        }
+        log.debug("+++ Node.getNodes() was called! Node Path = "+getPath());
+        return getNodes(null);
+    }
+
+    public Node[] getNodes(FileFilter fileFilter) throws RepositoryException {
+        Node[] childNodes = new Node[0];
+
+        List<String> listOfPaths = getNodesAsPathStrings(fileFilter);
+
+        if (!listOfPaths.isEmpty()) {
+            log.warn("Node[] getNodes(): Converting all Node paths into Node objects and putting them into an array");
+            childNodes = new Node[listOfPaths.size()];
+            int i = 0;
+            for (String path: listOfPaths) {
+                childNodes[i] = this.repository.getNode(path);
+                i++;
+            }
+            log.warn("Getting all "+childNodes.length+" children nodes: DONE");
+
+        } 
+
         return childNodes;
     }
-    
+
+    public List<String> getNodesAsPathStrings(FileFilter fileFilter) throws RepositoryException {
+        List<String> childPaths = new ArrayList<String>();
+        Path[] nonSplitChildren = null;
+        if (getRepository().isSplitPathEnabled()) {
+            
+            File startingDirectory = new File(contentDir + path);
+            log.debug("startingDirectory= "+startingDirectory);
+            if (!startingDirectory.exists()) {
+                log.debug("No such file or directory: " + startingDirectory);
+                //childPaths = new Path[0];
+                
+            } else if (startingDirectory.isFile()) {
+                log.debug("Can not get children form a file! : " + startingDirectory);
+                //childPaths = new Path[0];
+            } else {
+                // only if the current path belongs to a "include" path for the split paths, we search ALL children, otherwise just the direct children
+                log.debug("Checking whether this path is include: "+path);
+                if (!SplitPathConfig.isIncludePath(path, getRepository().getSplitPathConfig())) {
+                    log.warn("Path is not split: "+path);
+                    nonSplitChildren = getRepository().getMap().getChildren(new Path(path));
+                    
+                } else {
+                    log.warn("+++ Path is split! Path = "+path+" --> Calling getAllFiles()...");
+                    long start = System.currentTimeMillis();
+                    List<File> allChildren = getAllFiles(startingDirectory, fileFilter); // get all children from the location "this.path"
+                    log.warn("+++ getAllFiles() took "+(System.currentTimeMillis()-start)+"ms");
+                    log.warn("+++ Number of children in split path: " + allChildren.size() + " (" + startingDirectory + ")");
+                    List<String> validChildrenPaths = new ArrayList<String>();
+                    String fileSepForRegEx = File.separator;
+                    if (fileSepForRegEx.equals("\\")) {
+                        fileSepForRegEx = "\\\\"; // this is a double backslash, used for the regex later
+                    }
+                    
+                    for (File child: allChildren) {
+                        String childFullPath = child.getAbsolutePath().replaceAll(fileSepForRegEx, "/"); // whatever the file separator was, yarep uses "/"
+                        log.debug("startingDirectory= "+startingDirectory);
+                        log.debug("child = "+child.getAbsolutePath());
+                        if (childFullPath.startsWith(contentDir.getAbsolutePath())) {
+                            String pathAndNode = childFullPath.substring(contentDir.getAbsolutePath().length()); // = starts with this.path, e.g. "/path/node"
+                            log.debug("1. pathAndNode = "+pathAndNode);
+                            String unsplitPathAndNode = SplitPathConfig.unsplitPathIfRequired(pathAndNode, getRepository().getSplitPathConfig());
+                            String unsplitNode = unsplitPathAndNode.substring(path.length()); // we remove the path (prefix) from e.g. "/path/node.xml" -> "/node.xml"
+                            log.debug("2. unsplitNode = "+unsplitNode);
+                            boolean ignore = ((org.wyona.yarep.impl.VFileSystemMapImpl) getRepository().getMap()).ignorePath(unsplitNode);
+                            if (!ignore) {
+                                String newPath = null;
+                                if (path.equals(File.separator)) {
+                                    newPath = unsplitNode;
+                                    if (!newPath.startsWith("/")) {
+                                        newPath = "/" + newPath;
+                                    }
+                                    log.debug("path was File separator. newPath = "+newPath);
+                                    
+                                } else if (path.toString().endsWith(File.separator) || path.toString().endsWith("/")) {
+                                    newPath = path.substring(0,path.length()-1);
+                                    if (!unsplitNode.startsWith("/")) {
+                                        unsplitNode = "/" + unsplitNode;
+                                    }
+                                    newPath = path + unsplitNode;
+                                    log.debug("path ended with a /. newPath = "+newPath.toString());
+                                } else {
+                                    // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System's File System path
+                                    if (!unsplitNode.startsWith("/")) {
+                                        unsplitNode = "/" + unsplitNode;
+                                    }
+                                    newPath = path + unsplitNode;
+                                    log.debug("path does not end with a /. newPath = "+newPath.toString());
+                                }
+                                validChildrenPaths.add(newPath);
+                                log.debug("getNodes('"+path+"'): ADDED: "+unsplitNode);
+                           } else {
+                               log.warn("getNodes('"+path+"'): IGNORED: "+unsplitNode);
+                           }
+                         } else {
+                            log.error("Something is wrong: children are not within parents!");
+                        }
+                    }
+                    log.warn("=== All children found: "+validChildrenPaths.size()+" ===");
+                    //childPaths = validChildrenPaths.toArray(new Path[validChildrenPaths.size()]);
+                    childPaths = validChildrenPaths;
+                } // end if-else: include or not
+                
+            }
+            
+
+        } else {
+            // split path is not enabled
+            nonSplitChildren = getRepository().getMap().getChildren(new Path(this.path));
+        }
+        
+        if (childPaths.isEmpty()) {
+            if (nonSplitChildren != null) {
+                for (Path path: nonSplitChildren) {
+                    childPaths.add(path.toString());
+                }
+            }
+        }
+        return childPaths;
+    }
+
+    /**
+     * 
+     * @param dir directory to get all files from
+     * @param fileFilter you can pass in NULL if you don't want to filter for certain file patterns
+     * @return List of Files (directories are NOT in the list!)
+     */
+    private List<File> getAllFiles(File dir, FileFilter fileFilter) {
+        List<File> result = new ArrayList<File>();
+        if (dir.isDirectory()) {
+            long start = System.currentTimeMillis();
+            File[] filesAndDirsArray = null;
+            if (fileFilter != null) {
+                filesAndDirsArray = dir.listFiles(fileFilter);
+            } else {
+                filesAndDirsArray = dir.listFiles();
+            }
+            // A warning shall be logged if something takes longer than 10 seconds!
+            long delta = System.currentTimeMillis()-start;
+            if (delta > 10000) {
+                log.warn("List created in "+(System.currentTimeMillis()-start)+"ms"+" : "+dir.getAbsolutePath());
+            }
+            
+            start = System.currentTimeMillis();
+            List<File> filesAndDirs = Arrays.asList(filesAndDirsArray);
+            start = System.currentTimeMillis();
+            for (File file : filesAndDirs) {
+                if (file.isFile()) {
+                    result.add(file); // because of the xmlFilter above, only xml files in the list
+                } else {
+                    List<File> deeperList = getAllFiles(file, fileFilter);
+                    result.addAll(deeperList);
+                }
+            }
+            // A warning shall be logged if something takes longer than 10 seconds!
+            delta = System.currentTimeMillis()-start;
+            if (delta > 10000) {
+                log.warn("Looping took "+(System.currentTimeMillis()-start)+"ms"+" : "+dir.getAbsolutePath());
+            }
+        }
+        return result;
+    }
+
     /**
      * @see org.wyona.yarep.core.Node#addNode(java.lang.String, int)
      */
@@ -323,38 +463,19 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         if (getPath().endsWith("/")) {
             newPath = getPath() + name;
         }
-        if (type == NodeType.COLLECTION && !name.endsWith("/")) {
-            newPath = newPath + "/";
-        }
-        log.debug("Adding node: " + newPath);
-
+        log.debug("adding node: " + newPath);
         if (this.repository.existsNode(newPath)) {
             throw new RepositoryException("Node exists already: " + newPath);
         }
-
-        String splittedPath = getRepository().splitPath(newPath);
-        log.debug("Splitted path (if applicable): " + splittedPath);
-        UID uid = getRepository().getMap().create(new Path(splittedPath), type);
-
-        // INFO: The VFileSystemMapImpl already adds the files and directories (see obsolete code below)
-
-        return this.repository.getNode(newPath);
-
-/*
-        // INFO: Create file/directory
+        UID uid = getRepository().getMap().create(new Path(SplitPathConfig.splitPathIfRequired(newPath, getRepository().getSplitPathConfig())), type);
+        // create file:
         File file = new File(this.contentDir, uid.toString());
         try {
             if (type == NodeType.COLLECTION) {
-                boolean created = file.mkdirs();
-                if (!created) {
-                    log.warn("File '" + file + "' seems to exist already!");
-                }
+                file.mkdirs();
             } else if (type == NodeType.RESOURCE) {
-                boolean parentCreated = file.getParentFile().mkdirs();
-                boolean created = file.createNewFile();
-                if (!created) {
-                    log.warn("File '" + file + "' seems to exist already!");
-                }
+                file.getParentFile().mkdirs();
+                file.createNewFile();
             } else {
                 throw new RepositoryException("Unknown node type: " + type);
             }
@@ -362,7 +483,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         } catch (IOException e) {
             throw new RepositoryException("Could not access file " + file, e);
         }
-*/
     }
     
     /**
@@ -638,7 +758,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         if (lm > 0) {
             return lm;
         } else {
-            //log.warn("No last modified set: " + getPath());
             return this.contentFile.lastModified();
         }
     }
@@ -697,13 +816,17 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      *
      */
     public int getType() throws RepositoryException {
+        String maybeSplitPath = SplitPathConfig.splitPathIfRequired(path, getRepository().getSplitPathConfig());
         if (getRepository().getMap().isCollection(new Path(path))) {
             return NodeType.COLLECTION;
         } else if (getRepository().getMap().isResource(new Path(path))) {
             return NodeType.RESOURCE;
+        } else if (getRepository().getMap().isResource(new Path(maybeSplitPath))) {
+            return NodeType.RESOURCE;
         } else {
             return -1;
         }
+        
     }
 
     /**

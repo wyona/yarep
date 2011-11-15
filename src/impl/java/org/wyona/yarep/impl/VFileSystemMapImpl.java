@@ -1,33 +1,37 @@
 package org.wyona.yarep.impl;
 
-import org.apache.avalon.framework.configuration.Configuration;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.log4j.Category;
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.UID;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.FilenameFilter;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.log4j.Logger;
+import org.wyona.yarep.core.impl.vfs.SplitPathConfig;
 
 /**
- * Virtual file system map which is basically a one to one map
+ *
  */
 public class VFileSystemMapImpl implements Map {
 
-    private static Logger log = Logger.getLogger(VFileSystemMapImpl.class);
+    private static Category log = Category.getInstance(VFileSystemMapImpl.class);
 
     protected File pathsDir;
     protected Pattern[] ignorePatterns;
     protected ChildrenFilter childrenFilter = new ChildrenFilter();
+    
+    // Configuration parameters of the <splitpath ...> element
+    private boolean splitPathEnabled = false;
+    private SplitPathConfig splitPathConfig = new SplitPathConfig();
+
 
     /**
      *
@@ -40,6 +44,27 @@ public class VFileSystemMapImpl implements Map {
                 Configuration[] ignoreElements = mapConfig.getChildren("ignore");
                 setIgnorePatterns(ignoreElements);
             }
+            // Read the <splitpath> configuration
+            log.debug("Reading Split Path Configuation");
+            Configuration splitConfig = mapConfig.getChild("splitpath", false);
+            if (splitConfig != null) {
+                splitPathConfig.setSplitparts(Integer.parseInt(splitConfig.getAttribute("depth", "0")));
+                splitPathConfig.setSplitlength(Integer.parseInt(splitConfig.getAttribute("length", "0")));
+                splitPathConfig.setEscapeChar(splitConfig.getAttribute("escape", "-"));
+
+                int numberOfIncludePaths = splitConfig.getChildren("include").length;
+                int i = 0;
+                if (numberOfIncludePaths > 0) {
+                    String[] includepaths = new String[numberOfIncludePaths];
+                    for (Configuration include : splitConfig.getChildren("include")) {
+                        includepaths[i++] = include.getAttribute("path");
+                    }
+                    splitPathConfig.setIncludepaths(includepaths);
+                }
+                log.debug("Split Path Configuration DONE");
+                splitPathEnabled = true;
+            } 
+            
         } catch(Exception e) {
             log.error(e);
             throw new RepositoryException("Could not read map configuration: " 
@@ -65,15 +90,14 @@ public class VFileSystemMapImpl implements Map {
     
     /**
      * Test if path should be ignored
+     * @return true returns true if the path can be ignored
      */
-    protected boolean ignorePath(String path) {
+    public boolean ignorePath(String path) {
         if (ignorePatterns != null) {
             for (int i=0; i<this.ignorePatterns.length; i++) {
                 Matcher matcher = this.ignorePatterns[i].matcher(path); 
                 if (matcher.matches()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(path + " matched ignore pattern " + ignorePatterns[i].pattern());
-                    }
+                    log.debug(path + " matched ignore pattern " + ignorePatterns[i].pattern());
                     return true;
                 }
             }
@@ -88,22 +112,36 @@ public class VFileSystemMapImpl implements Map {
      *
      */
     public boolean isResource(Path path) throws RepositoryException {
-        File file = new File(pathsDir + path.toString());
+        File file = null;
+        if (splitPathEnabled) {
+            String maybeSplitedPath = SplitPathConfig.splitPathIfRequired(path.toString(), this.splitPathConfig);
+            file = new File(pathsDir + maybeSplitedPath);
+        }
+        if (file == null || !file.exists()) {
+            file = new File(pathsDir + path.toString());
+        }
         return file.isFile();
     }
 
     /**
-     * @see org.wyona.yarep.core.Map#exists(Path)
+     *
      */
     public boolean exists(Path path) throws RepositoryException {
-        File file = new File(pathsDir + path.toString());
-        // TODO: Get name of repository for debugging ...
-        //log.debug("File: " + file);
-        return file.exists() && !ignorePath(file.getPath());
+        File file = null;
+        if (splitPathEnabled) {
+            String maybeSplitedPath = SplitPathConfig.splitPathIfRequired(path.toString(), this.splitPathConfig);
+            file = new File(pathsDir + maybeSplitedPath);
+        }
+        if (file == null || !file.exists()) {
+            file = new File(pathsDir + path.toString());
+        }
+        boolean result = file.exists() && !ignorePath(file.getPath());
+        log.debug("file.exists()="+result+": File: "+file.getPath());
+        return result;
     }
 
     /**
-     *
+     * Calling this method has no effect anymore because delete is done in the storage impl!
      */
     public boolean delete(Path path) throws RepositoryException {
         // don't do anything because if we delete the file here, the delete
@@ -117,40 +155,123 @@ public class VFileSystemMapImpl implements Map {
      *
      */
     public boolean isCollection(Path path) throws RepositoryException {
-        File file = new File(pathsDir + path.toString());
+        File file = null;
+        if (splitPathEnabled) {
+            String maybeSplitedPath = SplitPathConfig.splitPathIfRequired(path.toString(), this.splitPathConfig);
+            file = new File(pathsDir + maybeSplitedPath);
+        }
+        if (file == null || !file.exists()) {
+            file = new File(pathsDir + path.toString());
+        }
         return file.isDirectory();
     }
 
     /**
-     * Get children
+     * Get children, the path of the children includes the path of the parent!
      */
     public Path[] getChildren(Path path) throws RepositoryException {
-        File file = new File(pathsDir + path.toString());
-        if (!file.exists()) {
-            log.warn("No such file or directory: " + file);
-            return new Path[0];
-        }
-
-        String[] filenames = file.list(this.childrenFilter);
-
-	// NOTE: This situation should only occur if one is trying to get children for a file than a directory! One might want to consider to test first with isResource() or isCollection().
-        if (filenames == null) {
-            log.warn("No children: " + path + " (" + file + ")");
-            return new Path[0];
-        }
-
-        log.debug("Number of children: " + filenames.length + " (" + file + ")");
-        Path[] children = new Path[filenames.length];
-        for (int i = 0;i < children.length; i++) {
-            if (path.toString().endsWith(File.separator)) {
-                children[i] = new Path(path + filenames[i]);
-            } else {
-                // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System File System path
-                children[i] = new Path(path + "/" + filenames[i]);
+        // Note: path is always NOT splited, because the caller of this method does not know anything about it
+        log.debug("path = "+path.toString());
+        if (splitPathEnabled) {
+            File startingDirectory = new File(pathsDir + path.toString());
+            if (!startingDirectory.exists()) {
+                log.warn("No such file or directory: " + startingDirectory);
+                return new Path[0];
             }
-            log.debug("Child: " + children[i]);
+            if (startingDirectory.isFile()) {
+                log.warn("Can not get children form a file! : " + startingDirectory);
+                return new Path[0];
+            }
+            
+            List<File> allChildren = getAllFiles(startingDirectory);
+            log.debug("Number of children: " + allChildren.size() + " (" + startingDirectory + ")");
+            List<Path> validChildrenPaths = new ArrayList<Path>();
+            String fileSepForRegEx = File.separator;
+            if (fileSepForRegEx.equals("\\")) {
+                fileSepForRegEx = "\\\\"; // this is a double backslash, used for the regex later
+            }
+            
+            for (File child: allChildren) {
+                String unsplitPath = child.getAbsolutePath().replaceAll(fileSepForRegEx, "/"); // whatever the file separator was, yarep uses "/"
+                log.debug("startingDirectory= "+startingDirectory);
+                log.debug("child = "+child.getAbsolutePath());
+                if (unsplitPath.startsWith(startingDirectory.getAbsolutePath())) {
+                    unsplitPath = unsplitPath.substring(startingDirectory.getAbsolutePath().length());
+                    log.debug("1. path to unsplit = "+unsplitPath);
+                    unsplitPath = SplitPathConfig.unsplitPathIfRequired(unsplitPath, splitPathConfig);
+                    log.debug("2. unsplitPath = "+unsplitPath);
+                    Path newPath = null;
+                    if (!ignorePath(unsplitPath)) {
+                        if (path.toString().endsWith(File.separator)) {
+                            newPath = new Path(path + unsplitPath);
+                            log.debug("3a. Added "+newPath.toString());
+                        } else {
+                            // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System's File System path
+                            newPath = new Path(path + "/" + unsplitPath);
+                            log.debug("3b. Added "+newPath.toString());
+                        }
+                        validChildrenPaths.add(newPath);
+                   } else {
+                       log.debug("ignored: "+child.getAbsolutePath());
+                   }
+                 } else {
+                    log.error("Something is wrong: children are not within parents!");
+                }
+            }
+            Path[] childrenArray = validChildrenPaths.toArray(new Path[validChildrenPaths.size()]);
+            return childrenArray;
+            
+        } else {
+            File file = new File(pathsDir + path.toString());
+            if (!file.exists()) {
+                log.warn("No such file or directory: " + file);
+                return new Path[0];
+            }
+
+            String[] filenames = file.list(this.childrenFilter);
+
+        // NOTE: This situation should only occur if one is trying to get children for a file than a directory! One might want to consider to test first with isResource() or isCollection().
+            if (filenames == null) {
+                log.warn("No children: " + path + " (" + file + ")");
+                return new Path[0];
+            }
+
+            log.debug("Number of children: " + filenames.length + " (" + file + ")");
+            Path[] children = new Path[filenames.length];
+            for (int i = 0;i < children.length; i++) {
+                if (path.toString().endsWith(File.separator)) {
+                    children[i] = new Path(path + filenames[i]);
+                } else {
+                    // NOTE: Do not use File.separator here, because it's the repository path and not the Operating System File System path
+                    children[i] = new Path(path + "/" + filenames[i]);
+                }
+                log.debug("Child: " + children[i]);
+            }
+            return children;
+            
         }
-        return children;
+    }
+    
+    /**
+     * 
+     * @param dir
+     * @return List of Files (directories are NOT in the list!)
+     */
+    private List<File> getAllFiles(File dir) {
+        List<File> result = new ArrayList<File>();
+        if (dir.isDirectory()) {
+            File[] filesAndDirsArray = dir.listFiles();
+            List<File> filesAndDirs = Arrays.asList(filesAndDirsArray);
+            for (File file : filesAndDirs) {
+                if (file.isFile()) {
+                    result.add(file);
+                } else {
+                    List<File> deeperList = getAllFiles(file);
+                    result.addAll(deeperList);
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -162,36 +283,51 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     * Create UID and corresponding map entries
+     * Create UID:
      */
     public synchronized UID create(Path path, int type) throws RepositoryException {
+        log.debug("pathsDir = "+pathsDir.getAbsolutePath());
+        log.debug("path = "+path);
+        log.debug("path parent = "+path.getParent());
         // TODO: Check if leading slash should be removed ...
-
-        File parent = new File(pathsDir + File.separator + path.getParent().toString());
+        File parent = new File(pathsDir + File.separator + path.getParent().toString()); // e.g. access-control/users
         if (!parent.exists()) {
-            log.info("Parent directories will be created: " + parent);
+            log.warn("Directory will be created: " + parent);
             parent.mkdirs();
         }
-
         if (type == org.wyona.yarep.core.NodeType.COLLECTION) {
-            File dir = new File(parent, path.getName());
-            boolean created = dir.mkdir();
-            if (created) {
-                log.info("Collection has been created: " + dir.getAbsolutePath());
-            } else {
-                log.warn("Collection has NOT been created: " + dir.getAbsolutePath());
-            }
+            new File(parent, path.getName()).mkdir();
         } else {
             try {
-                File file = new File(parent, path.getName());
-                boolean created = file.createNewFile();
-                if(!created) {
-                    log.warn("File has NOT been created: " + file);
+                if (splitPathEnabled) {
+                    // splitted e.g: ab/cd/4.xml
+                    String maybeSplitedPath = SplitPathConfig.splitPathIfRequired(path.toString(), this.splitPathConfig);
+                    log.debug("maybeSplited = "+maybeSplitedPath);
+                    String newParent = pathsDir.getAbsolutePath();
+                    if (maybeSplitedPath.contains("/")) {
+                        // newparent for splitted above would be pathsDir/ab/cd
+                        newParent = newParent + maybeSplitedPath.substring(0,maybeSplitedPath.lastIndexOf("/")+1);
+                    }
+                    String newFileName = new File(maybeSplitedPath).getName();
+                    log.debug("new parent = "+newParent);
+                    log.debug("new file name = "+newFileName);
+                    File newFilePath = new File(newParent , newFileName);
+                    new File(newParent).mkdirs();
+                    log.debug("new parent exists: "+new File(newParent).exists());
+                    boolean created = newFilePath.createNewFile();
+                    log.debug("new file exists: "+newFilePath.exists());
+                    log.debug("new file is directory: "+newFilePath.isDirectory());
+                    if (!created)  {
+                        log.debug("Maybe file has not been created: " + newFilePath.getAbsolutePath()); // On Mac OSX 10.6, the file gets created even in this case
+                    }
+                    
                 } else {
-                    log.info("Resource has been created: " + file.getAbsolutePath());
+                    if(!new File(parent, path.getName()).createNewFile()) log.debug("File has not been created: " + new File(parent, path.getName()));
                 }
+
+                
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.error("Could not create new file!! Exception: "+e.getMessage(), e);
             }
         }
         
@@ -199,7 +335,7 @@ public class VFileSystemMapImpl implements Map {
     }
 
     /**
-     *
+     * An exception gets thrown if you call this method because symbolic links are not implemented for virtual file systems!
      */
     public void addSymbolicLink(Path path, UID uid) throws RepositoryException {
         throw new RepositoryException("Symbolic links not implemented for virtual file system!");
@@ -212,6 +348,9 @@ public class VFileSystemMapImpl implements Map {
         public ChildrenFilter() {
         }
         
+        /**
+         * @param dir is ignored in this implementation
+         */
         public boolean accept(File dir, String name) {
             
             if (VFileSystemMapImpl.this.ignorePath(name)) {
@@ -236,5 +375,21 @@ public class VFileSystemMapImpl implements Map {
         } else {
             ignorePatterns = null; // see ignorePath(String)
         }
+    }
+
+    public SplitPathConfig getSplitPathConfig() {
+        return splitPathConfig;
+    }
+
+    public void setSplitPathConfig(SplitPathConfig splitPathConfig) {
+        this.splitPathConfig = splitPathConfig;
+    }
+
+    public boolean isSplitPathEnabled() {
+        return splitPathEnabled;
+    }
+
+    public void setSplitPathEnabled(boolean splitPathEnabled) {
+        this.splitPathEnabled = splitPathEnabled;
     }
 }

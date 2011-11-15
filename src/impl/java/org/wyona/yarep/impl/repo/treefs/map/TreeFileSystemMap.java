@@ -130,7 +130,7 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
     /**
      * Test if path should be ignored
      */
-    protected boolean ignorePath(String path) {
+    public boolean ignorePath(String path) {
         if (ignorePatterns != null) {
             for (int i=0; i<this.ignorePatterns.length; i++) {
                 Matcher matcher = this.ignorePatterns[i].matcher(path); 
