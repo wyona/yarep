@@ -447,8 +447,15 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#move(java.lang.String, java.lang.String)
      */
     public void move(String srcPath, String destPath) throws RepositoryException {
-        // TODO: not implemented yet
-        log.warn("Not implemented yet.");
+        File srcFile = new File(contentDir, srcPath);
+        File destFile = new File(contentDir, destPath);
+        log.debug("Move source '" + srcFile.getAbsolutePath() + "' to destination '" + destFile.getAbsolutePath() + "'.");
+        boolean moveSucceeded = srcFile.renameTo(destFile);
+        if (!moveSucceeded) {
+            log.error("Move source '" + srcFile.getAbsolutePath() + "' to destination '" + destFile.getAbsolutePath() + "' failed!");
+        } else {
+            log.info("Move source '" + srcFile.getAbsolutePath() + "' to destination '" + destFile.getAbsolutePath() + "' succeeded");
+        }
     }
     
     // implementation specific methods:
