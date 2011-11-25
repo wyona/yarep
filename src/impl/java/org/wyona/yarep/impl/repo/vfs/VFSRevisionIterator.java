@@ -19,15 +19,19 @@ public class VFSRevisionIterator implements java.util.Iterator {
 
     private DateIndexerSearcher dis;
     private Date pointInTime;
+    private boolean reverse;
 
     /**
      * @param node Yarep node which is supposed to have revisions
      * @param metaDir Meta directory containing revisions index
      * @param date Point in time (from where iteration shall start or stop)
+     * @param reverse TODO
      */
     public VFSRevisionIterator(Node node, File metaDir, Date date, boolean reverse) throws Exception {
         this.pointInTime = date;
         this.dis = new DateIndexerSearcher(node, metaDir);
+        this.reverse = reverse;
+        log.warn("Reverse order feature not implemented yet!");
         if (!dis.indexExists()) {
             dis.buildDateIndex();
         }
