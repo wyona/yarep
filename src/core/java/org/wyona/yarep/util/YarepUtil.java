@@ -140,6 +140,7 @@ public class YarepUtil {
      * @param repo Repository within the node shall be created
      * @param path Node path
      * @param nodeType Type of node (e.g. resource or collection)
+     * @return node if it has been created successfully or if it already exists
      */
     public static Node addNodes(Repository repo, String path, int nodeType) throws RepositoryException {
         if (repo.existsNode(path)) {
