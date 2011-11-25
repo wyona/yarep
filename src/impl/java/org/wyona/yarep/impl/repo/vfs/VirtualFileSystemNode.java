@@ -486,22 +486,36 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     public Revision checkin() throws NodeStateException, RepositoryException {
         return checkin("");
     }
-    
+
     /**
      * @see org.wyona.yarep.core.Node#checkin()
      */
     public Revision checkin(String comment) throws NodeStateException, RepositoryException {
+        return checkin(comment, System.currentTimeMillis());
+    }
+
+    /**
+     * Checkin node and create a revision for a particular time, which can be used to manipulate the history of a node
+     * @param time A particular revision time
+     */
+    public Revision checkin(String comment, long time) throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
             throw new NodeStateException("Node " + path + " is not checked out.");
         }
-        Revision revision = createRevision(comment);
+
+        log.warn("Create/manipulate a revision '" + getPath() + "' for a particular time: " + new Date(time) + " (Epoch time value: " + time + ")");
+        Revision revision = createRevision(comment, time);
         
         setProperty(PROPERTY_IS_CHECKED_OUT, false);
-        setProperty(PROPERTY_CHECKIN_DATE, new Date());
+        setProperty(PROPERTY_CHECKIN_DATE, new Date(time));
+        setProperty(PROPERTY_LAST_MODIFIED, time); // INFO: Overwrite createMetaFile()
         
         return revision;
     }
     
+    /**
+     * @see org.wyona.yarep.core.Node#cancelCheckout()
+     */
     public void cancelCheckout() throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
             throw new NodeStateException("Node " + path + " is not checked out.");
@@ -523,26 +537,36 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         
         setProperty(PROPERTY_IS_CHECKED_OUT, true);
         setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
-        setProperty(PROPERTY_CHECKOUT_DATE, new Date());
+        setProperty(PROPERTY_CHECKOUT_DATE, new Date()); // TODO: One should be able to overwrite the checkout date similar to as the checkout method is able to do so.
 
         /*if (getRevisions().length == 0) {
             // create a backup revision
             createRevision("initial revision");
         }*/
     }
-    
+
     /**
      * Create revision of this node
      * @param comment Comment re this new revision
      */
     protected Revision createRevision(String comment) throws RepositoryException {
+        return createRevision(comment, System.currentTimeMillis());
+    }
+
+    /**
+     * Create revision of this node for a particular time, TODO
+     * @param comment Comment re this new revision
+     * @param revisionTime A particular time
+     */
+    private Revision createRevision(String comment, long revisionTime) throws RepositoryException {
         if (!areRevisionsRead) {
             readRevisions();
         }
         try {
-            String revisionName = String.valueOf(System.currentTimeMillis());
+            String revisionName = String.valueOf(revisionTime);
 
             File destContentFile = getRevisionContentFile(revisionName);
+            log.debug("Create revision '" + destContentFile + "' for a particular time: " + new Date(revisionTime));
             FileUtils.copyFile(this.contentFile, destContentFile);
         
             File destMetaFile = getRevisionMetaFile(revisionName);
@@ -550,7 +574,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         
             Revision revision = new VirtualFileSystemRevision(this, revisionName);
             revision.setProperty(PROPERTY_IS_CHECKED_OUT, false);
-            ((VirtualFileSystemRevision)revision).setCreationDate(new Date());
+            ((VirtualFileSystemRevision)revision).setCreationDate(new Date(revisionTime));
             ((VirtualFileSystemRevision)revision).setCreator(getCheckoutUserID());
             ((VirtualFileSystemRevision)revision).setComment(comment);
             this.revisions.put(revisionName, revision);
@@ -856,6 +880,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Get revision content file
+     * @param revisionName Name/ID of revision
      */
     public File getRevisionContentFile(String revisionName) {
         File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
