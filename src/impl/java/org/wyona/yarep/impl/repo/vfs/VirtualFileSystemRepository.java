@@ -334,12 +334,15 @@ public class VirtualFileSystemRepository implements Repository {
         }
     }
 
+    /**
+     * @see org.wyona.yarep.core.Repository#getRevisions(Path)
+     */
     public String[] getRevisions(Path path) throws RepositoryException {
         Node node = getNode(path.toString());
         Revision[] revisions = node.getRevisions();
         String[] revisionNames = new String[revisions.length];
         for (int i=0; i<revisions.length; i++) {
-            revisionNames[i] = revisions[i].getName();
+            revisionNames[i] = revisions[i].getRevisionName();
         }
         return revisionNames;
     }
