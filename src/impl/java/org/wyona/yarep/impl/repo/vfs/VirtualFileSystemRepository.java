@@ -580,20 +580,20 @@ public class VirtualFileSystemRepository implements Repository {
 
             log.info("Import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
 
-            // Copy revisions of node
-            Revision[] revisions = srcNode.getRevisions();
-            for (int i = 0; i < revisions.length; i++) {
-                log.info("Copy revision: " + revisions[i].getRevisionName());
-                File revisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(revisions[i].getRevisionName());
-                if (!new File(revisionContentFile.getParent()).exists())
-                    new File(revisionContentFile.getParent()).mkdirs();
-                FileOutputStream out = new FileOutputStream(revisionContentFile);
-                IOUtils.copy(revisions[i].getInputStream(), out);
+            // Copy revisions of source node
+            Revision[] srcRevisions = srcNode.getRevisions();
+            for (int i = 0; i < srcRevisions.length; i++) {
+                log.info("Copy source revision: " + srcRevisions[i].getRevisionName());
+                File destRevisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(srcRevisions[i].getRevisionName());
+                if (!new File(destRevisionContentFile.getParent()).exists())
+                    new File(destRevisionContentFile.getParent()).mkdirs();
+                FileOutputStream out = new FileOutputStream(destRevisionContentFile);
+                IOUtils.copy(srcRevisions[i].getInputStream(), out);
                 out.close();
 
                 // Copy meta/properties of revision
-                File destRevisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(revisions[i].getRevisionName());
-                copyProperties(revisions[i], destRevisionMetaFile);
+                File destRevisionMetaFile = ((VirtualFileSystemNode) destNode).getRevisionMetaFile(srcRevisions[i].getRevisionName());
+                copyProperties(srcRevisions[i], destRevisionMetaFile);
             }
 
             // Copy meta/properties of node
