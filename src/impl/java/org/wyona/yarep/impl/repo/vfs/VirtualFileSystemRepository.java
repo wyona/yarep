@@ -101,6 +101,11 @@ public class VirtualFileSystemRepository implements Repository {
 
     private static Logger log = Logger.getLogger(VirtualFileSystemRepository.class);
 
+    private static final String DEFAULT_INDEXER_CLASS = "org.wyona.yarep.impl.search.lucene.LuceneIndexerV2";
+    //private static final String DEFAULT_INDEXER_CLASS = "org.wyona.yarep.impl.search.lucene.LuceneIndexer";
+
+    private static final String DEFAULT_SEARCHER_CLASS = "org.wyona.yarep.impl.search.lucene.LuceneSearcher";
+
     protected String id;
     protected File configFile;
     protected String name;
@@ -196,11 +201,13 @@ public class VirtualFileSystemRepository implements Repository {
                 }
             }
             
-            String indexerClass = "org.wyona.yarep.impl.search.lucene.LuceneIndexer"; // Default
-            String searcherClass = "org.wyona.yarep.impl.search.lucene.LuceneSearcher"; // Default
+            String indexerClass = DEFAULT_INDEXER_CLASS;
+            String searcherClass = DEFAULT_SEARCHER_CLASS;
             if (searchConfig != null) {
-                indexerClass = searchConfig.getAttribute("indexer-class","org.wyona.yarep.impl.search.lucene.LuceneIndexer");
-                searcherClass = searchConfig.getAttribute("searcher-class","org.wyona.yarep.impl.search.lucene.LuceneSearcher");
+                indexerClass = searchConfig.getAttribute("indexer-class", DEFAULT_INDEXER_CLASS);
+                searcherClass = searchConfig.getAttribute("searcher-class", DEFAULT_SEARCHER_CLASS);
+            } else {
+                log.info("No custom search configuration set, hence use default indexer '" + DEFAULT_INDEXER_CLASS + "' and default searcher '" + DEFAULT_SEARCHER_CLASS + "'.");
             }
 
             indexer = (Indexer) Class.forName(indexerClass).newInstance();
