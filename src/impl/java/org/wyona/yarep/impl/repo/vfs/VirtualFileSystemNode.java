@@ -491,19 +491,29 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#checkin()
      */
     public Revision checkin(String comment) throws NodeStateException, RepositoryException {
-        return checkin(comment, System.currentTimeMillis());
+        return doCheckin(comment, System.currentTimeMillis());
     }
 
     /**
-     * Checkin node and create a revision for a particular time, which can be used to manipulate the history of a node
+     * Checkin node and create a revision for a particular time, which can be used to manipulate the history of a node. This method is not part of the Yarep API, but one needs to cast this class in order to use it.
      * @param time A particular revision time
+     * @return revision which has been created or manipulated
      */
     public Revision checkin(String comment, long time) throws NodeStateException, RepositoryException {
+        log.warn("Create/manipulate a revision '" + getPath() + "' for a particular time: " + new Date(time) + " (Epoch time value: " + time + ")");
+        return doCheckin(comment, time);
+    }
+
+    /**
+     * Checkin node and create a revision for a particular time
+     * @param time A particular revision time
+     * @return revision which has been created
+     */
+    private Revision doCheckin(String comment, long time) throws NodeStateException, RepositoryException {
         if (!isCheckedOut()) {
             throw new NodeStateException("Node " + path + " is not checked out.");
         }
 
-        log.warn("Create/manipulate a revision '" + getPath() + "' for a particular time: " + new Date(time) + " (Epoch time value: " + time + ")");
         Revision revision = createRevision(comment, time);
         
         setProperty(PROPERTY_IS_CHECKED_OUT, false);
@@ -685,17 +695,25 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#delete()
      */
     public void delete() throws RepositoryException {
-        deleteRec(this);
+        deleteRec();
     }
 
     /**
-     * Delete node recursively
+     * Delete node and its children recursively
      */
-    protected void deleteRec(Node node) throws RepositoryException {
-        Node[] children = node.getNodes();
-        for (int i=0; i < children.length; i++) {
-            deleteRec(children[i]);
-        }
+    protected void deleteRec() throws RepositoryException {
+
+        Node[] children = getNodes();
+        if (children.length > 0) {
+            log.debug("Try to delete '" + children.length + "' children of node: " + getPath());
+            for (int i=0; i < children.length; i++) {
+                children[i].delete();
+            }
+        } else {
+            log.debug("Node '" + getPath() + "' does not seem to have any children.");
+        } 
+
+        Property[] props = getProperties();
         //boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
             if (getRepository().getMap().isCollection(new Path(getPath()))) {
@@ -705,13 +723,23 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
             FileUtils.deleteDirectory(this.metaDir);
         } catch (IOException e) {
-            throw new RepositoryException("Could not delete node: " + node.getPath() + ": " + 
-                    e.toString(), e);
+            throw new RepositoryException("Could not delete node: " + getPath() + ": " + e.toString(), e);
         }
 
         // INFO: Delete node from fulltext search index
         try {
+            // INFO: Remove from fulltext index
             getRepository().getIndexer().removeFromIndex(this);
+
+            // INFO: Remove from properties index
+            if (getRepository().isAutoPropertyIndexingEnabled()) {
+                for (int i = 0; i < props.length; i++) {
+                    log.debug("Remove property '" + props[i].getName() + "' of node: " + getPath() + " from index.");
+                    getRepository().getIndexer().removeFromIndex(this, props[i]);
+                }
+            } else {
+                log.warn("Auto indexing of properties is disabled, hence cannot delete properties of node '" + getPath() + "' from properties index.");
+            }
         } catch(Exception e) {
             log.error(e, e);
         }
