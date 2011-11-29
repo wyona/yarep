@@ -113,25 +113,38 @@ public class LuceneIndexerV2 implements Indexer {
             throw new SearchException(e.toString());
         }
     }
-    
+
     /**
      * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node)
      */
-    public void removeFromIndex(Node node) {
-        IndexWriter indexWriter = null;
-        VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
-        String nodePath = "Could not get Path of node.";
+    public void removeFromIndex(Node node) throws SearchException {
         try {
-            nodePath = node.getPath();
+            removeFromIndex(node.getPath());
+        } catch(org.wyona.yarep.core.RepositoryException e) {
+            // TODO: Check whether it makes sense to throw a SearchException... (WARN: Backwards compatibility!)
+            log.error(e, e);
+        }
+    }
+
+    /**
+     * Remove entry with a specific path from search index
+     * @param path Path of entry
+     */
+    void removeFromIndex(String path) {
+        log.debug("Trying to remove entry '" + path + "' from index...");
+        IndexWriter indexWriter = null;
+        try {
             indexWriter = createFulltextIndexWriter();
-            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", nodePath));
+            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", path));
             indexWriter.close();
         } catch(Exception e) {
-            log.warn("Could not init IndexWriter, because of existing lock, hence content of node '" + nodePath + "' will not be deleted from the index!");
+            log.warn("Probably IndexWriter could not be initialized, because of existing lock, hence node with path '" + path + "' will not be deleted from the index! Exception message: " + e.getMessage());
+            //log.error(e, e);
             try {
                 indexWriter.close();
             } catch (Exception e2) {
-                log.warn("Could not close indexWriter. Exception: " + e2.getMessage());
+                log.warn("Could not close indexWriter. Exception message: " + e2.getMessage());
+                //log.error(e2, e2);
             }
         }
     }
@@ -248,7 +261,27 @@ public class LuceneIndexerV2 implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node, Property)
      */
     public void removeFromIndex(Node node, Property property) throws SearchException {
-        log.warn("TODO: Not implemented yet.");
+        try {
+            String path = node.getPath();
+            log.debug("Trying to remove property '" + property.getName() + "' of node '" + path + "' from properties index...");
+            IndexWriter indexWriter = null;
+            try {
+                indexWriter = createPropertiesIndexWriter();
+                indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", path)); // TODO: Actually only documents with _PATH = path and containing a field with the property name should be deleted!
+                indexWriter.close();
+            } catch(Exception e) {
+                log.warn("Probably IndexWriter could not be initialized, because of existing lock, hence node with path '" + path + "' will not be deleted from the index! Exception message: " + e.getMessage());
+                //log.error(e, e);
+                try {
+                    indexWriter.close();
+                } catch (Exception e2) {
+                    log.warn("Could not close indexWriter. Exception message: " + e2.getMessage());
+                    //log.error(e2, e2);
+                }
+            }
+        } catch(org.wyona.yarep.core.RepositoryException e) {
+            log.error(e, e);
+        }
     }
 
     /**
@@ -274,16 +307,16 @@ public class LuceneIndexerV2 implements Indexer {
             } else if (hits.scoreDocs.length > 1) {
                 log.warn("Given path '" + path + "' matches more than one document in the index!");
             } else {
-                log.warn("DEBUG: Retrieve old document and merge with new document: " + path);
+                log.debug("Retrieve old document and merge with new document: " + path);
                 oldDoc = indexSearcher.doc(hits.scoreDocs[0].doc);
                 java.util.List<Field> updatedFields = document.getFields();
                 for (Field field : updatedFields) {
                     if (oldDoc.getField(field.name()) != null) {
-                        log.warn("DEBUG: Update existing field: " + field);
+                        log.debug("Update existing field: " + field);
                         oldDoc.removeFields(field.name());
                         oldDoc.add(field);
                     } else {
-                        log.warn("DEBUG: Add new field: " + field);
+                        log.debug("Add new field: " + field);
                         oldDoc.add(field);
                     }
 
@@ -360,7 +393,7 @@ public class LuceneIndexerV2 implements Indexer {
                             BodyContentHandler textHandler = new BodyContentHandler();
                             parser.parse(node.getInputStream(), textHandler, tikaMetaData);
                             fullText = textHandler.toString();
-                            log.warn("DEBUG: Body: " + fullText);
+                            log.debug("Body: " + fullText);
 */
 
                 log.debug("Remove all html tags: " + fullText);
