@@ -3,7 +3,7 @@ package org.wyona.yarep.impl.search.lucene;
 import java.io.File;
 
 import org.apache.avalon.framework.configuration.Configuration;
-import org.apache.log4j.Category;
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -19,7 +19,7 @@ import org.wyona.yarep.core.search.SearchException;
  */
 public class LuceneConfig {
     
-    private static Category log = Category.getInstance(LuceneConfig.class);
+    private static Logger log = Logger.getLogger(LuceneConfig.class);
     
     private File fulltextSearchIndexFile = null;
     private File propertiesSearchIndexFile = null;
@@ -28,7 +28,7 @@ public class LuceneConfig {
     private String FULLTEXT_INDEX_DIR = "fulltext";
     private String PROPERTIES_INDEX_DIR = "properties";
     private TikaConfig tikaConfig;
-    private int writeLockTimeout = 0;
+    private long writeLockTimeout = 0;
     private Repository repo;
 
     private boolean indexRevisions = false;
@@ -45,6 +45,8 @@ public class LuceneConfig {
 
     /**
      * Lucene specific configuration
+     * @param searchConfig
+     * @param configParent
      */
     void configure(Configuration searchConfig, String configParent) throws SearchException {
         try {
@@ -114,8 +116,13 @@ public class LuceneConfig {
                 
                 // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
                 //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
-                writeLockTimeout = 14;//luceneConfig.getChild("write-lock-timeout").getAttributeAsInteger("ms");
 
+                if (luceneConfig.getChild("write-lock-timeout", false) != null) {
+                    writeLockTimeout = luceneConfig.getChild("write-lock-timeout").getAttributeAsLong("ms");
+                } else {
+                    writeLockTimeout = 1001; // INFO: 1001 milliseconds
+                    log.warn("No 'write.lock' timeout configured, hence use hard-coded value: " + writeLockTimeout);
+                }
             } else {
                 log.warn("No search index dir (<search-index src=\"...\"/>) configured within: " + configParent);
             }
@@ -133,7 +140,7 @@ public class LuceneConfig {
      * @param configParent
      */
     public void deprecatedConfigure(Configuration searchIndexConfig, String configParent) throws SearchException {
-        log.warn("This config schema is deprecated (" + repo.getConfigFile() + ")! Use the new schema described at http://svn.wyona.com/repos/public/yarep/trunk/src/test/repository/new-vfs-example/repository.xml");
+        log.warn("DEPRECATED: This config schema is deprecated (" + repo.getConfigFile() + ")! Use the new schema described at http://svn.wyona.com/repos/public/yarep/trunk/src/test/repository/new-vfs-example/repository.xml");
         try {
             if (searchIndexConfig != null) {
                 File searchIndexSrcFile = new File(searchIndexConfig.getAttribute("src", "index"));
@@ -186,7 +193,9 @@ public class LuceneConfig {
                 
                 // IMPORTANT: This doesn't work within a clustered environment, because the cluster node starting first will lock the index and all other nodes will not be able to startup!
                 //this.propertiesIndexWriter = createIndexWriter(propertiesSearchIndexFile, whitespaceAnalyzer);
-                writeLockTimeout = 14;//searchIndexConfig.getAttribute("write-lock-timeout", 14);
+
+                writeLockTimeout = 1002; //searchIndexConfig.getAttribute("write-lock-timeout", 14);
+                log.warn("The write lock timeout is hardcoded: " + writeLockTimeout);
             } else {
                 log.warn("No search index dir (<search-index src=\"...\"/>) configured.");
             }
@@ -227,11 +236,18 @@ public class LuceneConfig {
     public TikaConfig getTikaConfig() {
         return tikaConfig;
     }
-    
-    public int getWriteLockTimeout() {
+
+    /**
+     * Get write lock timeout
+     */
+    public long getWriteLockTimeout() {
+        //log.debug("Configured timeout: " + writeLockTimeout);
         return writeLockTimeout;
     }
 
+    /**
+     * Get repository which contains the content for which this index has been created
+     */
     public Repository getRepo() {
         return repo;
     }
