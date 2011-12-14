@@ -106,7 +106,8 @@ public class LuceneIndexerV2 implements Indexer {
             try {
                 updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init fulltext IndexWriter (maybe because of existing lock), hence content of node '" + path + "' will not be indexed!");
+                log.warn("Could not init 'fulltext' IndexWriter (maybe because of existing lock, exception message: " + e.getMessage() + "), hence content of node '" + path + "' will not be indexed!");
+                // TODO: log node path into dedicated log message!
             }
         } catch (Exception e) {
             log.error(e, e);
@@ -170,26 +171,31 @@ public class LuceneIndexerV2 implements Indexer {
    
     /**
      * Init an IndexWriter
-     * @param indexDir Directory where the index is located
+     * @param indexDir Directory where the index (segment files) is located
      */
     private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
-       IndexWriter iw = null;
+       IndexWriter.setDefaultWriteLockTimeout(config.getWriteLockTimeout()); // INFO: According to https://issues.apache.org/jira/browse/LUCENE-621 (initiated by http://www.gossamer-threads.com/lists/lucene/java-dev/37421) one can set the write.lock timeout ahead of initializing an IndexWriter
+       log.debug("Configured write.lock timeout: " + IndexWriter.getDefaultWriteLockTimeout() + "ms");
+
        if (indexDir != null) {
            //TODO: if (indexDir.isDirectory()) is probably not needed, try catch (FileNotFoundException e) should be enough
+
+           log.debug("Try to init IndexWriter based on index directory: " + indexDir.getAbsolutePath());
            if (indexDir.isDirectory()) {
+               IndexWriter iw = null;
                try {
                    iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
                } catch (FileNotFoundException e) {
-                   //probably it got an instance of the writer and didn't index anything so it's missing the segemnts files. 
-                   //create a new index  
+                   log.warn("Index directory '" + indexDir.getAbsolutePath() + "' seems to exist, but probably no segment files yet!");
                    iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
                }
+               return iw;
            } else {
-               iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
+               log.error("No such index directory: " + indexDir.getAbsolutePath());
+               return null; // TODO: We might want to try to create an index directory and then init an IndexWriter iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
            }
-           // TODO: iw.setWriteLockTimeout(long ms)
-           //log.debug("Max write.lock timeout: " + iw.getDefaultWriteLockTimeout() + " milliseconds");
-           return iw;
+       } else {
+           log.error("No index directory set!");
        }
        return null;
     }
@@ -234,7 +240,6 @@ public class LuceneIndexerV2 implements Indexer {
 
             // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
             // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
-//
             Property[] properties = node.getProperties();
             for (int i = 0; i < properties.length; i++) {
                 if (!properties[i].getName().equals(property.getName())) {
@@ -243,13 +248,23 @@ public class LuceneIndexerV2 implements Indexer {
                     }
                 }
             }
-//
 
             // INFO: Now add lucene document containing all properties to index
             try {
+
+/* INFO/WARN: The following code is/was a workaround for not having to wait for the timeout (see http://www.gossamer-threads.com/lists/lucene/java-dev/37421), but it seems to remove the write.lock mysteriously by itself!
+                if(!IndexWriter.isLocked(new org.apache.lucene.store.SimpleFSDirectory(config.getPropertiesSearchIndexFile()))) { // INFO: Do not wait for timeout, but rather take action right away...
+                    //updateDocument(getPropertiesIndexSearcher(), createPropertiesIndexWriter(), path, luceneDoc);
+                } else {
+                    log.warn("Index 'properties' is locked, hence properties of node '" + path + "' will not be indexed!");
+                    // TODO: log node path into dedicated log message!
+                }
+*/
+
                 updateDocument(getPropertiesIndexSearcher(), createPropertiesIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
-                log.warn("Could not init properties IndexWriter (maybe because of existing lock), hence properties of node '" + path + "' will not be indexed!");
+                log.warn("Could not init 'properties' IndexWriter (maybe because of existing lock (Timeout: " + IndexWriter.getDefaultWriteLockTimeout() + "ms), exception message: " + e.getMessage() + "), hence properties of node '" + path + "' will not be indexed!");
+                // TODO: log node path into dedicated log message!
             }
         } catch (Exception e) {
             log.error(e, e);
