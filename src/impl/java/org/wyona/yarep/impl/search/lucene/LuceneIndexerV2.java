@@ -155,7 +155,7 @@ public class LuceneIndexerV2 implements Indexer {
      */
    protected IndexWriter createFulltextIndexWriter() throws Exception {
         log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
-        return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer());
+        return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer(), config.getWriteLockTimeout());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.indexWriter;
    }
@@ -164,7 +164,7 @@ public class LuceneIndexerV2 implements Indexer {
     *
     */
    protected IndexWriter createPropertiesIndexWriter() throws Exception {
-       return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer());
+       return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer(), config.getWriteLockTimeout());
        // IMPORTANT: This doesn't work within a clustered environment!
        //return this.propertiesIndexWriter;
    }
@@ -172,9 +172,11 @@ public class LuceneIndexerV2 implements Indexer {
     /**
      * Init an IndexWriter
      * @param indexDir Directory where the index (segment files) is located
+     * @param analyzer TODO
+     * @param timeout write.lock timeout
      */
-    private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
-       IndexWriter.setDefaultWriteLockTimeout(config.getWriteLockTimeout()); // INFO: According to https://issues.apache.org/jira/browse/LUCENE-621 (initiated by http://www.gossamer-threads.com/lists/lucene/java-dev/37421) one can set the write.lock timeout ahead of initializing an IndexWriter
+    static IndexWriter createIndexWriter(File indexDir, Analyzer analyzer, long timeout) throws Exception {
+       IndexWriter.setDefaultWriteLockTimeout(timeout); // INFO: According to https://issues.apache.org/jira/browse/LUCENE-621 (initiated by http://www.gossamer-threads.com/lists/lucene/java-dev/37421) one can set the write.lock timeout ahead of initializing an IndexWriter
        log.debug("Configured write.lock timeout: " + IndexWriter.getDefaultWriteLockTimeout() + "ms");
 
        if (indexDir != null) {
