@@ -174,9 +174,10 @@ public class LuceneSearcher implements Searcher {
 
     /**
      * Get list of paths of of nodes and/or revisions, which do not exist anymore inside repository
+     * @param delete Flag to indicate whether nodes which are missing inside the repository should be deleted from the index
      * @return List of paths of of nodes and/or revisions, which do not exist anymore inside repository
      */
-    public String[] getMissingNodes() throws SearchException {
+    public String[] getMissingNodes(boolean delete) throws SearchException {
         try {
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
             if (searcher != null) {
@@ -184,8 +185,8 @@ public class LuceneSearcher implements Searcher {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.search.MatchAllDocsQuery();
 
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
-                    log.warn("DEBUG: Number of matching documents: " + hits.length());
-                    log.info("Number of matching documents: " + hits.length());
+                    log.warn("DEBUG: Number of documents: " + hits.length());
+                    log.info("Number of documents: " + hits.length());
 
                     List<String> results = new ArrayList<String>();
                     for (int i = 0; i < hits.length(); i++) {
@@ -218,6 +219,10 @@ public class LuceneSearcher implements Searcher {
                         }
                     }
                     searcher.close();
+
+                    if (delete) {
+                        log.warn("Delete from index...");
+                    }
 
                     return (String[])results.toArray(new String[results.size()]);
                 } catch (Exception e) {
