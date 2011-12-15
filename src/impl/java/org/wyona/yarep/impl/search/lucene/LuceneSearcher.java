@@ -175,9 +175,10 @@ public class LuceneSearcher implements Searcher {
     /**
      * Get list of paths of of nodes and/or revisions, which do not exist anymore inside repository
      * @param delete Flag to indicate whether nodes which are missing inside the repository should be deleted from the index
+     * @param limitSize Limit the size of the returned list of missing nodes, because a search index can contain a huge amount of documents and hence also a huge amount of missing nodes, which means if one does not set a limit, then it might take a very long time to generate this list. If the limit of size is set to -1, then this means no limit.
      * @return List of paths of of nodes and/or revisions, which do not exist anymore inside repository
      */
-    public String[] getMissingNodes(boolean delete) throws SearchException {
+    public String[] getMissingNodes(boolean delete, int limitSize) throws SearchException {
         try {
             File indexDirectory = config.getPropertiesSearchIndexFile();
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDirectory.getAbsolutePath());
@@ -186,8 +187,8 @@ public class LuceneSearcher implements Searcher {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.search.MatchAllDocsQuery();
 
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
-                    log.warn("DEBUG: Number of documents: " + hits.length());
-                    log.info("Number of documents: " + hits.length());
+                    log.warn("DEBUG: Number of documents: " + hits.length() + " (Index directory: " + indexDirectory.getAbsolutePath() + ")");
+                    log.info("Number of documents: " + hits.length() + " (Index directory: " + indexDirectory.getAbsolutePath() + ")");
 
                     List<String> results = new ArrayList<String>();
                     for (int i = 0; i < hits.length(); i++) {
@@ -217,6 +218,11 @@ public class LuceneSearcher implements Searcher {
                         } catch (NoSuchNodeException nsne) { // INFO: I think catching this exception is not really necessary anymore. because the code above already checks the existence...
                             log.warn("Node found within search index, but no such node within repository: " + resultPath);
                             results.add(resultPath);
+                        }
+
+                        if (limitSize > 0 && results.size() == limitSize) {
+                            log.warn("Size of returned list of missing nodes has been limited to '" + limitSize + "'");
+                            break;
                         }
                     }
                     searcher.close();
