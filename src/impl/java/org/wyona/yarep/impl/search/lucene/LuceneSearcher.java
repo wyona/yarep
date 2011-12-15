@@ -179,7 +179,8 @@ public class LuceneSearcher implements Searcher {
      */
     public String[] getMissingNodes(boolean delete) throws SearchException {
         try {
-            org.apache.lucene.search.Searcher searcher = new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
+            File indexDirectory = config.getPropertiesSearchIndexFile();
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDirectory.getAbsolutePath());
             if (searcher != null) {
                 try {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.search.MatchAllDocsQuery();
@@ -205,7 +206,7 @@ public class LuceneSearcher implements Searcher {
                                     }
                                 } else {
                                     log.error("Revision '" + resultPath + "' found within search index, but no such node within repository: " + resultPathWithoutRevision);
-                                    results.add(resultPathWithoutRevision);
+                                    results.add(resultPath);
                                 }
                             } else {
                                 if (!config.getRepo().existsNode(resultPath)) {
@@ -221,7 +222,21 @@ public class LuceneSearcher implements Searcher {
                     searcher.close();
 
                     if (delete) {
-                        log.warn("Delete from index...");
+                        log.warn("Delete missing documents from index...");
+                        try {
+                            org.apache.lucene.index.IndexWriter indexWriter = LuceneIndexerV2.createIndexWriter(indexDirectory, config.getPropertyAnalyzer(), config.getWriteLockTimeout());
+                            if (indexWriter != null) {
+                                for (String path: results) {
+                                    log.warn("DEBUG: Try to delete document from index: " + path);
+                                    indexWriter.deleteDocuments(new org.apache.lucene.index.Term(PATH_FIELD_NAME, path));
+                                }
+                                indexWriter.close();
+                            } else {
+                                throw new SearchException("Could not init IndexWriter in order to delete missing documents!");
+                            }
+                        } catch(Exception e) {
+                            throw new SearchException(e);
+                        }
                     }
 
                     return (String[])results.toArray(new String[results.size()]);
