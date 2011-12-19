@@ -285,6 +285,8 @@
     <java classname="org.wyona.yarep.tools.cmdl.CleanIndex">
       <classpath refid="classpath.run"/>
       <arg value="${repository-config}"/>
+      <arg value="false"/> <!-- INFO: If set to false, then documents inside index will NOT be deleted although these might not exist inside repository -->
+      <arg value="5"/> <!-- INFO: If set to '-1', then there is no limit -->
     </java>
   </target>
 
