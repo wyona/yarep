@@ -146,6 +146,28 @@
     </jar>
   </target>
 
+  <!-- USAGE: java -jar build/lib/yarep-all-1.0-dev-r912fe112fc45468536afb6f6b4b27ddbfdc3d4a1.jar /home/USER/data-repository.xml -->
+  <target name="jar-all" description="Create one jar file containing all classes (core, impl, etc.)" depends="init,compile-core,compile-impl,compile-tools">
+    <mkdir dir="build/lib"/>
+    <mkdir dir="build/dependencies"/>
+
+    <copy todir="build/dependencies">
+      <fileset refid="maven2.fileset"/>
+      <mapper type="flatten"/>
+    </copy>
+
+    <jar
+      destfile="build/lib/yarep-all-${yarep.version}-r${subversion.revision}.jar"
+      basedir="build/classes"
+      excludes="yarep.properties"
+    >
+      <zipgroupfileset dir="build/dependencies" includes="*.jar"/>
+      <manifest>
+        <attribute name="main-class" value="org.wyona.yarep.tools.cmdl.CleanIndex"/>
+      </manifest>
+    </jar>
+  </target>
+
   <target name="install-jars" description="Place jar files for core and impl into local maven repository" depends="clean, init, jar, patch-pom-files">
     <artifact:pom id="maven.project.core" file="build/lib/pom-core.xml"/>
   
@@ -256,6 +278,14 @@
   
   <target name="clean" description="Clean Build" depends="init">
     <delete dir="${build.dir}"/>
+  </target>
+
+  <!-- USAGE: Run ./build.sh run-clean-index -Drepository-config=/home/USER/data-repository.xml -->
+  <target name="run-clean-index" description="Run Clean Index Utility" depends="init, compile-tools">
+    <java classname="org.wyona.yarep.tools.cmdl.CleanIndex">
+      <classpath refid="classpath.run"/>
+      <arg value="${repository-config}"/>
+    </java>
   </target>
 
   <target name="run-examples" description="Run Example" depends="init, build-examples">
