@@ -78,6 +78,17 @@
      2) ./build.sh compile-tools
      3) ./build.sh index-repository -Drepo.config=/home/yanel/foo-yarep-repository.xml
 
+     
+     How to clean an index
+     ---------------------
+
+     Either:
+       ./build.sh run-clean-index -Drepository-config=/home/USER/yarep-data-repository-config.xml
+   
+     Or:
+       ./build.sh jar-all
+       java -jar build/lib/yarep-all-1.0-dev-r912fe112fc45468536afb6f6b4b27ddbfdc3d4a1.jar /home/USER/yarep-data-repository-config.xml
+
 
      Creating a release
      ------------------
