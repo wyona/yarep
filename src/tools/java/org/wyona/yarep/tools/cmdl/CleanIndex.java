@@ -38,9 +38,10 @@ public class CleanIndex {
         System.out.println(repoFactory);
         System.out.println("\n\n");
 
-        Repository repo;
         try {
-            repo = repoFactory.newRepository("my-repo", new File(args[0]));
+            Repository repo = repoFactory.newRepository("my-repo", new File(args[0]));
+            System.out.println(repoFactory);
+
             LuceneSearcher luceneSearcher = (LuceneSearcher) repo.getSearcher();
             boolean delete = new Boolean(args[1]).booleanValue();
             int listSizeLimit = new Integer(args[2]).intValue();
@@ -52,7 +53,5 @@ public class CleanIndex {
             System.err.println(e);
             return;
         }
-
-        System.out.println(repoFactory);
     }
 }
