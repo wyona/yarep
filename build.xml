@@ -156,6 +156,8 @@
       <mapper type="flatten"/>
     </copy>
 
+    <copy file="lib/log4j.properties" todir="build/classes"/>
+
     <jar
       destfile="build/lib/yarep-all-${yarep.version}-r${subversion.revision}.jar"
       basedir="build/classes"
@@ -166,6 +168,9 @@
         <attribute name="main-class" value="org.wyona.yarep.tools.cmdl.CleanIndex"/>
       </manifest>
     </jar>
+
+    <delete file="build/classes/log4j.properties"/>
+
   </target>
 
   <target name="install-jars" description="Place jar files for core and impl into local maven repository" depends="clean, init, jar, patch-pom-files">
