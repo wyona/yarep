@@ -15,7 +15,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 
 import org.apache.tika.parser.Parser;
@@ -38,6 +37,9 @@ public class LuceneIndexerV2 implements Indexer {
     
     static Logger log = Logger.getLogger(LuceneIndexerV2.class);
     protected LuceneConfig config;
+
+    private static final String SYNC_LOCK_PROPERTIES = "sync-lock-properties";
+    private static final String SYNC_LOCK_FULLTEXT = "sync-lock-fulltext";
 
     /**
      * @see org.wyona.yarep.core.search.Indexer#configure(Configuration, File, Repository)
@@ -104,7 +106,8 @@ public class LuceneIndexerV2 implements Indexer {
 
             // INFO: Update index
             try {
-                updateDocument(getFulltextIndexSearcher(), createFulltextIndexWriter(), path, luceneDoc);
+                log.debug("Fulltext index: Add/update node: " + path);
+                updateDocument(createFulltextIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init 'fulltext' IndexWriter (maybe because of existing lock, exception message: " + e.getMessage() + "), hence content of node '" + path + "' will not be indexed!");
                 // TODO: log node path into dedicated log message!
@@ -120,7 +123,7 @@ public class LuceneIndexerV2 implements Indexer {
      */
     public void removeFromIndex(Node node) throws SearchException {
         try {
-            removeFromIndex(node.getPath());
+            removeFromFulltextIndex(node.getPath());
         } catch(org.wyona.yarep.core.RepositoryException e) {
             // TODO: Check whether it makes sense to throw a SearchException... (WARN: Backwards compatibility!)
             log.error(e, e);
@@ -128,16 +131,20 @@ public class LuceneIndexerV2 implements Indexer {
     }
 
     /**
-     * Remove entry with a specific path from search index
+     * Remove document with a specific path from fulltext search index
      * @param path Path of entry
      */
-    void removeFromIndex(String path) {
-        log.debug("Trying to remove entry '" + path + "' from index...");
+    private void removeFromFulltextIndex(String path) {
+        log.debug("Trying to remove document '" + path + "' from fulltext index...");
         IndexWriter indexWriter = null;
         try {
             indexWriter = createFulltextIndexWriter();
-            indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", path));
-            indexWriter.close();
+            if (indexWriter != null) {
+                indexWriter.deleteDocuments(new org.apache.lucene.index.Term("_PATH", path));
+                indexWriter.close();
+            } else {
+                log.warn("No fulltext index writer, hence could not remove document '" + path + "' from fulltext index!");
+            }
         } catch(Exception e) {
             log.warn("Probably IndexWriter could not be initialized, because of existing lock, hence node with path '" + path + "' will not be deleted from the index! Exception message: " + e.getMessage());
             //log.error(e, e);
@@ -154,23 +161,28 @@ public class LuceneIndexerV2 implements Indexer {
      * Get index writer
      */
    protected IndexWriter createFulltextIndexWriter() throws Exception {
-        log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
-        return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer(), config.getWriteLockTimeout());
-       // IMPORTANT: This doesn't work within a clustered environment!
-       //return this.indexWriter;
+       synchronized(SYNC_LOCK_FULLTEXT) {
+           log.debug("Fulltext search index directory: " + config.getFulltextSearchIndexFile());
+           return createIndexWriter(config.getFulltextSearchIndexFile(), config.getFulltextAnalyzer(), config.getWriteLockTimeout());
+           // IMPORTANT: This doesn't work within a clustered environment!
+           //return this.indexWriter;
+       }
    }
 
    /**
-    *
+    * Create writer for modifying properties
     */
    protected IndexWriter createPropertiesIndexWriter() throws Exception {
-       return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer(), config.getWriteLockTimeout());
-       // IMPORTANT: This doesn't work within a clustered environment!
-       //return this.propertiesIndexWriter;
+       synchronized(SYNC_LOCK_PROPERTIES) {
+           log.debug("Properties search index directory: " + config.getPropertiesSearchIndexFile());
+           return createIndexWriter(config.getPropertiesSearchIndexFile(), config.getPropertyAnalyzer(), config.getWriteLockTimeout());
+           // IMPORTANT: This doesn't work within a clustered environment!
+           //return this.propertiesIndexWriter;
+       }
    }
    
     /**
-     * Init an IndexWriter
+     * Init an Index Writer
      * @param indexDir Directory where the index (segment files) is located
      * @param analyzer TODO
      * @param timeout write.lock timeout
@@ -180,8 +192,6 @@ public class LuceneIndexerV2 implements Indexer {
        log.debug("Configured write.lock timeout: " + IndexWriter.getDefaultWriteLockTimeout() + "ms");
 
        if (indexDir != null) {
-           //TODO: if (indexDir.isDirectory()) is probably not needed, try catch (FileNotFoundException e) should be enough
-
            log.debug("Try to init IndexWriter based on index directory: " + indexDir.getAbsolutePath());
            if (indexDir.isDirectory()) {
                IndexWriter iw = null;
@@ -198,8 +208,8 @@ public class LuceneIndexerV2 implements Indexer {
            }
        } else {
            log.error("No index directory set!");
+           return null;
        }
-       return null;
     }
 
    /**
@@ -256,14 +266,14 @@ public class LuceneIndexerV2 implements Indexer {
 
 /* INFO/WARN: The following code is/was a workaround for not having to wait for the timeout (see http://www.gossamer-threads.com/lists/lucene/java-dev/37421), but it seems to remove the write.lock mysteriously by itself!
                 if(!IndexWriter.isLocked(new org.apache.lucene.store.SimpleFSDirectory(config.getPropertiesSearchIndexFile()))) { // INFO: Do not wait for timeout, but rather take action right away...
-                    //updateDocument(getPropertiesIndexSearcher(), createPropertiesIndexWriter(), path, luceneDoc);
+                    updateDocument(createPropertiesIndexWriter(), path, luceneDoc);
                 } else {
                     log.warn("Index 'properties' is locked, hence properties of node '" + path + "' will not be indexed!");
                     // TODO: log node path into dedicated log message!
                 }
 */
-
-                updateDocument(getPropertiesIndexSearcher(), createPropertiesIndexWriter(), path, luceneDoc);
+                log.debug("Properties index: Add/update property '" + property.getName() + "' (Value: " + property.getValueAsString() + ") of node: " + path);
+                updateDocument(createPropertiesIndexWriter(), path, luceneDoc);
             } catch(org.apache.lucene.store.LockObtainFailedException e) {
                 log.warn("Could not init 'properties' IndexWriter (maybe because of existing lock (Timeout: " + IndexWriter.getDefaultWriteLockTimeout() + "ms), exception message: " + e.getMessage() + "), hence properties of node '" + path + "' will not be indexed!");
                 // TODO: log node path into dedicated log message!
@@ -304,67 +314,21 @@ public class LuceneIndexerV2 implements Indexer {
     /**
      * Update document of a particular path within index
      *
-     * @param indexSearcher Index searcher to check if document with this particular path already exists
      * @param indexWriter Index writer
      * @param path Path of node with which the fields and values are related to
      * @param document Lucene document containing the new fields and new values
      */
-    private void updateDocument(IndexSearcher indexSearcher, IndexWriter indexWriter, String path, Document document) throws Exception {
-        // TODO: Synchronize index writing and make sure that index writer is always closed (see LuceneIndexer.java)
+    private void updateDocument(IndexWriter indexWriter, String path, Document document) throws Exception {
         Term pathTerm = new Term("_PATH", path);
-        Document oldDoc = null;
-
-/*
-        // WARN: Please note that fields which are not stored (e.g. using StringReader) behave differently!
-        // Also see http://hrycan.com/2009/11/26/updating-document-fields-in-lucene/
-        if (indexSearcher != null) {
-            org.apache.lucene.search.TopDocs hits = indexSearcher.search(new TermQuery(pathTerm), 3);
-            if (hits.scoreDocs.length <= 0) {
-                log.warn("No matches in the index for the path: " + path);
-            } else if (hits.scoreDocs.length > 1) {
-                log.warn("Given path '" + path + "' matches more than one document in the index!");
-            } else {
-                log.debug("Retrieve old document and merge with new document: " + path);
-                oldDoc = indexSearcher.doc(hits.scoreDocs[0].doc);
-                java.util.List<Field> updatedFields = document.getFields();
-                for (Field field : updatedFields) {
-                    if (oldDoc.getField(field.name()) != null) {
-                        log.debug("Update existing field: " + field);
-                        oldDoc.removeFields(field.name());
-                        oldDoc.add(field);
-                    } else {
-                        log.debug("Add new field: " + field);
-                        oldDoc.add(field);
-                    }
-
-                    if (field.stringValue() != null) {
-                        log.warn("String value: " + field.stringValue());
-                    } else if (field.readerValue() != null) {
-                        log.warn("Reader value: " + field.readerValue());
-                    } else if (field.binaryValue() != null) {
-                        log.warn("Binary value: " + field.binaryValue());
-                    } else {
-                        log.warn("No value!");
-                    }
-                }
-            }
-        } else {
-            log.warn("No index seems to exist yet!");
-        }
-*/
 
         if (indexWriter != null) {
-            if (log.isDebugEnabled()) log.debug("Node will be indexed: " + path);
-            if (oldDoc != null) {
-                indexWriter.updateDocument(pathTerm, oldDoc); // INFO: Update old document which has been updated with new fields and values
-            } else {
-                indexWriter.updateDocument(pathTerm, document); // INFO: Add new document (no old document for path exists)
-            }
+            if (log.isDebugEnabled()) log.debug("Node '" + path + "' will be indexed.");
+            indexWriter.updateDocument(pathTerm, document);
             indexWriter.optimize(); // TODO: Make this configurable because of performance problem?!
             indexWriter.close();
             //indexWriter.flush();
         } else {
-            throw new Exception("IndexWriter is null and hence node will not be indexed: " + path);
+            throw new Exception("Index writer is null and hence node '" + path + "' will not be indexed!");
             //log.warn("IndexWriter is null and hence node will not be indexed: " + path);
         }
     }
@@ -455,33 +419,5 @@ public class LuceneIndexerV2 implements Indexer {
         }
 
         return luceneDoc;
-    }
-
-    /**
-     * Get fulltext index searcher
-     * @return null if no index exists yet
-     */
-    private IndexSearcher getFulltextIndexSearcher() throws Exception {
-        try {
-            return new IndexSearcher(config.getFulltextSearchIndexFile().getAbsolutePath());
-        } catch(Exception e) {
-            log.error(e.getMessage());
-            //log.error(e, e);
-            return null;
-        }
-    }
-
-    /**
-     * Get properties index searcher
-     * @return null if no index exists yet
-     */
-    private IndexSearcher getPropertiesIndexSearcher() throws Exception {
-        try {
-            return new IndexSearcher(config.getPropertiesSearchIndexFile().getAbsolutePath());
-        } catch(Exception e) {
-            log.error(e.getMessage());
-            //log.error(e, e);
-            return null;
-        }
     }
 }
