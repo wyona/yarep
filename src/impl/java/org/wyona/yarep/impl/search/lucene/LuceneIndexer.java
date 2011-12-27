@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -173,18 +172,6 @@ public class LuceneIndexer implements Indexer {
        return null;
     }
 
-   /**
-    * Get properties index reader
-    */
-   public IndexReader getPropertiesIndexReader() throws Exception {
-       if (config.getPropertiesSearchIndexFile().exists() && IndexReader.indexExists(config.getPropertiesSearchIndexFile())) {
-           return IndexReader.open(config.getPropertiesSearchIndexFile());
-       } else {
-           log.warn("No properties index exists yet: " + config.getPropertiesSearchIndexFile().getAbsolutePath());
-           return null;
-       }
-   }
-
     /**
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
@@ -211,8 +198,7 @@ public class LuceneIndexer implements Indexer {
                 log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
             }
 
-            // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
-            // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+            // INFO: Re-add all other properties of node to lucene doc, whereas this is just a workaround, because the TermDocs/IndexReader does not work (please see below)
             Property[] properties = node.getProperties();
             for (int i = 0; i < properties.length; i++) {
                 if (!properties[i].getName().equals(property.getName())) {
@@ -220,24 +206,6 @@ public class LuceneIndexer implements Indexer {
                         luceneDoc.add(new Field(properties[i].getName(), properties[i].getValueAsString(), Field.Store.YES, Field.Index.TOKENIZED));
                     }
                 }
-            }
-            // WARN: For some strange reason the code below throws a NullPointerException
-            IndexReader propsIndexReader = getPropertiesIndexReader();
-            if (propsIndexReader != null) {
-                log.debug("Number of documents of properties index: " + propsIndexReader.numDocs());
-
-/*
-                org.apache.lucene.index.TermDocs termDocs = indexReader.termDocs(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, path));
-                if (termDocs != null) {
-                    log.debug("Number of documents matching term: " + termDocs.doc());
-                    termDocs.close();
-                } else {
-                    log.warn("No term docs found for path: " + path);
-                }
-*/
-                propsIndexReader.close();
-            } else {
-                log.warn("Could not init properties index reader!");
             }
 
             // INFO: Now add lucene document containing all properties to index
