@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
@@ -212,18 +211,6 @@ public class LuceneIndexerV2 implements Indexer {
        }
     }
 
-   /**
-    * Get properties index reader
-    */
-   public IndexReader getPropertiesIndexReader() throws Exception {
-       if (config.getPropertiesSearchIndexFile().exists() && IndexReader.indexExists(config.getPropertiesSearchIndexFile())) {
-           return IndexReader.open(config.getPropertiesSearchIndexFile());
-       } else {
-           log.warn("No properties index exists yet: " + config.getPropertiesSearchIndexFile().getAbsolutePath());
-           return null;
-       }
-   }
-
     /**
      * @see org.wyona.yarep.core.search.Indexer#index(Node, Property)
      */
@@ -250,8 +237,7 @@ public class LuceneIndexerV2 implements Indexer {
                 log.warn("Property '" + property.getName() + "' has null as string value and hence will not be indexed (path: " + path + ")!");
             }
 
-            // INFO: Re-add all other properties, whereas either get TermDocs from IndexReader or just use Node.getProperties
-            // INFO: Add all other properties of node to lucene doc, whereas this is just a workaround, because the termDocs does not work (please see below)
+            // INFO: Re-add all other properties of node to lucene doc, whereas this is just a workaround, because TermDocs/IndexReader does not work (please see below)
             Property[] properties = node.getProperties();
             for (int i = 0; i < properties.length; i++) {
                 if (!properties[i].getName().equals(property.getName())) {
