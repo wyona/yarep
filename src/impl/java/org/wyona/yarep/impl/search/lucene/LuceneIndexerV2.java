@@ -202,8 +202,9 @@ public class LuceneIndexerV2 implements Indexer {
                }
                return iw;
            } else {
-               log.error("No such index directory: " + indexDir.getAbsolutePath());
-               return null; // TODO: We might want to try to create an index directory and then init an IndexWriter iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
+               indexDir.mkdirs();
+               log.warn("Index directory has been created: " + indexDir.getAbsolutePath());
+               return new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
            }
        } else {
            log.error("No index directory set!");
