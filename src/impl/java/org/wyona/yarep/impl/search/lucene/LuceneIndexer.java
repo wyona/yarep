@@ -153,7 +153,6 @@ public class LuceneIndexer implements Indexer {
     private IndexWriter createIndexWriter(File indexDir, Analyzer analyzer) throws Exception {
        IndexWriter iw = null;
        if (indexDir != null) {
-           //TODO: if (indexDir.isDirectory()) is probably not needed, try catch (FileNotFoundException e) should be enough
            if (indexDir.isDirectory()) {
                try {
                    iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
@@ -163,12 +162,15 @@ public class LuceneIndexer implements Indexer {
                    iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
                }
            } else {
+               indexDir.mkdirs();
+               log.warn("Index directory has been created: " + indexDir.getAbsolutePath());
                iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
            }
            // TODO: iw.setWriteLockTimeout(long ms)
            //log.debug("Max write.lock timeout: " + iw.getDefaultWriteLockTimeout() + " milliseconds");
            return iw;
        }
+       log.error("No IndexWriter initialized, because no index directory specified!");
        return null;
     }
 
