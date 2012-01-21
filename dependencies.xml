@@ -54,6 +54,7 @@
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-discovery" version="0.2"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-logging" version="1.0.4"/>
       <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-io" version="1.2"/>
+      <dependency groupId="apache-jakarta-commons" artifactId="apache-jakarta-commons-id" version="0.1-dev-lcr357257"/>
       <dependency groupId="commons-dbcp" artifactId="commons-dbcp" version="1.2.1"/>
       <dependency groupId="commons-pool" artifactId="commons-pool" version="1.2"/>
 

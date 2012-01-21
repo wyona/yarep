@@ -14,9 +14,6 @@ import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.index.IndexWriter;
-
 import org.wyona.commons.io.FileUtil;
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -27,6 +24,7 @@ import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
+import org.wyona.yarep.core.impl.vfs.SplitPathConfig;
 import org.wyona.yarep.core.search.Indexer;
 import org.wyona.yarep.core.search.SearchException;
 import org.wyona.yarep.core.search.Searcher;
@@ -120,11 +118,7 @@ public class VirtualFileSystemRepository implements Repository {
 
     // Configuration parameters of the <splitpath ...> element
     private boolean splitPathEnabled = false;
-    private int splitparts = 0;
-    private int splitlength = 0;
-    private String DEFAULT_DUMMY_SEPARATOR_VALUE = "-";
-    private String dummySeparator = DEFAULT_DUMMY_SEPARATOR_VALUE;
-    private String[] includepaths = {};
+    private SplitPathConfig splitPathConfig = new SplitPathConfig();
     
     /**
      *
@@ -220,23 +214,22 @@ public class VirtualFileSystemRepository implements Repository {
             Configuration splitConfig = config.getChild("splitpath", false);
             if (splitConfig != null) {
                 splitPathEnabled = true;
-                String depth = splitConfig.getAttribute("depth", "0");
-                splitparts = Integer.parseInt(depth);
+                splitPathConfig.setSplitparts(Integer.parseInt(splitConfig.getAttribute("depth", "0")));
+                splitPathConfig.setSplitlength(Integer.parseInt(splitConfig.getAttribute("length", "0")));
 
-                String length;
-                length = splitConfig.getAttribute("length", "0");
-                splitlength = Integer.parseInt(length);
-
-                dummySeparator = splitConfig.getAttribute("escape", DEFAULT_DUMMY_SEPARATOR_VALUE);
-
-                int c = splitConfig.getChildren("include").length;
-                int i = 0;
-                if (c > 0) {
-                    includepaths = new String[c];
+                int numberOfIncludePaths = splitConfig.getChildren("include").length;
+                if (numberOfIncludePaths > 0) {
+                    String[] includepaths = new String[numberOfIncludePaths];
+                    int i = 0;
                     for (Configuration include : splitConfig.getChildren("include")) {
                         includepaths[i++] = include.getAttribute("path");
                     }
+                    splitPathConfig.setIncludepaths(includepaths);
                 }
+                // NOTE: This repository uses the VFileSystemMapImpl: But we do not tell the map about the splitting.
+                //       Splitting is known to this repository and the node only.
+                // ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setSplitPathConfig(splitPathConfig);
+                // ((org.wyona.yarep.impl.VFileSystemMapImpl) map).setSplitPathEnabled(true);
             } 
         } catch (Exception e) {
             log.error(e.toString());
@@ -303,7 +296,6 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#exists(org.wyona.yarep.core.Path)
      */
     public boolean exists(Path path) throws RepositoryException {
-        log.warn("DEPRECATED");
         return existsNode(path.toString());
     }
 
@@ -406,19 +398,16 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#existsNode(java.lang.String)
      */
     public boolean existsNode(String path) throws RepositoryException {
-        log.debug("Check whether node exists: " + path);
-
-        // INFO: Strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
-        String pathWithoutTrailingSlash = path;
+        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
         if (path.length() > 1 && path.endsWith("/")) {
-            pathWithoutTrailingSlash = path.substring(0, path.length() - 1);
+            path = path.substring(0, path.length() - 1);
         }
-
+        log.debug("existsNode '"+path+"' ?");
         if (splitPathEnabled) {
-            String splittedPath = splitPath(path); // IMPORTANT: If a trailing slash exists, then it is important for split path to know about it, because it will be escaped and matched accordingly!
-            return map.exists(new Path(splittedPath)) || map.exists(new Path(pathWithoutTrailingSlash)); // INFO: The OR is because of backwards compatibility in case that a node exists with an unsplitted path, because it has not been migrated yet (which can happen if it has only been read so far, but never written since introducing the split path configuration)
+            String maybeSplit = SplitPathConfig.splitPathIfRequired(path, splitPathConfig);
+            return map.exists(new Path(maybeSplit)) || map.exists(new Path(path));
         } else {
-            return map.exists(new Path(pathWithoutTrailingSlash));
+            return map.exists(new Path(path));
         }
     }
 
@@ -426,9 +415,13 @@ public class VirtualFileSystemRepository implements Repository {
      * @see org.wyona.yarep.core.Repository#getNode(java.lang.String)
      */
     public Node getNode(String path) throws NoSuchNodeException, RepositoryException {
-        log.debug("Get node: " + path);
+        // strip trailing slash, whereas do not strip in the case of the ROOT node denoted by '/':
+        if (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
 
-        if (existsNode(path)) {
+        String maybeSplit = SplitPathConfig.splitPathIfRequired(path, splitPathConfig);
+        if ((splitPathEnabled && map.exists(new Path(maybeSplit))) || map.exists(new Path(path))) {
             String uuid = new UID(path).toString();
             return new VirtualFileSystemNode(this, path, uuid);
         } else {
@@ -477,11 +470,8 @@ public class VirtualFileSystemRepository implements Repository {
     public File getMetaDir() {
         return this.metaDir;
     }
-
-    /**
-     * Get map
-     */
-    Map getMap() {
+    
+    public Map getMap() {
         return this.map;
     }
 
@@ -631,114 +621,20 @@ public class VirtualFileSystemRepository implements Repository {
         return true;
     }
 
-    /**
-     * Splits a String such that the result can be used as a repo path for a tree-like repo structure.
-     *
-     * This method splits off n strings (where n = parts) of length partlength, e.g. if
-     * splitPath("ec2c0c02-1d7d-4a21-8a39-68f9f72dea09", 3, 4) is called, then:
-     * in:  ec2c0c02-1d7d-4a21-8a39-68f9f72dea09, 3, 4
-     * out: ec2c/0c02/-1d7/d-4a21-8a39-68f9f72dea09
-     *
-     * If the strings length is shorter than parts * partslength, then as many
-     * parts as possible are split, e.g.
-     * in:  foobar, 2, 5
-     * out: fooba/r
-     * in:  lorem, 3, 10
-     * out: lorem
-     *
-     * An example with "/" characters (whereas "-" is the default escape character):
-     * in:  /foobar/lorem/ipsum.txt, parts = 3, length = 3
-     * out: /foo/bar/-lo/rem/ipsum.txt
-     *
-     * Depending on the path and split length, the physical nodes do not have reflect the parent-child relationship as the logical path, e.g.
-     * - Assume length = 2
-     * - The logical path /aa/ will be split as phyisical path /aa/+
-     * - The logical path /aa/bb/ will be split as physical path /aa/+b/b+
-     * which demonstrates that although "bb" is a logical child of "/aa", physically "+b" is not a child of "/aa/+"
-     *
-     * @param path A yarep path
-     * @return splitted path or unsplit if it does not match any of the include patters
-     */
-    String splitPath(String path) {
-        log.debug("Split path: " + path);
-
-        // NOTE: uuid should be a full yarep path, so we can safely remove the leading slash
-        
-        // INFO: Check if the given path matches any of the include values in the configuration
-        boolean include = false;
-        String base = "";
-        for (String s : includepaths) {
-            if (path.startsWith(s)) {
-                include = true;
-                base = s;
-                break;
-            }
-        }
-
-        // INFO: Return the path unchanged if it doesn't match any of the include values
-        if (!include) {
-            log.debug("Path '" + path + "' does not need to be splitted.");
-            return path;
-        }
-        
-        // remove the leading base string, will be added again later
-        path = path.substring(base.length(), path.length());
-
-        // Escape/replace "/" characters where necessary
-        if (path.length() <= splitparts * splitlength) {
-            path = path.replaceAll("/", dummySeparator);
-        } else {
-            path = String.format("%s%s",
-                    path.substring(0, splitparts * splitlength).replaceAll("/", dummySeparator),
-                    path.substring(splitparts * splitlength));
-        }
-        log.debug("Escaped path: " + path);
-
-        // now do the actual splitting
-        int len = path.length();
-        int pos = 0;
-        String out = "";
-
-        int partc = 0;
-        int w;
-        while (len > 0 && partc < splitparts) {
-            partc++;
-            if (len < splitlength) {
-                w = len;
-            } else {
-                w = splitlength;
-            }
-            out += path.substring(pos, pos + w);
-            pos += w;
-            len -= w;
-
-            if (len > 0) {
-                //log.debug("Append slash: " + out);
-                out += "/";
-            }
-        }
-
-        // append remainder/rest
-        if (len > 0) {
-            //log.debug("Append rest: " + out + ", " + path.substring(pos, pos + len));
-            if (out.endsWith("/") && path.substring(pos, pos + len).startsWith("/")) {
-                //log.info("Remove one of the two slashes" + path.substring(pos + 1, pos + len));
-                out += path.substring(pos + 1, pos + len);
-            } else {
-                out += path.substring(pos, pos + len);
-            }
-        }
-
-        // finally, add the leading zero again and return the new path
-        String splittedPath = base + out;
-        log.debug("Splitted path: " + splittedPath);
-        return splittedPath;
+    public SplitPathConfig getSplitPathConfig() {
+        return splitPathConfig;
     }
 
-    /**
-     * Check whether split path is enabled and make this available to classes within this package
-     */
-    boolean isSplitPathEnabled() {
+    public void setSplitPathConfig(SplitPathConfig splitPathConfig) {
+        this.splitPathConfig = splitPathConfig;
+    }
+
+    public boolean isSplitPathEnabled() {
         return splitPathEnabled;
     }
+
+    public void setSplitPathEnabled(boolean splitPathEnabled) {
+        this.splitPathEnabled = splitPathEnabled;
+    }
+
 }
