@@ -87,7 +87,7 @@ public class LuceneIndexerV2 implements Indexer {
                 if (log.isDebugEnabled()) log.debug("Mime type: " + mimeType);
                 luceneDoc = addFulltext(node, mimeType, luceneDoc);
             } else {
-                log.warn("Node '" + path + "' has no mime-type set and hence will not be added to fulltext index.");
+                log.warn("Node '" + path + "' has no mime-type set and hence actual node content will not be added to fulltext index.");
             }
 
             // INFO: Add properties
