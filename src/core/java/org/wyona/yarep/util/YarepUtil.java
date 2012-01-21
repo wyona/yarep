@@ -224,8 +224,27 @@ public class YarepUtil {
      * @throws RepositoryException
      */
     public static void indexRepository(Repository repo) throws RepositoryException {
+        indexRepository(repo, "/");
+    }
+
+    /**
+     * (Re-)Index a particular part/sub-tree of a repository.
+     * @param repo Repository to be (re-)indexed
+     * @param path Path from where (re-)indexing shall be started, which means the node of this particular path and all its children will be (re-)indexed
+     * @throws RepositoryException
+     */
+    public static void indexRepository(Repository repo, String path) throws RepositoryException {
         log.warn("DEBUG: Start indexing repository: " + repo.getName());
-        indexNodeRecursively(repo.getRootNode(), repo.getIndexer());
+        Node startNode = null;
+        if ("/".equals(path)) {
+            log.warn("DEBUG: Index the whole repository, which might take a while...");
+            startNode = repo.getRootNode();
+        } else if (repo.existsNode(path)) {
+            startNode = repo.getNode(path);
+        } else {
+            throw new RepositoryException("No such node: " + path);
+        }
+        indexNodeRecursively(startNode, repo.getIndexer());
         log.warn("DEBUG: End indexing repository: " + repo.getName());
     }
     
