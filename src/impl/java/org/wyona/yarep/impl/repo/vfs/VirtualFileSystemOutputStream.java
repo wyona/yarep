@@ -5,6 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Random;
+import java.lang.Long;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
 
 import org.apache.log4j.Logger;
 import org.wyona.yarep.core.Node;
@@ -13,32 +18,72 @@ import org.wyona.yarep.impl.AbstractNode;
 
 /**
  * OutputStream which sets some properties (lastModified, size) to the node 
- * when the stream is closed.
- * 
- * NOTE: Currently not used, because the Node implemenation uses the lastModified and size
- * of the content file.
+ * when the stream is closed. The output stream also implements a copy-on-write
+ * mechanism, whereby the file is written to temporary location and only moved
+ * to it's permanent position on close (if possible, atomically). 
  */
 public class VirtualFileSystemOutputStream extends OutputStream {
 
     private static Logger log = Logger.getLogger(VirtualFileSystemOutputStream.class);
 
-    protected OutputStream out;
     protected Node node;
-    protected File file;
+    protected OutputStream out;
+
+    protected boolean copyOnWrite;
+    protected Path tempPath;
+    protected Path destPath;
+
+    // The number of times we will (at most) retry trying to create
+    // a temporary file for copying by using a random tag.
+    private static int MAX_RETRIES = 10;
 
     /**
-     * 
+     * Constructor for VFS output stream.
+     * @param node  The underlying node.
+     * @param file  The destination file to write to.
      */
     public VirtualFileSystemOutputStream(Node node, File file) throws FileNotFoundException {
         this.node  = node;
-        this.out = new FileOutputStream(file);
-        this.file = file;
-        log.debug("Write to file: " + file);
+        copyOnWrite = false;
+
+        try {
+            // Try to set up copy-on-write mechanism
+            String name = file.getName();
+            String parent = file.getParentFile().getAbsolutePath();
+            Random random = new Random();
+
+            File tempFile;
+            int i = 0;
+            boolean success = false;
+            while(i < MAX_RETRIES && !success) {
+                String tag = Long.toHexString(random.nextLong());
+                tempFile = File(parent, name + ".tmp." + tag);
+                success = tempFile.createNewFile();
+                i = i + 1;
+            }
+
+            if(!success) {
+                // Unable to create temporary file, abort
+                log.error("Unable to create new temporary file.");
+                log.error("Absolute path was: " + tempFile.getAbsolutePath());
+                throw new Exception("Unable to create new temporary file.");
+            }
+
+            // Get path names, set out stream
+            tempPath = tempFile.toPath();
+            destPath = file.toPath();
+            out = new FileOutputStream(tempFile);
+            copyOnWrite = true;
+            
+        } catch(Exception e) {
+            // Fallback mechanism
+            log.error("Unable to setup copy-on-write, falling back.");
+            log.error(e, e);
+
+            out = new FileOutputStream(file);
+        }
     }
     
-    /**
-     * 
-     */
     public void write(int b) throws IOException {
         out.write(b);
     }
@@ -56,20 +101,43 @@ public class VirtualFileSystemOutputStream extends OutputStream {
     }
 
     /**
-     * 
+     * Custom close implementation.
+     * Automatically performs an atomic move if necessary and updates node
+     * properties of the underlying node.
      */
     public void close() throws IOException {
+        // Close stream first
         out.close();
+
+        // Perform atomic move (if copy-on-write is set up)
+        if(copyOnWrite) {
+            try {
+                Files.move(
+                    tempPath, destPath,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+            } catch(AtomicMoveNotSupportedException e) {
+                log.error(e, e);
+                Files.move(
+                    tempPath, destPath,
+                    StandardCopyOption.REPLACE_EXISTING);
+            } catch(Exception e) {
+                log.error(e, e);
+            }
+        }
+
         try {
-            //node.setProperty(AbstractNode.PROPERTY_SIZE, file.length());
+            // Update node properties
             node.setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, file.lastModified());
 
+            // Check for auto-indexing
             VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
             
             if(vfsRepo.isAutoFulltextIndexingEnabled()) {
-                log.debug("Auto fulltext indexing enabled ...");
+                log.debug("Auto fulltext indexing enabled, indexing after write!");
                 vfsRepo.getIndexer().index(node);
             }
+
         } catch (Exception e) {
             log.error(e, e);
             throw new IOException(e.toString());
