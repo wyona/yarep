@@ -220,7 +220,7 @@ public class VirtualFileSystemRepository implements Repository {
             // Check for copy-on-write configuration
             Configuration copyOnWrite = config.getChild("copy-on-write", false);
             if(copyOnWrite != null) {
-                String val = copyOnWrite.getValue();
+                String val = copyOnWrite.getAttribute("enabled");
                 if("true".equals(val)) {
                     log.warn("Copy-on-write is enabled in VFS repo!");
                     copyOnWriteEnabled = true;
