@@ -44,18 +44,29 @@ public class VirtualFileSystemOutputStream extends OutputStream {
      */
     public VirtualFileSystemOutputStream(Node node, File file) throws FileNotFoundException {
         this.node  = node;
-        copyOnWrite = false;
 
-        try {
+        // Check for copy-on-write
+        VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
+        copyOnWrite = vfsRepo.isCopyOnWriteEnabled();
+
+        if(!copyOnWrite) {
+            // Copy-on-write disabled
+            // Use regular file output stream
+            out = new FileOutputStream(file);
+        } else {
+            // Copy-on-write enabled:
             // Try to set up copy-on-write mechanism
             String name = file.getName();
             String parent = file.getParentFile().getAbsolutePath();
             Random random = new Random();
 
+            // Attempt to create a temporary file for writing
             File tempFile;
             int i = 0;
             boolean success = false;
             while(i < MAX_RETRIES && !success) {
+                // We use random tags to avoid collisions
+                // Re-try up to MAX_TRIES times if we fail
                 String tag = Long.toHexString(random.nextLong());
                 tempFile = File(parent, name + ".tmp." + tag);
                 success = tempFile.createNewFile();
@@ -69,18 +80,10 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 throw new Exception("Unable to create new temporary file.");
             }
 
-            // Get path names, set out stream
+            // Get path names, set output stream
             tempPath = tempFile.toPath();
             destPath = file.toPath();
             out = new FileOutputStream(tempFile);
-            copyOnWrite = true;
-            
-        } catch(Exception e) {
-            // Fallback mechanism
-            log.error("Unable to setup copy-on-write, falling back.");
-            log.error(e, e);
-
-            out = new FileOutputStream(file);
         }
     }
     
@@ -110,19 +113,25 @@ public class VirtualFileSystemOutputStream extends OutputStream {
         out.close();
 
         // Perform atomic move (if copy-on-write is set up)
+        // Otherwise we have nothing special to do here
         if(copyOnWrite) {
             try {
+                // Attempt to perform ATOMIC_MOVE on filesystem
                 Files.move(
                     tempPath, destPath,
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
             } catch(AtomicMoveNotSupportedException e) {
+                // Filesystem does not support ATOMIC_MOVE argument
+                // Try with a regular move instead, that should work
                 log.error(e, e);
                 Files.move(
                     tempPath, destPath,
                     StandardCopyOption.REPLACE_EXISTING);
             } catch(Exception e) {
+                // Unable to move the file - re-try one last time w/o args.
                 log.error(e, e);
+                Files.move(tempPath, destPath);
             }
         }
 

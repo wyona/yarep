@@ -117,6 +117,7 @@ public class VirtualFileSystemRepository implements Repository {
     private boolean isPropertyIndexingEnabled = false;
     private Indexer indexer = null;
     private Searcher searcher = null;
+    private boolean copyOnWriteEnabled = false;
 
     // Configuration parameters of the <splitpath ...> element
     private boolean splitPathEnabled = false;
@@ -215,6 +216,13 @@ public class VirtualFileSystemRepository implements Repository {
             
             searcher = (Searcher) Class.forName(searcherClass).newInstance();
             searcher.configure(searchConfig, configFile, this);
+
+            // Check for copy-on-write configuration
+            Configuration copyOnWrite = config.getChild("copy-on-write", false);
+            if(copyOnWrite != null) {
+                log.info("Copy-on-write is enabled in VFS repo!");
+                copyOnWriteEnabled = true;
+            }
 
             // Read the <splitpath ...> configuration
             Configuration splitConfig = config.getChild("splitpath", false);
@@ -740,5 +748,13 @@ public class VirtualFileSystemRepository implements Repository {
      */
     boolean isSplitPathEnabled() {
         return splitPathEnabled;
+    }
+
+
+    /**
+     * Check whether copy-on-write is enabled and make this available to classes within this package
+     */
+    boolean isCopyOnWriteEnabled() {
+        return copyOnWriteEnabled;
     }
 }
