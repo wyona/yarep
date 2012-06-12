@@ -32,6 +32,8 @@ public class VirtualFileSystemOutputStream extends OutputStream {
     protected File file;
 
     protected boolean copyOnWrite;
+    protected boolean isClosed;
+    protected boolean isMoved;
     protected Path tempPath;
     protected Path destPath;
 
@@ -47,6 +49,8 @@ public class VirtualFileSystemOutputStream extends OutputStream {
     public VirtualFileSystemOutputStream(Node node, File file) throws Exception {
         this.node = node;
         this.file = file;
+        isClosed = false;
+        isMoved = false;
 
         // Check for copy-on-write
         VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
@@ -107,23 +111,38 @@ public class VirtualFileSystemOutputStream extends OutputStream {
     }
 
     /**
+     * Just in case - close stream on garbage collection.
+     */
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    /**
      * Custom close implementation.
      * Automatically performs an atomic move if necessary and updates node
      * properties of the underlying node.
      */
     public void close() throws IOException {
+        if(isClosed && isMoved) return;
+
         // Close stream first
         out.close();
+        isClosed = true;
 
         // Perform atomic move (if copy-on-write is set up)
         // Otherwise we have nothing special to do here
-        if(copyOnWrite) {
+        if(copyOnWrite && !isMoved) {
             try {
                 // Attempt to perform ATOMIC_MOVE on filesystem
                 Files.move(
                     tempPath, destPath,
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
+                isMoved = true;
             } catch(AtomicMoveNotSupportedException e) {
                 // Filesystem does not support ATOMIC_MOVE argument
                 // Try with a regular move instead, that should work
@@ -131,11 +150,15 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 Files.move(
                     tempPath, destPath,
                     StandardCopyOption.REPLACE_EXISTING);
+                isMoved = true;
             } catch(Exception e) {
                 // Unable to move the file - re-try one last time w/o args.
                 log.error(e, e);
                 Files.move(tempPath, destPath);
+                isMoved = true;
             }
+        } else {
+            isMoved = true;
         }
 
         try {

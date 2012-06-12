@@ -222,7 +222,7 @@ public class VirtualFileSystemRepository implements Repository {
             if(copyOnWrite != null) {
                 String val = copyOnWrite.getValue();
                 if("true".equals(val)) {
-                    log.info("Copy-on-write is enabled in VFS repo!");
+                    log.warn("Copy-on-write is enabled in VFS repo!");
                     copyOnWriteEnabled = true;
                 }
             }
