@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
 import java.lang.Long;
+import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -28,6 +29,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
 
     protected Node node;
     protected OutputStream out;
+    protected File file;
 
     protected boolean copyOnWrite;
     protected Path tempPath;
@@ -42,8 +44,9 @@ public class VirtualFileSystemOutputStream extends OutputStream {
      * @param node  The underlying node.
      * @param file  The destination file to write to.
      */
-    public VirtualFileSystemOutputStream(Node node, File file) throws FileNotFoundException {
-        this.node  = node;
+    public VirtualFileSystemOutputStream(Node node, File file) throws Exception {
+        this.node = node;
+        this.file = file;
 
         // Check for copy-on-write
         VirtualFileSystemRepository vfsRepo = ((VirtualFileSystemNode) node).getRepository();
@@ -57,18 +60,18 @@ public class VirtualFileSystemOutputStream extends OutputStream {
             // Copy-on-write enabled:
             // Try to set up copy-on-write mechanism
             String name = file.getName();
-            String parent = file.getParentFile().getAbsolutePath();
+            File parent = file.getParentFile();
             Random random = new Random();
 
             // Attempt to create a temporary file for writing
-            File tempFile;
+            File tempFile = null;
             int i = 0;
             boolean success = false;
             while(i < MAX_RETRIES && !success) {
                 // We use random tags to avoid collisions
                 // Re-try up to MAX_TRIES times if we fail
                 String tag = Long.toHexString(random.nextLong());
-                tempFile = File(parent, name + ".tmp." + tag);
+                tempFile = new File(parent, name + ".tmp." + tag);
                 success = tempFile.createNewFile();
                 i = i + 1;
             }
@@ -77,7 +80,7 @@ public class VirtualFileSystemOutputStream extends OutputStream {
                 // Unable to create temporary file, abort
                 log.error("Unable to create new temporary file.");
                 log.error("Absolute path was: " + tempFile.getAbsolutePath());
-                throw new Exception("Unable to create new temporary file.");
+                throw new Exception("Copy-on-write failed: Unable to create new temporary file.");
             }
 
             // Get path names, set output stream
