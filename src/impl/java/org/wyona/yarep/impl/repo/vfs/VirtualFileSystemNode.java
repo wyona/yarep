@@ -151,9 +151,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * Read properties from meta file
+     * Read properties from (persistent) meta file
      */
     protected void readProperties() throws RepositoryException {
+        // TODO: Make sure properties are only read if saveProperties finished, because otherwise one might get just part of the data and/or strange exceptions...
         try {
             log.debug("Reading meta file: " + this.metaFile);
             this.properties = new HashMap();
@@ -246,11 +247,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Save all properties within a meta file
-     * TODO: Changing a property should update the last modified date. This implementation does not change the last modified date if a property changes.
+     * TODO/TBD: Changing a property should update the last modified date. This implementation does not change the last modified date if a property changes.
      * @param name Property name which has been set or removed (see setProperty(Property) and removeProperty(String))
      * @throws RepositoryException
      */
     private void saveProperties(String name) throws RepositoryException {
+        synchronized("save-properties") {
         try {
             log.debug("Writing meta file: " + this.metaFile);
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
@@ -291,6 +293,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         } catch (Exception e) {
             log.error(e, e);
             throw new RepositoryException("Error while writing meta file: " + metaFile + ": " + e.getMessage(), e);
+        }
         }
     }
     
@@ -534,25 +537,51 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         setProperty(PROPERTY_IS_CHECKED_OUT, false);
         setProperty(PROPERTY_CHECKIN_DATE, new Date());
     }
-    
+
+    /**
+     * @see org.wyona.yarep.core.Node#isCheckedOut()
+     */
+    @Override
+    public boolean isCheckedOut() throws RepositoryException {
+        readProperties(); // INFO: Make sure to re-read properties from persistent repository, because otherwise another synchronized methods like for example checkout(String) do not really make sense!
+        return super.isCheckedOut();
+    }
 
     /**
      * @see org.wyona.yarep.core.Node#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
-        // TODO: this should be somehow synchronized
-        if (isCheckedOut()) {
-            throw new NodeStateException("Node " + path + " is already checked out by: " + getCheckoutUserID());
-        }
-        
-        setProperty(PROPERTY_IS_CHECKED_OUT, true);
-        setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
-        setProperty(PROPERTY_CHECKOUT_DATE, new Date()); // TODO: One should be able to overwrite the checkout date similar to as the checkout method is able to do so.
+        log.warn("Try to checkout node '" + getPath() + "' by user '" + userID + "'.");
+        synchronized("virtual-file-sytem-node") {
+            if (isCheckedOut()) {
+                throw new NodeStateException("Node " + path + " is already checked out by: " + getCheckoutUserID());
+            }
 
-        /*if (getRevisions().length == 0) {
-            // create a backup revision
-            createRevision("initial revision");
-        }*/
+/*
+            // INFO: In order to test synchronization, we slow down this method.
+            long timestamp = new java.util.Date().getTime();
+            try {
+                log.warn("DEBUG: Create lock (pid: " + timestamp + "), but first sleep for 42 seconds in order to delay this process and test synchronization...");
+                for (int i = 0; i < 6; i++) {
+                    Thread.sleep(7000);
+                    log.warn("DEBUG: " + (i+1)*7 + " seconds passed since delay loop started (pid: " + timestamp + ")");
+                }
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+*/
+        
+            setProperty(PROPERTY_IS_CHECKED_OUT, true);
+            setProperty(PROPERTY_CHECKOUT_USER_ID, userID);
+            setProperty(PROPERTY_CHECKOUT_DATE, new Date()); // TODO: One should be able to overwrite the checkout date similar to as the checkout method is able to do so.
+
+            /* TBD: What is this good for and why is it commented?!
+            if (getRevisions().length == 0) {
+                // INFO: create a backup revision
+                createRevision("initial revision");
+            }
+            */
+        }
     }
 
     /**
@@ -805,6 +834,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
+     * @see org.wyona.yarep.core.attributes.VersionableV1#existsRevision(Date)
+     */
+    public boolean existsRevision(Date date) throws Exception {
+        log.warn("TODO: Implement this method...");
+        return false;
+    }
+
+    /**
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
@@ -819,7 +856,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     return revision;
                 } else {
                     //log.warn("No revision found via data index, try to find otherwise ...");
-                    log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+                    //log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
                     return null;
                 }
             } else {
