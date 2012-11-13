@@ -551,7 +551,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.Node#checkout(java.lang.String)
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
-        log.warn("Try to checkout node '" + getPath() + "' by user '" + userID + "'.");
+        log.info("Try to checkout node '" + getPath() + "' by user '" + userID + "'.");
         synchronized("virtual-file-sytem-node") {
             if (isCheckedOut()) {
                 throw new NodeStateException("Node " + path + " is already checked out by: " + getCheckoutUserID());
