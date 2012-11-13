@@ -836,10 +836,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     /**
      * @see org.wyona.yarep.core.attributes.VersionableV1#existsRevision(Date)
      */
+/*
     public boolean existsRevision(Date date) throws Exception {
         log.warn("TODO: Implement this method...");
         return false;
     }
+*/
 
     /**
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
