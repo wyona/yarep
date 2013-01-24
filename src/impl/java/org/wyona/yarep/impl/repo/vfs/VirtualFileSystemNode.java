@@ -889,7 +889,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getTotalNumberOfRevisions()
      */
     public int getTotalNumberOfRevisions() throws Exception {
-        File[] revisionDirs = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter);
+        if (areRevisionsRead) {
+            log.warn("TBD: Maybe it's faster to get the length of the list of the already read revisions: " + revisions.size());
+        }
+        // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
+        File[] revisionDirs = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
         //log.debug("Number of revision directories: " + revisionDirs.length);
         return revisionDirs.length;
         //return getRevisions().length; // DEPRECATED: Very bad performance/scalability!
