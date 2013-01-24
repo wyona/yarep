@@ -93,10 +93,33 @@ public class DateIndexerSearcher {
 
     /**
      * Get most recent revision
-     * @return Most recent (head) revision, and if such revision exists, then return null
+     * @return Most recent (head) revision, and if no such revision exists, then return null
      */
     public Revision getMostRecentRevision() {
         try {
+            File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
+            String[] years = sortAlphabeticallyAscending(dateIndexBaseDir.list());
+            if (years != null && years.length > 0) {
+                //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
+                return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
+                //return node.getRevision(getRevisionName(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]))));
+            }
+            log.warn("No year and hence no revision: " + dateIndexBaseDir);
+            return null;
+        } catch(Exception e) {
+            log.error(e, e);
+            return null;
+        }
+    }
+
+    /**
+     * Get oldest revision
+     * @return Oldest revision, and if no such revision exists, then return null
+     */
+    public Revision getOldestRevision() {
+        try {
+            // TODO: Find oldest year, set date to one year below oldest year and then use getRevisionOlderThan(Date date)
+            log.warn("Implementation not finished yet!");
             File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
             String[] years = sortAlphabeticallyAscending(dateIndexBaseDir.list());
             if (years != null && years.length > 0) {
