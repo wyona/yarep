@@ -30,8 +30,12 @@ public class VFSRevisionIterator implements java.util.Iterator {
     public VFSRevisionIterator(Node node, File metaDir, Date date, boolean reverse) throws Exception {
         this.pointInTime = date;
         this.dis = new DateIndexerSearcher(node, metaDir);
+
         this.reverse = reverse;
-        log.warn("Reverse order feature not implemented yet!");
+        if (reverse) {
+            log.warn("TODO: Reverse order feature not implemented yet!");
+        }
+
         if (!dis.indexExists()) {
             dis.buildDateIndex();
         }
@@ -42,8 +46,9 @@ public class VFSRevisionIterator implements java.util.Iterator {
      * @see java.util.Iterator#hasNext()
      */
     public boolean hasNext() {
-        if (currentRevision == null) {
+        if (currentRevision == null) { // INFO: Iterator is still at the beginning
             if (pointInTime != null) {
+                // TODO: What exactly means 'reverse' when using pointInTime?!
                 try {
                     if (dis.getRevision(pointInTime) != null) {
                         return true;
@@ -55,7 +60,9 @@ public class VFSRevisionIterator implements java.util.Iterator {
                     return false;
                 }
             } else {
-                if (dis.getMostRecentRevision() != null) {
+                if (reverse && dis.getOldestRevision() != null) {
+                    return true;
+                } else if (dis.getMostRecentRevision() != null) {
                     return true;
                 } else {
                     return false;
@@ -63,6 +70,7 @@ public class VFSRevisionIterator implements java.util.Iterator {
             }
         } else {
             try {
+                // TODO: Implement 'reverse'
                 log.debug("Check if there is another revision older than: " + format(currentRevision.getCreationDate()));
                 if (dis.getRevisionOlderThan(currentRevision.getCreationDate()) != null) {
                     return true;
