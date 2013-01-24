@@ -636,7 +636,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Read revisions
      */
     protected void readRevisions() throws RepositoryException {
-        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        File revisionsBaseDir = getRevisionsBaseDir();
         if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
         
         File[] revisionDirs = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
@@ -660,7 +660,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
         try {
-            File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+            File revisionsBaseDir = getRevisionsBaseDir();
             File revisionDir = new File(revisionsBaseDir, revisionName);
             
             File srcContentFile = new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
@@ -889,8 +889,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getTotalNumberOfRevisions()
      */
     public int getTotalNumberOfRevisions() throws Exception {
-        log.warn("TODO: Not implemented yet!");
-        return -1;
+        File[] revisionDirs = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter);
+        //log.debug("Number of revision directories: " + revisionDirs.length);
+        return revisionDirs.length;
+        //return getRevisions().length; // DEPRECATED: Very bad performance/scalability!
     }
 
     /**
@@ -950,7 +952,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionName Name/ID of revision
      */
     public File getRevisionContentFile(String revisionName) {
-        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        File revisionsBaseDir = getRevisionsBaseDir();
         File revisionDir = new File(revisionsBaseDir, revisionName);
             
         return new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
@@ -960,7 +962,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Get revision meta file
      */
     public File getRevisionMetaFile(String revisionName) {
-        File revisionsBaseDir = new File(this.metaDir, REVISIONS_BASE_DIR);
+        File revisionsBaseDir = getRevisionsBaseDir();
         File revisionDir = new File(revisionsBaseDir, revisionName);
             
         return new File(revisionDir, META_FILE_NAME);
@@ -1040,5 +1042,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
         //return line.indexOf(">" + PROPERTY_SEPARATOR) + 2;
         //return line.indexOf(PROPERTY_SEPARATOR) + 1;
+    }
+
+    /**
+     * Get base directory containing revisions
+     */
+    private File getRevisionsBaseDir() {
+        return new File(this.metaDir, REVISIONS_BASE_DIR);
     }
 }
