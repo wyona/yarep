@@ -1054,7 +1054,31 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     File getRevisionDir(String revisionName) {
         File file = new File(getRevisionsBaseDir(), revisionName);
-        //log.warn("TODO: Split revision directory: " + file.getAbsolutePath());
-        return file;
+        if (file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists!
+            return file;
+        } else {
+            file = new File(getRevisionsBaseDir(), splitUUID(revisionName));
+            log.debug("Splitted revision path: " + file.getAbsolutePath());
+            return file;
+        }
+    }
+
+    /**
+     * This method splits off the first two character tuples, e.g.:
+     * in:  ec2c0c02-1d7d-4a21-8a39-68f9f72dea09
+     * out: ec/2c/0c02-1d7d-4a21-8a39-68f9f72dea09
+     * @param uuid UUID which is not splitted yet
+     * @return splitted uuid
+     */
+    private static String splitUUID(String uuid) {
+        try {
+            String part1 = uuid.substring(0, 2);
+            String part2 = uuid.substring(2, 4);
+            String remainder = uuid.substring(4);
+            return part1 + File.separator + part2 + File.separator + remainder;
+        } catch (StringIndexOutOfBoundsException e) {
+            log.error("Could not split UUID '" + uuid + "' (Error message: " + e.getMessage() + ")");
+            throw e;
+        }
     }
 }
