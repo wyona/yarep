@@ -593,7 +593,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Create revision of this node for a particular time, TODO
+     * Create revision of this node for a particular time
      * @param comment Comment re this new revision
      * @param revisionTime A particular time
      */
@@ -605,10 +605,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             String revisionName = String.valueOf(revisionTime);
 
             File destContentFile = getRevisionContentFile(revisionName);
-            log.debug("Create revision '" + destContentFile + "' for a particular time: " + new Date(revisionTime));
+            //log.debug("Create content of revision '" + destContentFile + "' for a particular time: " + new Date(revisionTime));
             FileUtils.copyFile(this.contentFile, destContentFile);
         
             File destMetaFile = getRevisionMetaFile(revisionName);
+            //log.debug("Create meta of revision '" + destMetaFile + "' for a particular time: " + new Date(revisionTime));
             FileUtils.copyFile(this.metaFile, destMetaFile);
         
             Revision revision = new VirtualFileSystemRevision(this, revisionName);
@@ -660,13 +661,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public void restore(String revisionName) throws NoSuchRevisionException, RepositoryException {
         try {
-            File revisionsBaseDir = getRevisionsBaseDir();
-            File revisionDir = new File(revisionsBaseDir, revisionName);
-            
-            File srcContentFile = new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
+            File srcContentFile = getRevisionContentFile(revisionName);
             FileUtils.copyFile(srcContentFile, this.contentFile);
         
-            File srcMetaFile = new File(revisionDir, META_FILE_NAME);
+            File srcMetaFile = getRevisionMetaFile(revisionName);
             FileUtils.copyFile(srcMetaFile, this.metaFile);
             
             setProperty(AbstractNode.PROPERTY_LAST_MODIFIED, this.contentFile.lastModified());
@@ -956,20 +954,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionName Name/ID of revision
      */
     public File getRevisionContentFile(String revisionName) {
-        File revisionsBaseDir = getRevisionsBaseDir();
-        File revisionDir = new File(revisionsBaseDir, revisionName);
-            
-        return new File(revisionDir, VirtualFileSystemRevision.CONTENT_FILE_NAME);
+        return new File(getRevisionDir(revisionName), VirtualFileSystemRevision.CONTENT_FILE_NAME);
     }
 
     /**
      * Get revision meta file
+     * @param revisionName Name/ID of revision
      */
     public File getRevisionMetaFile(String revisionName) {
-        File revisionsBaseDir = getRevisionsBaseDir();
-        File revisionDir = new File(revisionsBaseDir, revisionName);
-            
-        return new File(revisionDir, META_FILE_NAME);
+        return new File(getRevisionDir(revisionName), META_FILE_NAME);
     }
 
     /**
@@ -1053,5 +1046,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private File getRevisionsBaseDir() {
         return new File(this.metaDir, REVISIONS_BASE_DIR);
+    }
+
+    /**
+     * Get directory of a particular revision
+     * @param revisionName Name/ID of revision
+     */
+    File getRevisionDir(String revisionName) {
+        File file = new File(getRevisionsBaseDir(), revisionName);
+        //log.warn("TODO: Split revision directory: " + file.getAbsolutePath());
+        return file;
     }
 }

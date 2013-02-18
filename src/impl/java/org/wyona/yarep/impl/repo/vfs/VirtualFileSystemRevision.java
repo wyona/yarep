@@ -50,19 +50,13 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      *
      */
     private void initContentAndMetaFile() throws RepositoryException {
-        File revisionDir = new File(node.metaDir, REVISIONS_BASE_DIR + File.separator + this.revisionName);
-        this.contentFile = new File(revisionDir, CONTENT_FILE_NAME);
-        this.metaDir = revisionDir;
-        this.metaFile = new File(this.metaDir, META_FILE_NAME);
-        
+        this.metaDir = node.getRevisionDir(this.revisionName);
 
-        /*
-        this.contentDir = new File(((VirtualFileSystemRepository)repository).getContentDir(), this.uuid + META_DIR_SUFFIX + File.separator + REVISIONS_BASE_DIR + File.separator + this.revisionName);
-        this.contentFile = new File(this.contentDir, CONTENT_FILE_NAME);
+        this.contentFile = node.getRevisionContentFile(this.revisionName);
+        //log.debug("Revision content file: " + this.contentFile.getAbsolutePath());
 
-        this.metaDir = this.contentDir;
-        this.metaFile = new File(this.metaDir, META_FILE_NAME);
-        */
+        this.metaFile = node.getRevisionMetaFile(this.revisionName);;
+        //log.debug("Revision meta file: " + this.metaFile.getAbsolutePath());
     }
 
     /**
