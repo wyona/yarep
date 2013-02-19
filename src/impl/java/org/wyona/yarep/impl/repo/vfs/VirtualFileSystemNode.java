@@ -637,24 +637,25 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Read revisions into memory
      */
     protected void readRevisions() throws RepositoryException {
-        log.warn("Do not use this method, because of scalability and performance issues!");
-
-        File revisionsBaseDir = getRevisionsBaseDir();
-        if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
-        
-        File[] revisionDirs = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
+        log.warn("Do not use this method, because of scalability and performance issues!"); // IMPORTANT: Please note that this implementation is used by DateIndexerSearcher#buildDateIndex() and hence one should NOT replace this implementation by the iterator implementation, because otherwise one creates a "loop"! A workaround would be though to "copy" this implementation to DateIndexerSearcher such that DateIndexerSearcher is independent of this implementation here.
         
         this.revisions = new LinkedHashMap();
         
-        if (revisionDirs != null) {
-            if (log.isDebugEnabled()) log.debug("Number of revisions which made it through the filter: " + revisionDirs.length);
-            Arrays.sort(revisionDirs);
-            for (int i = 0; i < revisionDirs.length; i++) {
-                String revisionName = revisionDirs[i].getName();
+        File revisionsBaseDir = getRevisionsBaseDir();
+        if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
+        File[] revisionDirsUnsplitted = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
+        if (revisionDirsUnsplitted != null) {
+            if (log.isDebugEnabled()) log.debug("Number of revisions which made it through the filter: " + revisionDirsUnsplitted.length);
+            Arrays.sort(revisionDirsUnsplitted);
+            for (int i = 0; i < revisionDirsUnsplitted.length; i++) {
+                String revisionName = revisionDirsUnsplitted[i].getName();
                 Revision revision = new VirtualFileSystemRevision(this, revisionName);
                 this.revisions.put(revisionName, revision);
             }
         }
+
+        // TODO: Read revisions from splitted paths!
+
         areRevisionsRead = true;
     }
     
