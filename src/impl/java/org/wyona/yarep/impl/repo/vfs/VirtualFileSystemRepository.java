@@ -632,7 +632,14 @@ public class VirtualFileSystemRepository implements Repository {
     }
 
     /**
-     * Splits a String such that the result can be used as a repo path for a tree-like repo structure.
+     * Splits a string using the global variables set inside the repository configuration
+     */
+    String splitPath(String path) {
+        return splitPath(path, splitlength, splitparts, includepaths, dummySeparator);
+    }
+
+    /**
+     * Splits a string such that the result can be used as a repo path for a tree-like repo structure.
      *
      * This method splits off n strings (where n = parts) of length partlength, e.g. if
      * splitPath("ec2c0c02-1d7d-4a21-8a39-68f9f72dea09", 3, 4) is called, then:
@@ -657,9 +664,14 @@ public class VirtualFileSystemRepository implements Repository {
      * which demonstrates that although "bb" is a logical child of "/aa", physically "+b" is not a child of "/aa/+"
      *
      * @param path A yarep path
+     * @param splitlength For example 2
+     * @param splitparts For example 3
+     * @param includepaths For example {"/"}, which means all paths will be splitted
+     * @param dummySeparator For example "+"
+     *
      * @return splitted path or unsplit if it does not match any of the include patters
      */
-    String splitPath(String path) {
+    static String splitPath(String path, int splitlength, int splitparts, String[] includepaths, String dummySeparator) {
         log.debug("Split path: " + path);
 
         // NOTE: uuid should be a full yarep path, so we can safely remove the leading slash
