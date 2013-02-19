@@ -892,7 +892,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
         File[] revisionDirs = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
+
+        // TODO: Also check sub-directories, because of scalability reasons we split the revision path!
         //log.debug("Number of revision directories: " + revisionDirs.length);
+
         return revisionDirs.length;
         //return getRevisions().length; // DEPRECATED: Very bad performance/scalability!
     }
@@ -1057,28 +1060,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         if (file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists!
             return file;
         } else {
-            file = new File(getRevisionsBaseDir(), splitUUID(revisionName));
-            log.debug("Splitted revision path: " + file.getAbsolutePath());
+            String[] includepaths = {"/"};
+            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, 2, 5, includepaths, "+"));
+            //log.debug("Splitted revision path: " + file.getAbsolutePath());
             return file;
-        }
-    }
-
-    /**
-     * This method splits off the first two character tuples, e.g.:
-     * in:  ec2c0c02-1d7d-4a21-8a39-68f9f72dea09
-     * out: ec/2c/0c02-1d7d-4a21-8a39-68f9f72dea09
-     * @param uuid UUID which is not splitted yet
-     * @return splitted uuid
-     */
-    private static String splitUUID(String uuid) {
-        try {
-            String part1 = uuid.substring(0, 2);
-            String part2 = uuid.substring(2, 4);
-            String remainder = uuid.substring(4);
-            return part1 + File.separator + part2 + File.separator + remainder;
-        } catch (StringIndexOutOfBoundsException e) {
-            log.error("Could not split UUID '" + uuid + "' (Error message: " + e.getMessage() + ")");
-            throw e;
         }
     }
 }
