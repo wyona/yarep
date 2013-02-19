@@ -71,6 +71,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected RevisionDirectoryFilter revisionDirectoryFilter = new RevisionDirectoryFilter();
 
     String vfsMetaFileVersion = null;
+
+    private int REVISION_SPLIT_LENGTH = 2;
     
     /**
      * Constructor
@@ -128,8 +130,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             createMetaFile();
         }
         readProperties();
-        // defer reading of revisions for performance reasons
-        // readRevisions();
     }
 
     /**
@@ -598,9 +598,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionTime A particular time
      */
     private Revision createRevision(String comment, long revisionTime) throws RepositoryException {
-        if (!areRevisionsRead) {
-            readRevisions();
-        }
         try {
             String revisionName = String.valueOf(revisionTime);
 
@@ -617,7 +614,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             ((VirtualFileSystemRevision)revision).setCreationDate(new Date(revisionTime));
             ((VirtualFileSystemRevision)revision).setCreator(getCheckoutUserID());
             ((VirtualFileSystemRevision)revision).setComment(comment);
-            this.revisions.put(revisionName, revision);
+
+            if (areRevisionsRead) {
+                this.revisions.put(revisionName, revision);
+            }
 
             DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
             try {
@@ -634,9 +634,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * Read revisions
+     * Read revisions into memory
      */
     protected void readRevisions() throws RepositoryException {
+        log.warn("Do not use this method, because of scalability and performance issues!");
+
         File revisionsBaseDir = getRevisionsBaseDir();
         if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
         
@@ -675,16 +677,20 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
     
     /**
-     * Check if file is a revision
+     * Filter to check whether path is a revision (e.g. '1361266662652')
      */
     protected class RevisionDirectoryFilter implements FileFilter {
+        /**
+         * @see java.io.FileFilter#accept(File)
+         */
         public boolean accept(File pathname) {
-            if (pathname.getName().matches("[0-9]+") && pathname.isDirectory()) {
+            if (pathname.isDirectory() && pathname.getName().length() > REVISION_SPLIT_LENGTH && pathname.getName().matches("[0-9]+")) {
                 return true;
             } else {
-                if (!pathname.getName().startsWith(".")) { // Ignore hidden files
-                    log.warn("Does not seem to be a revision: " + pathname);
+                if (pathname.getName().startsWith(".")) { // Ignore hidden files/directories, e.g. '.svn'
+                    log.warn("Hidden file or directory: " + pathname);
                 }
+                log.warn("Does not seem to be a revision: " + pathname);
                 return false;
             }
         }
@@ -891,13 +897,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("TBD: Maybe it's faster to get the length of the list of the already read revisions: " + revisions.size());
         }
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
-        File[] revisionDirs = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
+        File[] revisionDirsUnsplitted = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
 
         // TODO: Also check sub-directories, because of scalability reasons we split the revision path!
-        //log.debug("Number of revision directories: " + revisionDirs.length);
+        log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
 
-        return revisionDirs.length;
-        //return getRevisions().length; // DEPRECATED: Very bad performance/scalability!
+        return revisionDirsUnsplitted.length;
     }
 
     /**
@@ -927,8 +932,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         return revision;
     }
 
-    public Revision getRevisionByTag(String tag) throws NoSuchRevisionException,
-            RepositoryException {
+    /**
+     * @see org.wyona.yarep.core.Node#getRevisionByTag(String)
+     */
+    @Override
+    public Revision getRevisionByTag(String tag) throws NoSuchRevisionException, RepositoryException {
         if (!areRevisionsRead) {
             readRevisions();
         }
@@ -938,13 +946,19 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     /**
      * @see org.wyona.yarep.core.Node#getRevisions()
      */
+    @Override
     public Revision[] getRevisions() throws RepositoryException {
+        log.warn("DEPRECATED: Very bad scalability/performance! Use getRevisions(boolean) which is using an iterator instead.");
         if (!areRevisionsRead) {
             readRevisions();
         }
         return super.getRevisions();
     }
 
+    /**
+     * @see org.wyona.yarep.core.Node#hasRevisionWithTag(String)
+     */
+    @Override
     public boolean hasRevisionWithTag(String tag) throws RepositoryException {
         if (!areRevisionsRead) {
             readRevisions();
@@ -1061,7 +1075,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return file;
         } else {
             String[] includepaths = {"/"};
-            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, 2, 5, includepaths, "+"));
+            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+"));
             //log.debug("Splitted revision path: " + file.getAbsolutePath());
             return file;
         }
