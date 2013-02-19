@@ -72,7 +72,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     String vfsMetaFileVersion = null;
 
-    private int REVISION_SPLIT_LENGTH = 2;
+    static final int REVISION_SPLIT_LENGTH = 2;
     
     /**
      * Constructor
@@ -898,12 +898,45 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.warn("TBD: Maybe it's faster to get the length of the list of the already read revisions: " + revisions.size());
         }
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
+
         File[] revisionDirsUnsplitted = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
+        //log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
 
-        // TODO: Also check sub-directories, because of scalability reasons we split the revision path!
-        log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
+        int revisionDirsSplitted = getNumberOfRevisionsFromSplittedDirectories();
+        //log.debug("Number of revisions which are inside splitted directories: " + revisionDirsSplitted);
 
-        return revisionDirsUnsplitted.length;
+        return revisionDirsUnsplitted.length + revisionDirsSplitted;
+    }
+
+    /**
+     * Count revisions which are inside splitted directories
+     */
+    private int getNumberOfRevisionsFromSplittedDirectories() {
+        File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
+        int numberOfRevisions = 0;
+        for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
+            //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
+            numberOfRevisions = getNumberOfRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], numberOfRevisions);
+        }
+        return numberOfRevisions;
+    }
+
+    /**
+     * Count revisions which are inside splitted directories
+     */
+    private int getNumberOfRevisionsFromSplittedDirectories(File dir, int numberOfRevisions) {
+        if (new File(dir, VirtualFileSystemRevision.CONTENT_FILE_NAME).isFile() && new File(dir, META_FILE_NAME).isFile()) {
+            return numberOfRevisions + 1;
+        } else {
+            File[] filesAndDirs = dir.listFiles();
+            for (int i = 0; i < filesAndDirs.length; i++) {
+                if (filesAndDirs[i].isDirectory()) {
+                    //log.debug("Check directory: " + filesAndDirs[i].getAbsolutePath());
+                    numberOfRevisions = getNumberOfRevisionsFromSplittedDirectories(filesAndDirs[i], numberOfRevisions);
+                }
+            }
+        }
+        return numberOfRevisions;
     }
 
     /**
@@ -1079,6 +1112,29 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+"));
             //log.debug("Splitted revision path: " + file.getAbsolutePath());
             return file;
+        }
+    }
+}
+    
+/**
+ * Filter to check whether path is a revision (e.g. '1361266662652')
+ */
+class SplittedDirectoryFilter implements FileFilter {
+
+    private static Logger log = Logger.getLogger(SplittedDirectoryFilter.class);
+
+    /**
+     * @see java.io.FileFilter#accept(File)
+     */
+    public boolean accept(File pathname) {
+        if (pathname.isDirectory() && pathname.getName().length() == VirtualFileSystemNode.REVISION_SPLIT_LENGTH && pathname.getName().matches("[0-9]+")) {
+            return true;
+        } else {
+            if (pathname.getName().startsWith(".")) { // Ignore hidden files/directories, e.g. '.svn'
+                log.warn("Hidden file or directory: " + pathname);
+            }
+            //log.debug("Does not seem to be a revision inside a splitted directory: " + pathname);
+            return false;
         }
     }
 }
