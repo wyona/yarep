@@ -598,12 +598,12 @@ public class DateIndexerSearcher {
      */
     public void buildDateIndex() throws Exception {
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.debug("Build date index: " + dateIndexBaseDir);
 
         if (!dateIndexBaseDir.isDirectory()) {
             dateIndexBaseDir.mkdirs();
         }
 
+        log.warn("Build date index '" + dateIndexBaseDir + "', whereas this should happen only once when no index exists yet (or has been manually deleted again). Please note that the reading of the revisions must be based on the implementation VirtualFileSystemNode#readRevisions()!");
         Revision[] revisions = node.getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
             addRevision(revisions[i].getRevisionName());
