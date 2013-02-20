@@ -646,7 +646,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         File[] revisionDirsUnsplitted = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
         if (revisionDirsUnsplitted != null) {
             if (log.isDebugEnabled()) log.debug("Number of revisions which made it through the filter: " + revisionDirsUnsplitted.length);
-            Arrays.sort(revisionDirsUnsplitted);
+            Arrays.sort(revisionDirsUnsplitted); // TODO: If we sort further down (once more), then this sorting becomes obsolete!
             for (int i = 0; i < revisionDirsUnsplitted.length; i++) {
                 String revisionName = revisionDirsUnsplitted[i].getName();
                 Revision revision = new VirtualFileSystemRevision(this, revisionName);
@@ -654,7 +654,9 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         }
 
-        // TODO: Read revisions from splitted paths!
+        readRevisionsFromSplittedDirectories();
+
+        // TODO: Re-sort revisions!
 
         areRevisionsRead = true;
     }
@@ -691,7 +693,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 if (pathname.getName().startsWith(".")) { // Ignore hidden files/directories, e.g. '.svn'
                     log.warn("Hidden file or directory: " + pathname);
                 }
-                log.warn("Does not seem to be a revision: " + pathname);
+                //log.debug("Does not seem to be a revision: " + pathname);
                 return false;
             }
         }
@@ -895,8 +897,10 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public int getTotalNumberOfRevisions() throws Exception {
         if (areRevisionsRead) {
-            log.warn("TBD: Maybe it's faster to get the length of the list of the already read revisions: " + revisions.size());
+            log.warn("It's faster to get the length of the list of the already read revisions (" + revisions.size() + "), but actually we should avoid using readRevisions(), because it does not scale well!");
+            return revisions.size();
         }
+
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
 
         File[] revisionDirsUnsplitted = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
@@ -905,6 +909,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         int revisionDirsSplitted = getNumberOfRevisionsFromSplittedDirectories();
         //log.debug("Number of revisions which are inside splitted directories: " + revisionDirsSplitted);
 
+        // TODO: Save number of revisions inside dedicated text file in order to improve performance! Make sure to increase number when revision is added or deleted.
         return revisionDirsUnsplitted.length + revisionDirsSplitted;
     }
 
@@ -923,6 +928,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Count revisions which are inside splitted directories
+     * @param dir TODO
+     * @param numberOfRevisions TODO
      */
     private int getNumberOfRevisionsFromSplittedDirectories(File dir, int numberOfRevisions) {
         if (new File(dir, VirtualFileSystemRevision.CONTENT_FILE_NAME).isFile() && new File(dir, META_FILE_NAME).isFile()) {
@@ -937,6 +944,40 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         }
         return numberOfRevisions;
+    }
+
+    /**
+     * Read revisions which are inside splitted directories
+     */
+    private void readRevisionsFromSplittedDirectories() throws RepositoryException {
+        File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
+        for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
+            //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
+            readRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], topLevelSplittedDirectories[i].getName());
+        }
+    }
+
+    /**
+     * Read revisions which are inside splitted directories
+     * @param dir Splitted revision directory
+     * @param unsplittedName Unsplitted revision name
+     */
+    private void readRevisionsFromSplittedDirectories(File dir, String unsplittedName) throws RepositoryException {
+        if (new File(dir, VirtualFileSystemRevision.CONTENT_FILE_NAME).isFile() && new File(dir, META_FILE_NAME).isFile()) {
+            String revisionName = unsplittedName;
+            //log.debug("Add revision: " + dir.getAbsolutePath() + ", " + revisionName);
+            Revision revision = new VirtualFileSystemRevision(this, revisionName);
+            this.revisions.put(revisionName, revision);
+            return;
+        } else {
+            File[] filesAndDirs = dir.listFiles();
+            for (int i = 0; i < filesAndDirs.length; i++) {
+                if (filesAndDirs[i].isDirectory()) {
+                    //log.debug("Check directory: " + filesAndDirs[i].getAbsolutePath());
+                    readRevisionsFromSplittedDirectories(filesAndDirs[i], unsplittedName + filesAndDirs[i].getName());
+                }
+            }
+        }
     }
 
     /**
