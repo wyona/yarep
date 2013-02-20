@@ -639,14 +639,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected void readRevisions() throws RepositoryException {
         log.warn("Do not use this method, because of scalability and performance issues!"); // IMPORTANT: Please note that this implementation is used by DateIndexerSearcher#buildDateIndex() and hence one should NOT replace this implementation by the iterator implementation, because otherwise one creates a "loop"! A workaround would be though to "copy" this implementation to DateIndexerSearcher such that DateIndexerSearcher is independent of this implementation here.
         
-        this.revisions = new LinkedHashMap();
+        this.revisions = new LinkedHashMap<String, Revision>();
         
         File revisionsBaseDir = getRevisionsBaseDir();
         if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
         File[] revisionDirsUnsplitted = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
         if (revisionDirsUnsplitted != null) {
             if (log.isDebugEnabled()) log.debug("Number of revisions which made it through the filter: " + revisionDirsUnsplitted.length);
-            Arrays.sort(revisionDirsUnsplitted); // TODO: If we sort further down (once more), then this sorting becomes obsolete!
+            Arrays.sort(revisionDirsUnsplitted);
             for (int i = 0; i < revisionDirsUnsplitted.length; i++) {
                 String revisionName = revisionDirsUnsplitted[i].getName();
                 Revision revision = new VirtualFileSystemRevision(this, revisionName);
@@ -655,8 +655,6 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
 
         readRevisionsFromSplittedDirectories();
-
-        // TODO: Re-sort revisions!
 
         areRevisionsRead = true;
     }
@@ -897,6 +895,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public int getTotalNumberOfRevisions() throws Exception {
         if (areRevisionsRead) {
+            /*
+            if (log.isDebugEnabled()) {
+                Iterator it = revisions.entrySet().iterator();
+                while(it.hasNext()) {
+                    Revision rev = (Revision) ((java.util.Map.Entry)it.next()).getValue();
+                    log.warn("HUGO: Revision: " + rev.getRevisionName() + ", " + rev.getCreationDate());
+                }
+            }
+            */
             log.warn("It's faster to get the length of the list of the already read revisions (" + revisions.size() + "), but actually we should avoid using readRevisions(), because it does not scale well!");
             return revisions.size();
         }
@@ -951,6 +958,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private void readRevisionsFromSplittedDirectories() throws RepositoryException {
         File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
+        Arrays.sort(topLevelSplittedDirectories);
         for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
             //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
             readRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], topLevelSplittedDirectories[i].getName());
@@ -971,6 +979,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return;
         } else {
             File[] filesAndDirs = dir.listFiles();
+            Arrays.sort(filesAndDirs);
             for (int i = 0; i < filesAndDirs.length; i++) {
                 if (filesAndDirs[i].isDirectory()) {
                     //log.debug("Check directory: " + filesAndDirs[i].getAbsolutePath());
