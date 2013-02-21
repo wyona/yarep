@@ -237,6 +237,11 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         super.delete();
+
+        if (node.hasProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
+            long currentTotal = node.getProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
+            node.setProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal - 1);
+        }
     }
 
     public InputStream getInputStream() throws RepositoryException {

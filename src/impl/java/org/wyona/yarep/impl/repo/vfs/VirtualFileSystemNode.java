@@ -53,6 +53,8 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     protected static final String REVISIONS_BASE_DIR = "revisions";
     protected static final String META_DIR_SUFFIX = ".yarep";
     private static final char PROPERTY_SEPARATOR = ':';
+
+    static final String PROPERTY_TOTAL_NUMBER_OF_REVISIONS = "yarep_vfs_total_number_of_revisions";
     
     //protected FileSystemRepository repository;
     protected File contentDir;
@@ -626,6 +628,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 log.error(e, e);
             }
 
+            if (hasProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
+                long currentTotal = getProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
+                setProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal + 1);
+            }
+
             return revision;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
@@ -900,7 +907,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 Iterator it = revisions.entrySet().iterator();
                 while(it.hasNext()) {
                     Revision rev = (Revision) ((java.util.Map.Entry)it.next()).getValue();
-                    log.warn("HUGO: Revision: " + rev.getRevisionName() + ", " + rev.getCreationDate());
+                    log.debug("Revision: " + rev.getRevisionName() + ", " + rev.getCreationDate());
                 }
             }
             */
@@ -908,6 +915,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return revisions.size();
         }
 
+        if (hasProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
+            return (int)getProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
+        }
+
+        log.warn("Total number of revisions is determined by counting all revisions, which does not scale well and hence should be avoided!");
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
 
         File[] revisionDirsUnsplitted = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
@@ -916,8 +928,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         int revisionDirsSplitted = getNumberOfRevisionsFromSplittedDirectories();
         //log.debug("Number of revisions which are inside splitted directories: " + revisionDirsSplitted);
 
-        // TODO: Save number of revisions inside dedicated text file in order to improve performance! Make sure to increase number when revision is added or deleted.
-        return revisionDirsUnsplitted.length + revisionDirsSplitted;
+        int total = revisionDirsUnsplitted.length + revisionDirsSplitted;
+
+        setProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS, total);
+
+        return total;
     }
 
     /**
