@@ -973,10 +973,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private void readRevisionsFromSplittedDirectories() throws RepositoryException {
         File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
-        Arrays.sort(topLevelSplittedDirectories);
-        for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
-            //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
-            readRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], topLevelSplittedDirectories[i].getName());
+        if (topLevelSplittedDirectories != null) {
+            Arrays.sort(topLevelSplittedDirectories);
+            for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
+                //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
+                readRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], topLevelSplittedDirectories[i].getName());
+            }
         }
     }
 
@@ -994,11 +996,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return;
         } else {
             File[] filesAndDirs = dir.listFiles();
-            Arrays.sort(filesAndDirs);
-            for (int i = 0; i < filesAndDirs.length; i++) {
-                if (filesAndDirs[i].isDirectory()) {
-                    //log.debug("Check directory: " + filesAndDirs[i].getAbsolutePath());
-                    readRevisionsFromSplittedDirectories(filesAndDirs[i], unsplittedName + filesAndDirs[i].getName());
+            if (filesAndDirs !=  null) {
+                Arrays.sort(filesAndDirs);
+                for (int i = 0; i < filesAndDirs.length; i++) {
+                    if (filesAndDirs[i].isDirectory()) {
+                        //log.debug("Check directory: " + filesAndDirs[i].getAbsolutePath());
+                        readRevisionsFromSplittedDirectories(filesAndDirs[i], unsplittedName + filesAndDirs[i].getName());
+                    }
                 }
             }
         }
