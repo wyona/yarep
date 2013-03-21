@@ -432,7 +432,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (alternativeFile.isFile()) {
                         return new FileInputStream(alternativeFile);
                     } else {
-                        log.warn("Is Collection (" + contentFile + ") and no alternative File exists (" + alternativeFile + ")");
+                        log.warn("Is Collection (" + contentFile + ") and no alternative File exists (" + alternativeFile + "), hence return directory listing as XHTML...");
                         return new java.io.StringBufferInputStream(getDirectoryListing(contentFile, getRepository().getDirListingMimeType()));
                     }
                 } else {
@@ -800,14 +800,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * Get directory listing
+     * Get directory listing as XHTML
      */
     public String getDirectoryListing(File file, String mimeType) {
         StringBuffer dirListing = new StringBuffer("<?xml version=\"1.0\"?>");
         if(mimeType.equals("application/xhtml+xml")) {
             dirListing.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">");
             dirListing.append("<head>");
-            dirListing.append("<title>"+path+"</title>");
+            dirListing.append("<title>" + path + "</title>");
             dirListing.append("</head>");
             dirListing.append("<body>");
             dirListing.append("<ul>");
