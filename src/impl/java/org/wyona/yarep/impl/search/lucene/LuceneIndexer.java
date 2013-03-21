@@ -236,7 +236,27 @@ public class LuceneIndexer implements Indexer {
      * @see org.wyona.yarep.core.search.Indexer#removeFromIndex(org.wyona.yarep.core.Node, Property)
      */
     public void removeFromIndex(Node node, Property property) throws SearchException {
-        log.warn("TODO: Not implemented yet.");
+        try {
+            String path = node.getPath();
+            log.debug("Trying to remove property '" + property.getName() + "' of node '" + path + "' from properties index...");
+            IndexWriter indexWriter = null;
+            try {
+                indexWriter = createPropertiesIndexWriter();
+                indexWriter.deleteDocuments(new org.apache.lucene.index.Term(INDEX_PROPERTY_YAREPPATH, path)); // TODO: Actually only documents with _PATH = path and containing a field with the property name should be deleted!
+                indexWriter.close();
+            } catch(Exception e) {
+                log.warn("Probably IndexWriter could not be initialized, because of existing lock, hence node with path '" + path + "' will not be deleted from the index! Exception message: " + e.getMessage());
+                //log.error(e, e);
+                try {
+                    indexWriter.close();
+                } catch (Exception e2) {
+                    log.warn("Could not close indexWriter. Exception message: " + e2.getMessage());
+                    //log.error(e2, e2);
+                }
+            }
+        } catch(org.wyona.yarep.core.RepositoryException e) {
+            log.error(e, e);
+        }
     }
 
     /**
