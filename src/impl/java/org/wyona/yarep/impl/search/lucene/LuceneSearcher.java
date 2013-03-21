@@ -141,7 +141,7 @@ public class LuceneSearcher implements Searcher {
                                     if (config.getRepo().existsNode(resultPath)) {
                                         results.add(config.getRepo().getNode(resultPath));
                                     } else {
-                                        log.error("Node found within search index, but no such node within repository: " + resultPath);
+                                        log.debug("Node found within search index, but no such node within repository: " + resultPath);
                                         if(autoClean) {
                                             // TODO: Remove entry from index
                                         }
@@ -230,6 +230,7 @@ public class LuceneSearcher implements Searcher {
                     if (delete) {
                         log.warn("Delete missing documents from index...");
                         try {
+                            // TODO: Use Indexer configured by repository!
                             org.apache.lucene.index.IndexWriter indexWriter = LuceneIndexerV2.createIndexWriter(indexDirectory, config.getPropertyAnalyzer(), config.getWriteLockTimeout());
                             if (indexWriter != null) {
                                 for (String path: results) {
