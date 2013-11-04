@@ -581,8 +581,11 @@ public class VirtualFileSystemRepository implements Repository {
             }
 
             Node destNode = org.wyona.yarep.util.YarepUtil.addNodes(this, destPath, org.wyona.yarep.core.NodeType.RESOURCE);
+            //log.debug("Copying node '" + srcPath + "' from source to destination repository...");
             OutputStream os = destNode.getOutputStream();
-            IOUtils.copy(srcNode.getInputStream(), os);
+            InputStream is = srcNode.getInputStream();
+            IOUtils.copy(is, os);
+            is.close();
             os.close();
 
             log.info("Import of revisions and meta/properties ... (src: " + srcPath + ", dest: " + destPath + ")");
@@ -592,10 +595,13 @@ public class VirtualFileSystemRepository implements Repository {
             for (int i = 0; i < srcRevisions.length; i++) {
                 log.info("Copy source revision: " + srcRevisions[i].getRevisionName());
                 File destRevisionContentFile = ((VirtualFileSystemNode) destNode).getRevisionContentFile(srcRevisions[i].getRevisionName());
-                if (!new File(destRevisionContentFile.getParent()).exists())
+                if (!new File(destRevisionContentFile.getParent()).exists()) {
                     new File(destRevisionContentFile.getParent()).mkdirs();
+                }
                 FileOutputStream out = new FileOutputStream(destRevisionContentFile);
-                IOUtils.copy(srcRevisions[i].getInputStream(), out);
+                InputStream in = srcRevisions[i].getInputStream();
+                IOUtils.copy(in, out);
+                in.close();
                 out.close();
 
                 // Copy meta/properties of revision
