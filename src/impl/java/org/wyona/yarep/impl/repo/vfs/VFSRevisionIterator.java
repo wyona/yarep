@@ -29,7 +29,7 @@ public class VFSRevisionIterator implements java.util.Iterator {
      */
     public VFSRevisionIterator(Node node, File metaDir, Date date, boolean reverse) throws Exception {
         this.pointInTime = date;
-        this.dis = new DateIndexerSearcher(node, metaDir);
+        this.dis = new DateIndexerSearcherImplV1(node, metaDir);
 
         this.reverse = reverse;
         if (reverse) {
