@@ -48,7 +48,7 @@ import org.wyona.yarep.core.search.Searcher;
  * &lt;repository class="org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository"&gt;
  *   &lt;name&gt;Test Repository&lt;/name&gt;
  *   &lt;content src="data"/&gt;
- *   &lt;meta src="yarep-data"/&gt;
+ *   &lt;meta src="yarep-data" revisions-path-type="splitted"/&gt;
  *     &lt;s:search-index xmlns:s="http://www.wyona.org/yarep/search/2.0" indexer-class="org.wyona.yarep.impl.search.lucene.LuceneIndexer" searcher-class="org.wyona.yarep.impl.search.lucene.LuceneSearcher">
  *       &lt;index-location file="index"/>
  *       &lt;repo-auto-index-fulltext boolean="true"/>
@@ -118,6 +118,10 @@ public class VirtualFileSystemRepository implements Repository {
     private Indexer indexer = null;
     private Searcher searcher = null;
 
+    private String revisionsPathType;
+    static final String REVISIONS_PATH_TYPE_SPLITTED = "splitted";
+    static final String REVISIONS_PATH_TYPE_FLAT = "flat";
+
     // Configuration parameters of the <splitpath ...> element
     private boolean splitPathEnabled = false;
     private int splitparts = 0;
@@ -142,6 +146,7 @@ public class VirtualFileSystemRepository implements Repository {
 
     /**
      * Read respectively load repository configuration
+     * @param configFile File containing repository configuration
      */
     public void readConfiguration(File configFile) throws RepositoryException {
         this.configFile = configFile;
@@ -167,6 +172,7 @@ public class VirtualFileSystemRepository implements Repository {
 
             Configuration metaDirConfig = config.getChild("meta", false);
             if (metaDirConfig != null) {
+                this.revisionsPathType = metaDirConfig.getAttribute("revisions-path-type", REVISIONS_PATH_TYPE_SPLITTED);
                 this.metaDir = new File(metaDirConfig.getAttribute("src"));
             
                 if (!this.metaDir.isAbsolute()) {
@@ -758,5 +764,12 @@ public class VirtualFileSystemRepository implements Repository {
      */
     boolean isSplitPathEnabled() {
         return splitPathEnabled;
+    }
+
+    /**
+     * Get revisions path type
+     */
+    String getRevisionsPathType() {
+        return revisionsPathType;
     }
 }
