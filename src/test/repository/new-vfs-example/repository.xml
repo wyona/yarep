@@ -4,7 +4,7 @@
   <name>New Virtual Filesystem Example</name>
 
   <content src="content">
-    <!-- Ignore patterns are optional -->
+    <!-- INFO: Ignore patterns are optional -->
     <ignore pattern=".*\.svn"/>
     <ignore pattern=".*\.yarep"/>
   </content>
@@ -13,6 +13,9 @@
 
   <!-- If the "meta" parameter below is not being set, then the meta data will also be written into the content directory configured above. -->
   <meta src="meta"/>
+<!-- INFO: The default of revisions-path-type is 'splitted'
+  <meta src="meta" revisions-path-type="flat"/>
+-->
 
   <directory alternative="index.html" mime-type="application/xhtml+xml"/>
 <!--
