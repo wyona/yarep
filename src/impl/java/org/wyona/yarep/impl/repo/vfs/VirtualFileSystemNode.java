@@ -450,6 +450,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                         log.error(e, e);
                     }
                 }
+
                 return new FileInputStream(contentFile);
             }
         } catch (FileNotFoundException e) {
@@ -501,6 +502,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Checkin node and create a revision for a particular time, which can be used to manipulate the history of a node. This method is not part of the Yarep API, but one needs to cast this class in order to use it.
+     * @param comment Comment what the revision is about
      * @param time A particular revision time
      * @return revision which has been created or manipulated
      */
@@ -511,6 +513,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Checkin node and create a revision for a particular time
+     * @param comment Comment what the revision is about
      * @param time A particular revision time
      * @return revision which has been created
      */
@@ -554,7 +557,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     public void checkout(String userID) throws NodeStateException, RepositoryException {
         log.info("Try to checkout node '" + getPath() + "' by user '" + userID + "'.");
-        synchronized("virtual-file-sytem-node") {
+        synchronized("virtual-file-system-node") {
             if (isCheckedOut()) {
                 throw new NodeStateException("Node " + path + " is already checked out by: " + getCheckoutUserID());
             }
@@ -621,7 +624,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 this.revisions.put(revisionName, revision);
             }
 
-            DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
+            DateIndexerSearcher dis = new DateIndexerSearcherImplV1(this, this.metaDir);
             try {
                 dis.addRevision(revisionName);
             } catch(Exception e) {
@@ -863,7 +866,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
         if (true) {
             log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
-            DateIndexerSearcher dis = new DateIndexerSearcher(this, this.metaDir);
+            DateIndexerSearcher dis = new DateIndexerSearcherImplV1(this, this.metaDir);
             if (dis.indexExists()) {
                 Revision revision = dis.getRevision(date);
                 if (revision != null) {
@@ -1170,18 +1173,35 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Get directory of a particular revision
-     * @param revisionName Name/ID of revision
+     * @param revisionName Name/ID of revision, e.g. '1171842541025'
+     * @return Directory where revision is located, e.g. flat version '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/1171842541025' or splitted version '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025'
      */
     File getRevisionDir(String revisionName) {
-        File file = new File(getRevisionsBaseDir(), revisionName);
-        if (file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists!
+        //log.debug("Get directory of revision '" + revisionName + "'...");
+        File file = getRevisionDirFlat(revisionName); // WARN: Most filesystems have a hard limit of sub-directories per one directory, for example ext2 and ext3 the hard limit is 31998. Ext4 supports an unlimited number of sub-directories, though it may default to a limit of 64000.
+        if (file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists as a flat directory!
+            //log.debug("Flat revision path: " + file);
             return file;
         } else {
             String[] includepaths = {"/"};
-            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+"));
-            //log.debug("Splitted revision path: " + file.getAbsolutePath());
-            return file;
+            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+")); // WARN: Depending on the filesystem, the number of inodes has to be fixed at filesystem creation time, which means that one might be running out of inodes later. For more information, see http://de.scribd.com/doc/7114603/Ext4-File-System
+            if (getRepository().getRevisionsPathType().equals(VirtualFileSystemRepository.REVISIONS_PATH_TYPE_SPLITTED) || file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists as a splitted directory!
+                //log.debug("Splitted revision path: " + file.getAbsolutePath());
+                return file;
+            } else {
+                //log.debug("Revision '" + revisionName + "' does not exist as splitted path '" + file + "' and revisions path type is set to '" + getRepository().getRevisionsPathType() + "', hence use 'flat' path type...");
+                return getRevisionDirFlat(revisionName);
+            }
         }
+    }
+
+    /**
+     * Get directory of a particular revision as a flat path
+     * @param revisionName Name/ID of revision, e.g. '1171842541025'
+     * @return Directory as flat path '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/1171842541025'
+     */
+    private File getRevisionDirFlat(String revisionName) {
+        return new File(getRevisionsBaseDir(), revisionName);
     }
 }
     
