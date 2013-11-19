@@ -1167,7 +1167,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     /**
      * Get base directory containing revisions
      */
-    private File getRevisionsBaseDir() {
+    File getRevisionsBaseDir() {
         return new File(this.metaDir, REVISIONS_BASE_DIR);
     }
 
