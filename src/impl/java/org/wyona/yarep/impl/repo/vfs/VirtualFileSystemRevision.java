@@ -237,11 +237,52 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         super.delete();
+        deleteEmptyDirectories(metaDir);
 
         if (node.hasProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
             long currentTotal = node.getProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
             node.setProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal - 1);
         }
+    }
+
+    /**
+     * Delete empty directories recursively upwards
+     * @param dir Directory which will be deleted if it is empty, e.g. '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025'
+     */
+    private void deleteEmptyDirectories(File dir) {
+        if (dir.equals(node.getRevisionsBaseDir())) {
+            return;
+        }
+        if (dir.isDirectory()) {
+            if (isEmpty(dir)) {
+                File parentDir = dir.getParentFile();
+                dir.delete();
+                deleteEmptyDirectories(parentDir);
+            }
+        } else {
+            log.warn("No such directory: " + dir.getAbsolutePath());
+            File parentDir = dir.getParentFile();
+            if (parentDir != null) {
+                deleteEmptyDirectories(parentDir);
+            } else {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Check whether a directory is empty
+     * @param dir Directory to be checked
+     * @return true if directory is empty and false otherwise
+     */
+    private boolean isEmpty(File dir) {
+        String[] filesAndDirs = dir.list();
+        if (filesAndDirs !=  null && filesAndDirs.length > 0) {
+            log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is NOT empty.");
+            return false;
+        }
+        log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is empty.");
+        return true;
     }
 
     public InputStream getInputStream() throws RepositoryException {
