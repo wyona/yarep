@@ -21,11 +21,13 @@ import java.util.LinkedHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+/*
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexWriter;
+*/
 
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
@@ -613,7 +615,7 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     /**
      * Sort alphabetically ascending
      */
-    private String[] sortAlphabeticallyAscending(String[] array) {
+    static String[] sortAlphabeticallyAscending(String[] array) {
 /*
         String unsorted = "";
         for (int i = array.length - 1; i >= 0; i--) {
@@ -637,8 +639,9 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
 
     /**
      * Format date
+     * @param date Date to format
      */
-    private String format(Date date) {
+    static String format(Date date) {
         return new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss/SZ").format(date);
     }
 
