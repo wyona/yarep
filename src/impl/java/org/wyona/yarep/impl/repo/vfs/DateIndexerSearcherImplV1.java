@@ -575,7 +575,7 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     }
 
     /**
-     * Add revision to date index
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#addRevision(String)
      */
     public void addRevision(String revisionName) throws Exception {
         log.debug("Add revision '" + revisionName + "' to date index ...");
