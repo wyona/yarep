@@ -624,7 +624,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                 this.revisions.put(revisionName, revision);
             }
 
-            DateIndexerSearcher dis = new DateIndexerSearcherImplV1(this, this.metaDir);
+            DateIndexerSearcher dis = getDateIndexerSearcher();
             try {
                 dis.addRevision(revisionName);
             } catch(Exception e) {
@@ -866,7 +866,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
         if (true) {
             log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
-            DateIndexerSearcher dis = new DateIndexerSearcherImplV1(this, this.metaDir);
+            DateIndexerSearcher dis = getDateIndexerSearcher();
             if (dis.indexExists()) {
                 Revision revision = dis.getRevision(date);
                 if (revision != null) {
@@ -1015,14 +1015,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevisions(boolean)
      */
     public java.util.Iterator<Revision> getRevisions(boolean reverse) throws Exception {
-        return new VFSRevisionIterator(this, this.metaDir, null, reverse);
+        return new VFSRevisionIterator(getDateIndexerSearcher(), null, reverse);
     }
 
     /**
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevisions(Date, boolean)
      */
     public java.util.Iterator<Revision> getRevisions(Date date, boolean reverse) throws Exception {
-        return new VFSRevisionIterator(this, this.metaDir, date, reverse);
+        return new VFSRevisionIterator(getDateIndexerSearcher(), date, reverse);
     }
 
     /**
@@ -1202,6 +1202,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     private File getRevisionDirFlat(String revisionName) {
         return new File(getRevisionsBaseDir(), revisionName);
+    }
+
+    /**
+     * Get date indexer searcher implementation
+     */
+    DateIndexerSearcher getDateIndexerSearcher() {
+        return new DateIndexerSearcherImplV1(this, this.metaDir);
+        //return new DateIndexerSearcherImplV2(this, this.metaDir);
     }
 }
     
