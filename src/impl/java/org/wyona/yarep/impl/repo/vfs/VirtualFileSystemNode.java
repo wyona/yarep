@@ -1208,8 +1208,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Get date indexer searcher implementation
      */
     DateIndexerSearcher getDateIndexerSearcher() {
-        return new DateIndexerSearcherImplV1(this, this.metaDir);
-        //return new DateIndexerSearcherImplV2(this, this.metaDir);
+        if (getRepository().getRevisionsDateIndexImpl().equals(VirtualFileSystemRepository.REVISIONS_DATE_INDEX_DIRECTORY_IMPL)) {
+            return new DateIndexerSearcherImplV1(this, this.metaDir);
+        } else if (getRepository().getRevisionsDateIndexImpl().equals(VirtualFileSystemRepository.REVISIONS_DATE_INDEX_LUCENE_IMPL)) {
+            return new DateIndexerSearcherImplV2(this, this.metaDir);
+        } else {
+            log.error("No such revisions date index implementation '" + getRepository().getRevisionsDateIndexImpl() + "'!");
+            return null;
+        }
     }
 }
     
