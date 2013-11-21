@@ -203,21 +203,9 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
             return;
         }
 
-/*
-        File dateDirF = getRevisionDateDir(revisionName);
-        File revisionIdFile = new File(dateDirF, DATE_INDEX_ID_FILENAME);
-        if (revisionIdFile.isFile()) {
-            String indexedRevisionName = getRevisionName(revisionIdFile.getAbsolutePath());
-            if (indexedRevisionName.equals(revisionName)) {
-                log.warn("Delete revision date/ID file: " + revisionIdFile);
-                revisionIdFile.delete();
-            } else {
-                log.warn("Revision name '" + revisionName + "' is not equals revision name inside index file: " + revisionIdFile);
-            }
-        } else {
-           log.warn("No such revision date file: " + revisionIdFile);
-        }
-*/
+        IndexWriter iw = getIndexWriter();
+        iw.deleteDocuments(new org.apache.lucene.index.Term(REVISION_NAME_FIELD_NAME, revisionName));
+        iw.close();
     }
 
     /**
@@ -247,6 +235,7 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * Build date index in order to retrieve revisions more quickly based on creation date
      */
     public void buildDateIndex() throws Exception {
+        // TODO
 /*
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
 
