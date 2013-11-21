@@ -29,6 +29,8 @@ import org.apache.lucene.document.NumericField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
@@ -110,14 +112,14 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
                 org.apache.lucene.search.Query query = new org.apache.lucene.queryParser.QueryParser(CREATION_DATE_FIELD_NAME, getAnalyzer()).parse(q);
 */
                 org.apache.lucene.search.Query query = new org.apache.lucene.search.MatchAllDocsQuery();
-                org.apache.lucene.search.Hits hits = searcher.search(query);
+                org.apache.lucene.search.Hits hits = searcher.search(query, new Sort(new SortField(CREATION_DATE_FIELD_NAME, SortField.LONG)));
                 //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
                 String revisionName = null;
                 if (hits != null && hits.length() > 0) {
 /* DEBUG
                     for (int i = 0; i < hits.length();i++) {
                         revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
-                        log.debug("Found revision name: " + revisionName);
+                        log.warn("DEBUG: Found revision name '" + revisionName + "' (Creation date: " + new Date(new Long(revisionName).longValue()) + ")");
                     }
 */
                     revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
@@ -172,14 +174,14 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
             if (searcher != null) {
                 org.apache.lucene.search.Query query = org.apache.lucene.search.NumericRangeQuery.newLongRange(CREATION_DATE_FIELD_NAME, new Long(0), new Long(date.getTime()), true, true);
 
-                org.apache.lucene.search.Hits hits = searcher.search(query);
+                org.apache.lucene.search.Hits hits = searcher.search(query, new Sort(new SortField(CREATION_DATE_FIELD_NAME, SortField.LONG)));
                 //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
                 String revisionName = null;
                 if (hits != null && hits.length() > 0) {
 /* DEBUG
                     for (int i = 0; i < hits.length();i++) {
                         revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
-                        log.debug("Found revision name: " + revisionName);
+                        log.warn("DEBUG: Found revision name '" + revisionName + "' (Creation date: " + new Date(new Long(revisionName).longValue()) + ")");
                     }
 */
                     revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
