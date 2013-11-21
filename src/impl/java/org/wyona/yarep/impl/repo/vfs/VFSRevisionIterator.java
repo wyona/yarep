@@ -22,14 +22,13 @@ public class VFSRevisionIterator implements java.util.Iterator {
     private boolean reverse;
 
     /**
-     * @param node Yarep node which is supposed to have revisions
-     * @param metaDir Meta directory containing revisions index
+     * @param dis Yarep node specific date indexer searche whuch is supposed to have revisions
      * @param date Point in time (from where iteration shall start or stop)
      * @param reverse TODO
      */
-    public VFSRevisionIterator(Node node, File metaDir, Date date, boolean reverse) throws Exception {
+    public VFSRevisionIterator(DateIndexerSearcher dis, Date date, boolean reverse) throws Exception {
         this.pointInTime = date;
-        this.dis = new DateIndexerSearcherImplV1(node, metaDir);
+        this.dis = dis;
 
         this.reverse = reverse;
         if (reverse) {
