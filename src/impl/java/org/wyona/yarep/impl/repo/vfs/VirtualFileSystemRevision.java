@@ -229,7 +229,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         // INFO: Delete from index first, before deleting revision itself!
-        DateIndexerSearcher dis = new DateIndexerSearcherImplV1(node, node.metaDir);
+        DateIndexerSearcher dis = node.getDateIndexerSearcher();
         try {
             dis.deleteRevision(revisionName);
         } catch(Exception e) {
