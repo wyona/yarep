@@ -65,6 +65,13 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
         this.node = node;
         this.metaDir = metaDir;
         indexDir = new File(metaDir, "lucene_index_data_utc");
+        if (!indexExists()) {
+            try {
+                buildDateIndex();
+            } catch(Exception e) {
+                log.error(e, e);
+            }
+        }
     }
 
     /**
@@ -78,7 +85,7 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionOlderThan(Date)
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
-        log.warn("DEBUG: Get revision older than: " + DateIndexerSearcherImplV1.format(date));
+        //log.debug("Get revision older than: " + DateIndexerSearcherImplV1.format(date));
         Date olderThanDate = new Date(date.getTime() - 1);
 
         Revision revision = getRevision(olderThanDate);
@@ -94,7 +101,7 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getMostRecentRevision()
      */
     public Revision getMostRecentRevision() {
-        log.warn("DEBUG: Get most recent revision...");
+        //log.debug("Get most recent revision...");
         try {
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
             if (searcher != null) {
@@ -104,13 +111,13 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
 */
                 org.apache.lucene.search.Query query = new org.apache.lucene.search.MatchAllDocsQuery();
                 org.apache.lucene.search.Hits hits = searcher.search(query);
-                log.warn("DEBUG: Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
                 String revisionName = null;
                 if (hits != null && hits.length() > 0) {
 /* DEBUG
                     for (int i = 0; i < hits.length();i++) {
                         revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
-                        log.warn("DEBUG: Found revision name: " + revisionName);
+                        log.debug("Found revision name: " + revisionName);
                     }
 */
                     revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
@@ -159,20 +166,20 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
-        log.warn("DEBUG: Get revision for date: " + DateIndexerSearcherImplV1.format(date));
+        //log.debug("Get revision for date: " + DateIndexerSearcherImplV1.format(date));
         try {
             org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
             if (searcher != null) {
                 org.apache.lucene.search.Query query = org.apache.lucene.search.NumericRangeQuery.newLongRange(CREATION_DATE_FIELD_NAME, new Long(0), new Long(date.getTime()), true, true);
 
                 org.apache.lucene.search.Hits hits = searcher.search(query);
-                log.warn("DEBUG: Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
                 String revisionName = null;
                 if (hits != null && hits.length() > 0) {
-/*
+/* DEBUG
                     for (int i = 0; i < hits.length();i++) {
                         revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
-                        log.warn("DEBUG: Found revision name: " + revisionName);
+                        log.debug("Found revision name: " + revisionName);
                     }
 */
                     revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
@@ -212,12 +219,8 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#addRevision(String)
      */
     public void addRevision(String revisionName) throws Exception {
-        if (!indexExists()) {
-            buildDateIndex();
-        }
-
         Date creationDate = node.getRevision(revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
-        log.warn("DEBUG: Add revision '" + revisionName + "' with creation date '" + creationDate + "' to date index ...");
+        log.debug("Add revision '" + revisionName + "' with creation date '" + creationDate + "' to date index ...");
 
         Document doc = new Document();
         doc.add(new NumericField(CREATION_DATE_FIELD_NAME, Field.Store.YES, true).setLongValue(creationDate.getTime()));
@@ -235,20 +238,11 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * Build date index in order to retrieve revisions more quickly based on creation date
      */
     public void buildDateIndex() throws Exception {
-        // TODO
-/*
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-
-        if (!dateIndexBaseDir.isDirectory()) {
-            dateIndexBaseDir.mkdirs();
-        }
-
-        log.warn("Build date index '" + dateIndexBaseDir + "', whereas this should happen only once when no index exists yet (or has been manually deleted again). Please note that the reading of the revisions must be based on the implementation VirtualFileSystemNode#readRevisions()!");
+        log.warn("Build date index '" + indexDir + "', whereas this should happen only once when no index exists yet (or has been manually deleted again). Please note that the reading of the revisions must be based on the implementation VirtualFileSystemNode#readRevisions()!");
         Revision[] revisions = node.getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
             addRevision(revisions[i].getRevisionName());
         }
-*/
     }
 
     /**
