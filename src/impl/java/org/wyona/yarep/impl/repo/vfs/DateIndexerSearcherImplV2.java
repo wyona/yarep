@@ -25,8 +25,10 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.NumericField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
 
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
@@ -43,7 +45,7 @@ import org.wyona.yarep.impl.AbstractNode;
 import org.wyona.yarep.impl.DefaultProperty;
 
 /**
- * Utility class based on lucene to index and search revisions of a node by date
+ * Utility class based on lucene to index and search revisions of a node by date (also see http://stackoverflow.com/questions/5495645/indexing-and-searching-date-in-lucene)
  */
 public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     private static Logger log = Logger.getLogger(DateIndexerSearcherImplV2.class);
@@ -51,6 +53,9 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     private File metaDir;
     private Node node;
     private File indexDir;
+
+    private static final String CREATION_DATE_FIELD_NAME = "cdate";
+    private static final String REVISION_NAME_FIELD_NAME = "rname";
 
     /**
      * @param node Node for revisions shall be indexed by date
@@ -70,11 +75,10 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     }
 
     /**
-     * Get (next) revision older than a specific date
-     * @param date Date which is used as reference
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionOlderThan(Date)
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
-        //log.debug("Get revision older than: " + DateIndexerSearcherImplV1.format(date));
+        log.warn("DEBUG: Get revision older than: " + DateIndexerSearcherImplV1.format(date));
         Date olderThanDate = new Date(date.getTime() - 1);
 
         Revision revision = getRevision(olderThanDate);
@@ -87,22 +91,40 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     }
 
     /**
-     * Get most recent revision
-     * @return Most recent (head) revision, and if no such revision exists, then return null
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getMostRecentRevision()
      */
     public Revision getMostRecentRevision() {
+        log.warn("DEBUG: Get most recent revision...");
         try {
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
+            if (searcher != null) {
 /*
-            File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-            String[] years = DateIndexerSearcherImplV1.sortAlphabeticallyAscending(dateIndexBaseDir.list());
-            if (years != null && years.length > 0) {
-                //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
-                //return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
-                return null; // TODO
-            }
-            log.warn("No year and hence no revision: " + dateIndexBaseDir);
+                String q = "*:*";
+                org.apache.lucene.search.Query query = new org.apache.lucene.queryParser.QueryParser(CREATION_DATE_FIELD_NAME, getAnalyzer()).parse(q);
 */
-            return null;
+                org.apache.lucene.search.Query query = new org.apache.lucene.search.MatchAllDocsQuery();
+                org.apache.lucene.search.Hits hits = searcher.search(query);
+                log.warn("DEBUG: Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                String revisionName = null;
+                if (hits != null && hits.length() > 0) {
+/* DEBUG
+                    for (int i = 0; i < hits.length();i++) {
+                        revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                        log.warn("DEBUG: Found revision name: " + revisionName);
+                    }
+*/
+                    revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                }
+                searcher.close();
+                if (revisionName != null) {
+                    return node.getRevision(revisionName);
+                } else {
+                    return null;
+                }
+            } else {
+                log.error("Searcher could not be initialized for index directory '" + indexDir + "'!");
+                return null;
+            }
         } catch(Exception e) {
             log.error(e, e);
             return null;
@@ -110,8 +132,7 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     }
 
     /**
-     * Get oldest revision
-     * @return Oldest revision, and if no such revision exists, then return null
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getOldestRevision()
      */
     public Revision getOldestRevision() {
         try {
@@ -138,37 +159,38 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
-        //log.debug("Get revision for date: " + DateIndexerSearcherImplV1.format(date));
-/*
-        File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.debug("Use vfs-repo specific implementation: " + node.getPath() + ", " + date);
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID));
-        cal.setTime(date);
-*/
-
-        return null; // TODO
-/*
-        String path = getRevisionByYear(dateIndexBaseDir, cal);
-        if (path == null) {
-            log.debug("No index file found for date: " + date);
-            return null;
-        }
-        if (path != null && !new File(path).isFile()) {
-            log.warn("No such index file: " + path);
-            return null;
-        }
-        String revisionName = getRevisionName(path);
+        log.warn("DEBUG: Get revision for date: " + DateIndexerSearcherImplV1.format(date));
         try {
-            return node.getRevision(revisionName);
-        } catch(NoSuchRevisionException e) {
-            if (new File(path).isFile()) {
-                log.warn("It seems that the index is out of sync, because an index file exists '" + path + "', but no such revision: " + revisionName);
-            }
-            throw e;
-        }
-        //return getRevisionByYear(dateIndexBaseDir, cal);
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
+            if (searcher != null) {
+                org.apache.lucene.search.Query query = org.apache.lucene.search.NumericRangeQuery.newLongRange(CREATION_DATE_FIELD_NAME, new Long(0), new Long(date.getTime()), true, true);
+
+                org.apache.lucene.search.Hits hits = searcher.search(query);
+                log.warn("DEBUG: Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                String revisionName = null;
+                if (hits != null && hits.length() > 0) {
+/*
+                    for (int i = 0; i < hits.length();i++) {
+                        revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                        log.warn("DEBUG: Found revision name: " + revisionName);
+                    }
 */
+                    revisionName = hits.doc(hits.length() - 1).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                }
+                searcher.close();
+                if (revisionName != null) {
+                    return node.getRevision(revisionName);
+                } else {
+                    return null;
+                }
+            } else {
+                log.error("Searcher could not be initialized for index directory '" + indexDir + "'!");
+                return null;
+            }
+        } catch(Exception e) {
+            log.error(e, e);
+            return null;
+        }
     }
 
     /**
@@ -210,11 +232,12 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
         log.warn("DEBUG: Add revision '" + revisionName + "' with creation date '" + creationDate + "' to date index ...");
 
         Document doc = new Document();
-        doc.add(new Field("cdate", "" + creationDate.getTime(), Field.Store.YES, Field.Index.NOT_ANALYZED));
-        doc.add(new Field("rname", revisionName, Field.Store.YES, Field.Index.NOT_ANALYZED));
+        doc.add(new NumericField(CREATION_DATE_FIELD_NAME, Field.Store.YES, true).setLongValue(creationDate.getTime()));
+        //doc.add(new Field(CREATION_DATE_FIELD_NAME, org.apache.lucene.document.DateTools.dateToString(creationDate, org.apache.lucene.document.DateTools.Resolution.MILLISECOND), Field.Store.YES, Field.Index.NOT_ANALYZED));
+        doc.add(new Field(REVISION_NAME_FIELD_NAME, revisionName, Field.Store.YES, Field.Index.NOT_ANALYZED));
 
         IndexWriter iw = getIndexWriter();
-        Term revisionNameTerm = new Term("rname", revisionName);
+        Term revisionNameTerm = new Term(REVISION_NAME_FIELD_NAME, revisionName);
         iw.updateDocument(revisionNameTerm, doc);
         iw.optimize();
         iw.close();
@@ -244,7 +267,7 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      */
     private IndexWriter getIndexWriter() throws Exception {
         IndexWriter iw = null;
-        org.apache.lucene.analysis.Analyzer analyzer = new org.apache.lucene.analysis.WhitespaceAnalyzer();
+        org.apache.lucene.analysis.Analyzer analyzer = getAnalyzer();
         if (indexDir.isDirectory()) {
            try {
                iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, false);
@@ -257,5 +280,14 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
             iw = new IndexWriter(indexDir.getAbsolutePath(), analyzer, true);
         }
         return iw;
+    }
+
+    /**
+     * Get analyzer
+     * @return analyzer
+     */
+    private org.apache.lucene.analysis.Analyzer getAnalyzer() {
+        return new org.apache.lucene.analysis.standard.StandardAnalyzer();
+        //return new org.apache.lucene.analysis.WhitespaceAnalyzer();
     }
 }
