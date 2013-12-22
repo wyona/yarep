@@ -242,6 +242,9 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     public void buildDateIndex() throws Exception {
         log.warn("Build date index '" + indexDir + "', whereas this should happen only once when no index exists yet (or has been manually deleted again). Please note that the reading of the revisions must be based on the implementation VirtualFileSystemNode#readRevisions()!");
         Revision[] revisions = node.getRevisions();
+        if (revisions.length <= 0) {
+            log.warn("Node '" + node.getPath() + "' has no revisions yet, hence no date index will be built.");
+        }
         for (int i = revisions.length - 1; i >= 0; i--) {
             addRevision(revisions[i].getRevisionName());
         }
