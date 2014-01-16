@@ -22,6 +22,7 @@ import java.util.Date;
 
 /**
  * DEV (Not released yet, this interface is still subject to change!)
+ * This interface allows a node implementation to support revisions access which scales and performs well
  */
 public interface VersionableV1 {
 
@@ -41,7 +42,7 @@ public interface VersionableV1 {
 
     /**
      * Get all revisions ordered by date starting at a specific point in time (point in time revision first and oldest revision last)
-     * @para, date Point in time
+     * @param date Point in time
      * @param reverse Reversed order, if set to true, then oldest revision first and point in time revision last
      * @return If no revision can be found, then null shall be returned
      */
