@@ -6,14 +6,15 @@ import org.wyona.yarep.core.Revision;
 import java.io.File;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Iterator to access revisions by date
  */
 public class VFSRevisionIterator implements java.util.Iterator {
 
-    private static Logger log = Logger.getLogger(VFSRevisionIterator.class);
+    private static Logger log = LogManager.getLogger(VFSRevisionIterator.class);
 
     private Revision currentRevision;
 
