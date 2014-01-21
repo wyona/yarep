@@ -19,7 +19,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -50,7 +51,7 @@ import org.wyona.yarep.impl.DefaultProperty;
  * Utility class based on lucene to index and search revisions of a node by date (also see http://stackoverflow.com/questions/5495645/indexing-and-searching-date-in-lucene)
  */
 public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
-    private static Logger log = Logger.getLogger(DateIndexerSearcherImplV2.class);
+    private static Logger log = LogManager.getLogger(DateIndexerSearcherImplV2.class);
 
     private File metaDir;
     private Node node;
