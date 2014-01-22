@@ -20,7 +20,8 @@ import java.util.LinkedHashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -35,6 +36,7 @@ import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.PropertyType;
+import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.UID;
@@ -47,7 +49,7 @@ import org.wyona.yarep.impl.DefaultProperty;
  * A repository node may be either a collection ("directory") or a resource ("file").
  */
 public class VirtualFileSystemNode extends AbstractNode implements VersionableV1 {
-    private static Logger log = Logger.getLogger(VirtualFileSystemNode.class);
+    private static Logger log = LogManager.getLogger(VirtualFileSystemNode.class);
 
     protected static final String META_FILE_NAME = "meta";
     protected static final String REVISIONS_BASE_DIR = "revisions";
@@ -75,7 +77,14 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     String vfsMetaFileVersion = null;
 
     static final int REVISION_SPLIT_LENGTH = 2;
-    
+
+    /**
+     * Constructor
+     * @throws RepositoryException
+     */
+    public VirtualFileSystemNode() throws RepositoryException {
+    }
+
     /**
      * Constructor
      * @throws RepositoryException
@@ -101,18 +110,19 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Init node
      */
     protected void init() throws RepositoryException {
-        log.debug("Try to init node: " + this.uuid);
+        //log.debug("Try to init node: " + this.uuid);
         
         this.contentDir = getRepository().getContentDir();
         this.contentFile = new File(this.contentDir, getRepository().splitPath(this.uuid));
         this.backupContentFile = new File(this.contentDir, this.uuid);
         
-        String metauuid = getRepository().splitPath(uuid + META_DIR_SUFFIX);
+        //String metauuid = getRepository().splitPath(this.uuid + META_DIR_SUFFIX);
+        this.metaDir = getMetaDir(getRepository(), uuid);
         if (getRepository().getMetaDir() != null) {
-            this.metaDir = new File(getRepository().getMetaDir(), metauuid);
+            //this.metaDir = new File(getRepository().getMetaDir(), metauuid);
             this.backupMetaDir = new File(getRepository().getMetaDir(), uuid + META_DIR_SUFFIX);
         } else {
-            this.metaDir = new File(this.contentDir, metauuid);
+            //this.metaDir = new File(this.contentDir, metauuid);
             this.backupMetaDir = new File(this.contentDir, uuid + META_DIR_SUFFIX);
         }
         this.metaFile = new File(this.metaDir, META_FILE_NAME);
@@ -132,6 +142,25 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             createMetaFile();
         }
         readProperties();
+    }
+
+    /**
+     * Get meta directory of this node
+     * @param repo Repository containing node or revision
+     * @param uuid TODO
+     * @return TODO
+     */
+    static File getMetaDir(VirtualFileSystemRepository repo, String uuid) {
+        //log.debug("UUID: " + uuid);
+        String metauuid = repo.splitPath(uuid + META_DIR_SUFFIX);
+        File metaDirectory = null;
+        if (repo.getMetaDir() != null) {
+            metaDirectory = new File(repo.getMetaDir(), metauuid);
+        } else {
+            metaDirectory = new File(repo.getContentDir(), metauuid);
+        }
+        //log.debug("Meta directory: " + metaDirectory);
+        return metaDirectory;
     }
 
     /**
@@ -451,6 +480,13 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     }
                 }
 
+/*
+                // TODO: Synchronize this block
+                if (!contentFile.exists() && remoteHost != null) {
+                    // TODO: Get data from remote host and cache locally
+                }
+*/
+
                 return new FileInputStream(contentFile);
             }
         } catch (FileNotFoundException e) {
@@ -651,7 +687,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         
         this.revisions = new LinkedHashMap<String, Revision>();
         
-        File revisionsBaseDir = getRevisionsBaseDir();
+        File revisionsBaseDir = getRevisionsBaseDir(this.metaDir);
         if (log.isDebugEnabled()) log.debug("Read revisions: " + revisionsBaseDir);
         File[] revisionDirsUnsplitted = revisionsBaseDir.listFiles(this.revisionDirectoryFilter);
         if (revisionDirsUnsplitted != null) {
@@ -862,7 +898,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @see org.wyona.yarep.core.attributes.VersionableV1#getRevision(Date)
      */
     public Revision getRevision(Date date) throws Exception {
-        log.debug("Use vfs-repo specific implementation: " + getPath());
+        //log.debug("Use vfs-repo specific implementation: " + getPath() + ", " + date);
 
         if (true) {
             log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
@@ -925,7 +961,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         log.warn("Total number of revisions is determined by counting all revisions, which does not scale well and hence should be avoided!");
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
 
-        File[] revisionDirsUnsplitted = getRevisionsBaseDir().listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
+        File[] revisionDirsUnsplitted = getRevisionsBaseDir(this.metaDir).listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
         //log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
 
         int revisionDirsSplitted = getNumberOfRevisionsFromSplittedDirectories();
@@ -942,7 +978,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Count revisions which are inside splitted directories
      */
     private int getNumberOfRevisionsFromSplittedDirectories() {
-        File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
+        File[] topLevelSplittedDirectories = getRevisionsBaseDir(this.metaDir).listFiles(new SplittedDirectoryFilter());
         int numberOfRevisions = 0;
         for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
             //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
@@ -975,7 +1011,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Read revisions which are inside splitted directories
      */
     private void readRevisionsFromSplittedDirectories() throws RepositoryException {
-        File[] topLevelSplittedDirectories = getRevisionsBaseDir().listFiles(new SplittedDirectoryFilter());
+        File[] topLevelSplittedDirectories = getRevisionsBaseDir(this.metaDir).listFiles(new SplittedDirectoryFilter());
         if (topLevelSplittedDirectories != null) {
             Arrays.sort(topLevelSplittedDirectories);
             for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
@@ -1077,7 +1113,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionName Name/ID of revision
      */
     public File getRevisionContentFile(String revisionName) {
-        return new File(getRevisionDir(revisionName), VirtualFileSystemRevision.CONTENT_FILE_NAME);
+        return new File(getRevisionDir(getRepository(), this.metaDir, revisionName), VirtualFileSystemRevision.CONTENT_FILE_NAME);
     }
 
     /**
@@ -1085,7 +1121,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionName Name/ID of revision
      */
     public File getRevisionMetaFile(String revisionName) {
-        return new File(getRevisionDir(revisionName), META_FILE_NAME);
+        return new File(getRevisionDir(getRepository(), this.metaDir, revisionName), VirtualFileSystemRevision.META_FILE_NAME);
     }
 
     /**
@@ -1166,9 +1202,11 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
 
     /**
      * Get base directory containing revisions
+     * @param metaDirectory Meta directory containing revisions directory, e.g. '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep'
+     * @return Directory where revisions are located, e.g. '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions
      */
-    File getRevisionsBaseDir() {
-        return new File(this.metaDir, REVISIONS_BASE_DIR);
+    static File getRevisionsBaseDir(File metaDirectory) {
+        return new File(metaDirectory, REVISIONS_BASE_DIR);
     }
 
     /**
@@ -1176,40 +1214,41 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * @param revisionName Name/ID of revision, e.g. '1171842541025'
      * @return Directory where revision is located, e.g. flat version '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/1171842541025' or splitted version '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025'
      */
-    File getRevisionDir(String revisionName) {
+    static File getRevisionDir(VirtualFileSystemRepository repo, File metaDirectory, String revisionName) {
         //log.debug("Get directory of revision '" + revisionName + "'...");
-        File file = getRevisionDirFlat(revisionName); // WARN: Most filesystems have a hard limit of sub-directories per one directory, for example ext2 and ext3 the hard limit is 31998. Ext4 supports an unlimited number of sub-directories, though it may default to a limit of 64000.
+        File file = getRevisionDirFlat(metaDirectory, revisionName); // WARN: Most filesystems have a hard limit of sub-directories per one directory, for example ext2 and ext3 the hard limit is 31998. Ext4 supports an unlimited number of sub-directories, though it may default to a limit of 64000.
         if (file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists as a flat directory!
             //log.debug("Flat revision path: " + file);
             return file;
         } else {
             String[] includepaths = {"/"};
-            file = new File(getRevisionsBaseDir(), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+")); // WARN: Depending on the filesystem, the number of inodes has to be fixed at filesystem creation time, which means that one might be running out of inodes later. For more information, see http://de.scribd.com/doc/7114603/Ext4-File-System
-            if (getRepository().getRevisionsPathType().equals(VirtualFileSystemRepository.REVISIONS_PATH_TYPE_SPLITTED) || file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists as a splitted directory!
+            file = new File(getRevisionsBaseDir(metaDirectory), VirtualFileSystemRepository.splitPath("/" + revisionName, REVISION_SPLIT_LENGTH, 5, includepaths, "+")); // WARN: Depending on the filesystem, the number of inodes has to be fixed at filesystem creation time, which means that one might be running out of inodes later. For more information, see http://de.scribd.com/doc/7114603/Ext4-File-System
+            if (repo.getRevisionsPathType().equals(VirtualFileSystemRepository.REVISIONS_PATH_TYPE_SPLITTED) || file.isDirectory()) { // INFO: Because of backwards compatibility reasons we check whether the revision directory already exists as a splitted directory!
                 //log.debug("Splitted revision path: " + file.getAbsolutePath());
                 return file;
             } else {
                 //log.debug("Revision '" + revisionName + "' does not exist as splitted path '" + file + "' and revisions path type is set to '" + getRepository().getRevisionsPathType() + "', hence use 'flat' path type...");
-                return getRevisionDirFlat(revisionName);
+                return getRevisionDirFlat(metaDirectory, revisionName);
             }
         }
     }
 
     /**
      * Get directory of a particular revision as a flat path
+     * @param metaDirectory TODO
      * @param revisionName Name/ID of revision, e.g. '1171842541025'
      * @return Directory as flat path '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/1171842541025'
      */
-    private File getRevisionDirFlat(String revisionName) {
-        return new File(getRevisionsBaseDir(), revisionName);
+    static private File getRevisionDirFlat(File metaDirectory, String revisionName) {
+        return new File(getRevisionsBaseDir(metaDirectory), revisionName);
     }
 
     /**
      * Get date indexer searcher implementation
      */
-    DateIndexerSearcher getDateIndexerSearcher() {
+    DateIndexerSearcher getDateIndexerSearcher() throws RepositoryException {
         if (getRepository().getRevisionsDateIndexImpl().equals(VirtualFileSystemRepository.REVISIONS_DATE_INDEX_DIRECTORY_IMPL)) {
-            return new DateIndexerSearcherImplV1(this, this.metaDir);
+            return new DateIndexerSearcherImplV1(getPath(), this.metaDir, getRepository());
         } else if (getRepository().getRevisionsDateIndexImpl().equals(VirtualFileSystemRepository.REVISIONS_DATE_INDEX_LUCENE_IMPL)) {
             return new DateIndexerSearcherImplV2(this, this.metaDir);
         } else {
@@ -1224,7 +1263,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
  */
 class SplittedDirectoryFilter implements FileFilter {
 
-    private static Logger log = Logger.getLogger(SplittedDirectoryFilter.class);
+    private static Logger log = LogManager.getLogger(SplittedDirectoryFilter.class);
 
     /**
      * @see java.io.FileFilter#accept(File)
