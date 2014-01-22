@@ -5,13 +5,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.NoSuchRevisionException;
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
 import org.wyona.yarep.core.Property;
+import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
+import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.Revision;
 
 /**
@@ -19,7 +23,7 @@ import org.wyona.yarep.core.Revision;
  */
 public class VirtualFileSystemRevision extends VirtualFileSystemNode implements Revision {
 
-    private static Logger log = Logger.getLogger(VirtualFileSystemRevision.class);
+    private static Logger log = LogManager.getLogger(VirtualFileSystemRevision.class);
     
     public static final String PROPERTY_REVISION_CREATION_DATE = "yarep_revisionCreationDate";
     public static final String PROPERTY_REVISION_CREATOR = "yarep_revisionCreator";
@@ -28,10 +32,12 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     
     public static final String CONTENT_FILE_NAME = "content";
 
-    protected VirtualFileSystemNode node;
+    private VirtualFileSystemRepository repo2;
+    private VirtualFileSystemNode node2;
+    //protected VirtualFileSystemNode node;
     protected String revisionName;
     protected boolean isInitialized = false;
-    
+
     /**
      * Constructor
      * @param node Node to which this revision belongs to
@@ -40,22 +46,57 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      */
     public VirtualFileSystemRevision(VirtualFileSystemNode node, String revisionName) throws RepositoryException {
         super(node.getRepository(), node.getPath(), node.getUUID(), false);
-        this.node = node;
+        this.node2 = node;
+        //this.node = node;
         this.revisionName = revisionName;
-        initContentAndMetaFile();
+        initContentAndMetaFile(node);
         // Defer the time consuming initialization until something is actually read from this revision (for performance reasons)
     }
 
     /**
-     *
+     * Constructor when node (to which revision belongs to) does not exist anymore
+     * @param repo Repository containing revision
+     * @param path Absolute repository path of node (which might have been deleted)
+     * @param revisionName Name of this revision
+     * @throws RepositoryException
      */
-    private void initContentAndMetaFile() throws RepositoryException {
-        this.metaDir = node.getRevisionDir(this.revisionName);
+    public VirtualFileSystemRevision(VirtualFileSystemRepository repo, String path, String revisionName) throws RepositoryException {
+        super(repo, path, path, false);
+        this.repo2 = repo;
+        this.revisionName = revisionName;
+        initContentAndMetaFile(repo, path);
+        // Defer the time consuming initialization until something is actually read from this revision (for performance reasons)
+    }
 
-        this.contentFile = node.getRevisionContentFile(this.revisionName);
+    /**
+     * @param node Node (e.g. '/en/about.html') which revision is associated with
+     */
+    private void initContentAndMetaFile(VirtualFileSystemNode node) throws RepositoryException {
+        this.metaDir = VirtualFileSystemNode.getRevisionDir(node.getRepository(), VirtualFileSystemNode.getMetaDir(node.getRepository(), node.getUUID()), this.revisionName); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025', whereas the revisionName is '1171842541025'
+        //log.debug("Meta directory '" + this.metaDir + "' of node '" + node.getPath() + "' (Revision: " + this.revisionName + ").");
+
+        this.contentFile = node.getRevisionContentFile(this.revisionName); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025/content'
         //log.debug("Revision content file: " + this.contentFile.getAbsolutePath());
 
-        this.metaFile = node.getRevisionMetaFile(this.revisionName);;
+        this.metaFile = node.getRevisionMetaFile(this.revisionName); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025/meta'
+        //log.debug("Revision meta file: " + this.metaFile.getAbsolutePath());
+    }
+
+    /**
+     * Init content and meta file of a particular revision
+     * @param repo Repository containing revision
+     * @param path Absolute repository path of node (which might have been deleted)
+     */
+    private void initContentAndMetaFile(VirtualFileSystemRepository repo, String path) throws RepositoryException {
+        //log.debug("Init revision '" + this.revisionName+ "' of node '" + path + "'...");
+
+        this.metaDir = VirtualFileSystemNode.getRevisionDir(repo, VirtualFileSystemNode.getMetaDir(repo, path), this.revisionName); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025', whereas the revisionName is '1171842541025'
+        //log.debug("Meta directory '" + this.metaDir + "' of node '" + path + "' (Revision: " + this.revisionName + ").");
+
+        this.contentFile = new File(metaDir, VirtualFileSystemRevision.CONTENT_FILE_NAME); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025/content'
+        //log.debug("Revision content file: " + this.contentFile.getAbsolutePath());
+
+        this.metaFile = new File(metaDir, VirtualFileSystemRevision.META_FILE_NAME); // INFO: For example '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025/meta'
         //log.debug("Revision meta file: " + this.metaFile.getAbsolutePath());
     }
 
@@ -63,7 +104,15 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
      *
      */
     protected void init() throws RepositoryException {
-        initContentAndMetaFile();
+        if (repo2 != null) {
+            log.debug("Init revision '" + revisionName + "' of node '" + path + "'...");
+            initContentAndMetaFile(repo2, path);
+        } else if (node2 != null) {
+            log.debug("Init revision '" + revisionName + "' of node '" + node2.getPath() + "'...");
+            initContentAndMetaFile(node2);
+        } else {
+            log.error("Neither repository nor node!");
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("VirtualFileSystemRevision: path=" + path + " uuid=" + uuid + " revisionName=" + revisionName);
@@ -75,7 +124,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         if (!metaFile.exists()) {
-            throw new RepositoryException("Meta file " + metaFile + " does not exist.");
+            throw new RepositoryException("Meta file '" + metaFile + "' does not exist.");
         }
         readProperties();
         
@@ -229,7 +278,15 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         // INFO: Delete from index first, before deleting revision itself!
-        DateIndexerSearcher dis = node.getDateIndexerSearcher();
+        DateIndexerSearcher dis = null;
+        if (repo2 != null) {
+            dis = ((VirtualFileSystemRepository) repo2).getDateIndexerSearcher(path);
+        } else if (node2 != null) {
+            dis = node2.getDateIndexerSearcher();
+        } else {
+            log.error("Neither repository nor node!");
+            return;
+        }
         try {
             dis.deleteRevision(revisionName);
         } catch(Exception e) {
@@ -237,33 +294,38 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         }
 
         super.delete();
-        deleteEmptyDirectories(metaDir);
 
-        if (node.hasProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
-            long currentTotal = node.getProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
-            node.setProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal - 1);
+        if (node2 != null) {
+            deleteEmptyDirectories(metaDir, node2);
+            if (node2.hasProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
+                long currentTotal = node2.getProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
+                node2.setProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal - 1);
+            }
+        } else {
+            log.warn("No node, hence wa cannot remove empty directories.");
         }
     }
 
     /**
      * Delete empty directories recursively upwards
      * @param dir Directory which will be deleted if it is empty, e.g. '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025'
+     * @param node TODO
      */
-    private void deleteEmptyDirectories(File dir) {
-        if (dir.equals(node.getRevisionsBaseDir())) {
+    private void deleteEmptyDirectories(File dir, VirtualFileSystemNode node) {
+        if (dir.getName().equals(VirtualFileSystemNode.REVISIONS_BASE_DIR)) {
             return;
         }
         if (dir.isDirectory()) {
             if (isEmpty(dir)) {
                 File parentDir = dir.getParentFile();
                 dir.delete();
-                deleteEmptyDirectories(parentDir);
+                deleteEmptyDirectories(parentDir, node);
             }
         } else {
             log.warn("No such directory: " + dir.getAbsolutePath());
             File parentDir = dir.getParentFile();
             if (parentDir != null) {
-                deleteEmptyDirectories(parentDir);
+                deleteEmptyDirectories(parentDir, node);
             } else {
                 return;
             }
