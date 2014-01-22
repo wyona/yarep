@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.wyona.commons.io.PathUtil;
 import org.wyona.yarep.core.NoSuchNodeException;
@@ -26,7 +27,7 @@ import org.wyona.yarep.core.Revision;
  * shared among different implementations.
  */
 public abstract class AbstractNode implements Node {
-    private static Logger log = Logger.getLogger(AbstractNode.class);
+    private static Logger log = LogManager.getLogger(AbstractNode.class);
 
     protected Repository repository;
     protected String path;
@@ -47,8 +48,14 @@ public abstract class AbstractNode implements Node {
     public static final String PROPERTY_CHECKOUT_USER_ID = "yarep_checkoutUserID";
     public static final String PROPERTY_CHECKOUT_DATE = "yarep_checkoutDate";
     public static final String PROPERTY_CHECKIN_DATE = "yarep_checkinDate";
-    
-    
+ 
+    /**
+     * Constructor
+     * @throws RepositoryException
+     */
+    public AbstractNode() throws RepositoryException {
+    }
+ 
     /**
      * Constructor
      * @throws RepositoryException
