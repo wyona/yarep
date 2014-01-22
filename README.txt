@@ -93,7 +93,7 @@
      Creating a release
      ------------------
 
-     1) Update revision number (subversion.revision) within build.properties (Use 'git log')
+     1) Update revision number (subversion.revision) within build.properties (Use 'git log') and version number (yarep.version) according to www.semver.org
      2) Set credentials (username and password) within local.build.properties
      3) Run ./build.sh git-clone
      4) Change directory: build/git-clone-master-rREVISION
