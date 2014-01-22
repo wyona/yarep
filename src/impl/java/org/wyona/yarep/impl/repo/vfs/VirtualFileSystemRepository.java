@@ -9,15 +9,18 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.Date;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 
 import org.wyona.commons.io.FileUtil;
+
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Node;
@@ -27,6 +30,7 @@ import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.Storage;
 import org.wyona.yarep.core.UID;
+import org.wyona.yarep.core.attributes.VersionableRepositoryV1;
 import org.wyona.yarep.core.search.Indexer;
 import org.wyona.yarep.core.search.SearchException;
 import org.wyona.yarep.core.search.Searcher;
@@ -97,9 +101,9 @@ import org.wyona.yarep.core.search.Searcher;
  * </ul>
  * 
  */
-public class VirtualFileSystemRepository implements Repository {
+public class VirtualFileSystemRepository implements Repository, VersionableRepositoryV1 {
 
-    private static Logger log = Logger.getLogger(VirtualFileSystemRepository.class);
+    private static Logger log = LogManager.getLogger(VirtualFileSystemRepository.class);
 
     private static final String DEFAULT_INDEXER_CLASS = "org.wyona.yarep.impl.search.lucene.LuceneIndexerV2";
     //private static final String DEFAULT_INDEXER_CLASS = "org.wyona.yarep.impl.search.lucene.LuceneIndexer";
@@ -111,6 +115,8 @@ public class VirtualFileSystemRepository implements Repository {
     protected String name;
     protected Map map;
     protected Storage storage;
+    protected File contentDir = null;
+    protected File metaDir = null;
     private String alternative =  null;
     private String dirListingMimeType = "application/xml";
     private boolean isFulltextIndexingEnabled = false;
@@ -401,9 +407,6 @@ public class VirtualFileSystemRepository implements Repository {
     ///////////////////////////////////////////////////////////////////////////
     // New methods for node based repository
     ///////////////////////////////////////////////////////////////////////////
-    
-    protected File contentDir = null;
-    protected File metaDir = null;
     
     /**
      * @see org.wyona.yarep.core.Repository#copy(java.lang.String, java.lang.String)
@@ -783,5 +786,67 @@ public class VirtualFileSystemRepository implements Repository {
      */
     String getRevisionsDateIndexImpl() {
         return revisionsDateIndexImpl;
+    }
+
+    /**
+     * @see org.wyona.yarep.core.attributes.VersionableRepositoryV1#getRevision(String, Date)
+     */
+    public Revision getRevision(String path, Date date) throws Exception {
+        log.warn("DEBUG: Use vfs-repo specific implementation in order to get revision for path '" + path + "' and point in time '" + date + "'...");
+
+        if (true) {
+            log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
+            DateIndexerSearcher dis = getDateIndexerSearcher(path);
+            if (dis.indexExists()) {
+                Revision revision = dis.getRevision(date);
+                if (revision != null) {
+                    return revision;
+                } else {
+                    //log.warn("No revision found via data index, try to find otherwise ...");
+                    //log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+                    return null;
+                }
+            } else {
+                log.warn("No date index yet, hence one will be created ...");
+                dis.buildDateIndex();
+                return getRevision(path, date);
+            }
+        } else {
+            return null;
+/*
+            log.debug("Old implementation");
+            if(log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation ...");
+            Revision[] revisions = getRevisions();
+            for (int i = revisions.length - 1; i >= 0; i--) {
+                //log.warn("DEBUG: Revison: " + revisions[i].getRevisionName());
+                //Date creationDate = new Date(Long.parseLong(revisions[i].getRevisionName())); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
+                Date creationDate = revisions[i].getCreationDate(); // INFO: This method is slower than the above
+                if (creationDate.before(date) || creationDate.equals(date)) {
+                    if (log.isDebugEnabled()) log.debug("Revision found: " + revisions[i].getRevisionName());
+                    log.debug("Number of revisions compared: " + (i + 1));
+                    return revisions[i];
+                }
+            }
+            log.warn("No revision found for node '" + path + "' and point in time '" + date + "'");
+            return null;
+*/
+        }
+    }
+
+    /**
+     * Get date indexer searcher implementation
+     * @param path Absolute repository path of node
+     * @return TODO
+     */
+    DateIndexerSearcher getDateIndexerSearcher(String path) throws RepositoryException {
+        if (getRevisionsDateIndexImpl().equals(REVISIONS_DATE_INDEX_DIRECTORY_IMPL)) {
+            return new DateIndexerSearcherImplV1(path, new VirtualFileSystemNode(this, path, new UID(path).toString()).metaDir, this);
+        } else if (getRevisionsDateIndexImpl().equals(REVISIONS_DATE_INDEX_LUCENE_IMPL)) {
+            log.error("TODO: Replace node by path and repository!");
+            return new DateIndexerSearcherImplV2(null, null);
+        } else {
+            log.error("No such revisions date index implementation '" + getRevisionsDateIndexImpl() + "'!");
+            return null;
+        }
     }
 }
