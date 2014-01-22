@@ -1,6 +1,8 @@
 package org.wyona.yarep.util;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Repository;
@@ -15,7 +17,7 @@ import java.util.Date;
  */
 public class YarepUtil {
 
-    private static Logger log = Logger.getLogger(YarepUtil.class);
+    private static Logger log = LogManager.getLogger(YarepUtil.class);
 
     /**
      * Get revision of a specific node for a specific date (or just before)
@@ -27,6 +29,7 @@ public class YarepUtil {
     public static Revision getRevision(Node node, Date pointInTime) throws RepositoryException {
         if (hasInterfaceImplemented(node, "Versionable", "1")) {
             try {
+                //log.debug("Get revision of node '" + node.getPath() + "' for point in time '" + pointInTime + "'...");
                 return ((org.wyona.yarep.core.attributes.VersionableV1) node).getRevision(pointInTime);
             } catch(Exception e) {
                 log.error(e, e);
@@ -57,6 +60,27 @@ public class YarepUtil {
         } catch (Exception e) {
             log.error(e, e);
             throw new RepositoryException("No revision found for node " + path + " and date " + pointInTime + ": " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get revision of a specific node for a specific date (or just before)
+     * (also see http://en.wikipedia.org/wiki/Point-in-time_recovery)
+     *
+     * @param repo Repository containing node or which used to contain node
+     * @param path Absolute repository path of node for which a specific revision shall be found
+     * @param pointInTime Date for which a revision shall be found, whereas the creation date of the revision is equals or older
+     */
+    public static Revision getRevision(Repository repo, String path, Date pointInTime) throws RepositoryException {
+        if (hasInterfaceImplemented(repo, "VersionableRepository", "1")) {
+            try {
+                return ((org.wyona.yarep.core.attributes.VersionableRepositoryV1) repo).getRevision(path, pointInTime);
+            } catch(Exception e) {
+                log.error(e, e);
+                throw new RepositoryException(e.getMessage());
+            }
+        } else {
+            throw new RepositoryException("Repository '" + repo + "' has interface VersionableRepositoryV1 not implemented!");
         }
     }
 
