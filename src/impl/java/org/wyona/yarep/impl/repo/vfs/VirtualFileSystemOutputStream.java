@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.search.Metadata;
 import org.wyona.yarep.impl.AbstractNode;
@@ -20,7 +22,7 @@ import org.wyona.yarep.impl.AbstractNode;
  */
 public class VirtualFileSystemOutputStream extends OutputStream {
 
-    private static Logger log = Logger.getLogger(VirtualFileSystemOutputStream.class);
+    private static Logger log = LogManager.getLogger(VirtualFileSystemOutputStream.class);
 
     protected OutputStream out;
     protected Node node;
