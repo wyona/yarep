@@ -19,7 +19,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /*
 import org.apache.lucene.document.Document;
@@ -30,12 +31,12 @@ import org.apache.lucene.index.IndexWriter;
 */
 
 import org.wyona.yarep.core.NoSuchRevisionException;
-import org.wyona.yarep.core.Node;
 import org.wyona.yarep.core.NodeStateException;
 import org.wyona.yarep.core.NodeType;
 import org.wyona.yarep.core.Path;
 import org.wyona.yarep.core.Property;
 import org.wyona.yarep.core.PropertyType;
+import org.wyona.yarep.core.Repository;
 import org.wyona.yarep.core.RepositoryException;
 import org.wyona.yarep.core.Revision;
 import org.wyona.yarep.core.UID;
@@ -47,7 +48,7 @@ import org.wyona.yarep.impl.DefaultProperty;
  * Utility class to index and search revisions of a node by date
  */
 public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
-    private static Logger log = Logger.getLogger(DateIndexerSearcherImplV1.class);
+    private static Logger log = LogManager.getLogger(DateIndexerSearcherImplV1.class);
 
     private String TIME_ZONE_ID = "UTC";
 
@@ -57,15 +58,19 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     private static final String DATE_INDEX_ID_FILENAME = "id.txt";
 
     private File metaDir;
-    private Node node;
+    private String nodePath;
+    private VirtualFileSystemRepository repo;
 
     /**
-     * @param node Node for revisions shall be indexed by date
-     * @param metaDir Meta directory of this node
+     * @param path Absolute repository path of node for which revisions shall be indexed by date. e.g. '/foo/bar.txt'
+     * @param node Node for which revisions shall be indexed by date
+     * @param metaDir Meta directory of this node (e.g. '/Users/michaelwechner/my-realm/repos/data-repo/yarep-meta/foo/bar.txt.yarep') which contains 'meta' file, 'revisions' directory and date index of revisions
      */
-    public DateIndexerSearcherImplV1(Node node, File metaDir) {
-        this.node = node;
+    public DateIndexerSearcherImplV1(String path, File metaDir, VirtualFileSystemRepository repo) {
+        this.repo = repo;
+        this.nodePath = path;
         this.metaDir = metaDir;
+        log.warn("DEBUG: Date indexer searcher: " + path + ", " + metaDir);
     }
 
     /**
@@ -104,7 +109,6 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
             if (years != null && years.length > 0) {
                 //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
                 return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
-                //return node.getRevision(getRevisionName(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]))));
             }
             log.warn("No year and hence no revision: " + dateIndexBaseDir);
             return null;
@@ -127,7 +131,6 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
             if (years != null && years.length > 0) {
                 //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
                 return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
-                //return node.getRevision(getRevisionName(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1]))));
             }
             log.warn("No year and hence no revision: " + dateIndexBaseDir);
             return null;
@@ -140,30 +143,32 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     /**
      * Get revision (based on date index) with a creation date which is equal or just the next older revision than the specified date, e.g. specified date=2011.03.17T17:23:57:09:690, then a revision which has either exactly this creation date or which is the next older revision, e.g. 2011.03.17T17:23:57:09:698
      * @param date Date for which a revision shall be found
+     * @return TODO
      */
     public Revision getRevision(Date date) throws Exception {
         //log.debug("Get revision for date: " + format(date));
         File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-        log.debug("Use vfs-repo specific implementation: " + node.getPath() + ", " + date);
+        log.debug("Use vfs-repo specific implementation: " + nodePath + ", " + date);
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(java.util.TimeZone.getTimeZone(TIME_ZONE_ID));
         cal.setTime(date);
 
-        String path = getRevisionByYear(dateIndexBaseDir, cal);
-        if (path == null) {
+        String path2 = getRevisionByYear(dateIndexBaseDir, cal);
+        if (path2 == null) {
             log.debug("No index file found for date: " + date);
             return null;
         }
-        if (path != null && !new File(path).isFile()) {
-            log.warn("No such index file: " + path);
+        if (path2 != null && !new File(path2).isFile()) {
+            log.warn("No such index file: " + path2);
             return null;
         }
-        String revisionName = getRevisionName(path);
+        String revisionName = getRevisionName(path2);
         try {
-            return node.getRevision(revisionName);
+            //log.debug("Return revision '" + revisionName + "' of node '" + nodePath + "'.");
+            return new VirtualFileSystemRevision(repo, nodePath, revisionName);
         } catch(NoSuchRevisionException e) {
-            if (new File(path).isFile()) {
-                log.warn("It seems that the index is out of sync, because an index file exists '" + path + "', but no such revision: " + revisionName);
+            if (new File(path2).isFile()) {
+                log.warn("It seems that the index is out of sync, because an index file exists '" + path2 + "', but no such revision: " + revisionName);
             }
             throw e;
         }
@@ -174,6 +179,7 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
      * Get revision by year, whereas the algorithm assumes that the order which File.list() is generating is ascending: 2007, 2008, 2009, 2010, ...
      * @param dateIndexBaseDir Directory where date index is located
      * @param cal Point in time for which a revision shall be found
+     * @return TODO
      */
     private String getRevisionByYear(File dateIndexBaseDir, Calendar cal) throws Exception {
 /* DEBUG
@@ -606,6 +612,7 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
         }
 
         log.warn("Build date index '" + dateIndexBaseDir + "', whereas this should happen only once when no index exists yet (or has been manually deleted again). Please note that the reading of the revisions must be based on the implementation VirtualFileSystemNode#readRevisions()!");
+        org.wyona.yarep.core.Node node = repo.getNode(nodePath);
         Revision[] revisions = node.getRevisions();
         for (int i = revisions.length - 1; i >= 0; i--) {
             addRevision(revisions[i].getRevisionName());
@@ -646,11 +653,13 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     }
 
     /**
-     * Get revision date directory, e.g. '/Users/michaelwechner/my-realm/data-repo/yarep-meta/foo/bar.html.yarep/index_date_utc/2011/11/04/09/28/51/526'
+     * Get revision date directory
      * @param revisionName Name of revision
+     * @return revision date directory, e.g. '/Users/michaelwechner/my-realm/data-repo/yarep-meta/foo/bar.html.yarep/index_date_utc/2011/11/04/09/28/51/526'
      */
     private File getRevisionDateDir(String revisionName) throws Exception {
-        Date creationDate = node.getRevision(revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
+        //log.debug("Get revision date directory for revision '" + revisionName + "' of node '" + nodePath + "'...");
+        Date creationDate = new VirtualFileSystemRevision(repo, nodePath, revisionName).getCreationDate(); // WARN: Older creation dates might not have milliseconds and hence are not corresponding exactly with the revision name, hence in order to build the date index correctly one needs to use the creation date
         //Date creationDate = new Date(Long.parseLong(revisionName)); // INFO: The name of a revision is based on System.currentTimeMillis() (see createRevision(String))
         log.debug("Creation date: " + creationDate);
 
@@ -676,25 +685,27 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
 
     /**
      * Get revision from index file
-     * @param path Absolute path of index file
+     * @param path2 Absolute path of index file
+     * @return TODO
      */
-    private Revision getRevisionFromIndexFile(String path) throws Exception, IndexOutOfSyncException {
-        if (path != null) {
-        if (new File(path).isFile()) {
-            String revisionName = getRevisionName(path);
+    private Revision getRevisionFromIndexFile(String path2) throws Exception, IndexOutOfSyncException {
+        if (path2 != null) {
+        if (new File(path2).isFile()) {
+            String revisionName = getRevisionName(path2);
             if (revisionName != null) {
                 try {
-                    return node.getRevision(revisionName);
+                    //log.debug("Get revision name from index file '" + path2 + "' for node '" + nodePath + "'.");
+                    return new VirtualFileSystemRevision(repo, nodePath, revisionName);
                 } catch (NoSuchRevisionException e) {
-                    log.warn("No revision for revision name '" + revisionName + "' of index file: " + path);
-                    throw new IndexOutOfSyncException(path);
+                    log.warn("No revision for revision name '" + revisionName + "' of index file: " + path2);
+                    throw new IndexOutOfSyncException(path2);
                 }
             } else {
-                log.warn("Index file '" + path + "' does not seem to contain a revision name!");
+                log.warn("Index file '" + path2 + "' does not seem to contain a revision name!");
                 return null;
             }
         } else {
-            log.warn("No such index file: " + path);
+            log.warn("No such index file: " + path2);
             return null;
         }
         } else {
