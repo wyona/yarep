@@ -961,13 +961,15 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         log.warn("Total number of revisions is determined by counting all revisions, which does not scale well and hence should be avoided!");
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
 
-        File[] revisionDirsUnsplitted = getRevisionsBaseDir(this.metaDir).listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
-        //log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
-
-        int revisionDirsSplitted = getNumberOfRevisionsFromSplittedDirectories();
+        int total = getNumberOfRevisionsFromSplittedDirectories();
         //log.debug("Number of revisions which are inside splitted directories: " + revisionDirsSplitted);
 
-        int total = revisionDirsUnsplitted.length + revisionDirsSplitted;
+        File revisionsBaseDir = getRevisionsBaseDir(this.metaDir);
+        if (revisionsBaseDir.isDirectory()) {
+            File[] revisionDirsUnsplitted = revisionsBaseDir.listFiles(this.revisionDirectoryFilter); // INFO: The RevisionDirectoryFilter slows down this method, but it's necessary, because the base directory might also contain hidden directories, e.g. '.svn'
+            //log.debug("Number of revision directories which are unsplitted: " + revisionDirsUnsplitted.length);
+            total = total + revisionDirsUnsplitted.length;
+        }
 
         setProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS, total);
 
@@ -978,13 +980,20 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      * Count revisions which are inside splitted directories
      */
     private int getNumberOfRevisionsFromSplittedDirectories() {
-        File[] topLevelSplittedDirectories = getRevisionsBaseDir(this.metaDir).listFiles(new SplittedDirectoryFilter());
-        int numberOfRevisions = 0;
-        for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
-            //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
-            numberOfRevisions = getNumberOfRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], numberOfRevisions);
+        File revisionsBaseDir = getRevisionsBaseDir(this.metaDir);
+        if (revisionsBaseDir.isDirectory()) {
+            //log.debug("Revisions base directory: " + revisionsBaseDir);
+            File[] topLevelSplittedDirectories = revisionsBaseDir.listFiles(new SplittedDirectoryFilter());
+            int numberOfRevisions = 0;
+            for (int i = 0; i < topLevelSplittedDirectories.length; i++) {
+                //log.debug("Splitted directories: " + topLevelSplittedDirectories[i].getAbsolutePath());
+                numberOfRevisions = getNumberOfRevisionsFromSplittedDirectories(topLevelSplittedDirectories[i], numberOfRevisions);
+            }
+            return numberOfRevisions;
+        } else {
+            log.warn("No revisions base directory exists: " + revisionsBaseDir);
+            return 0;
         }
-        return numberOfRevisions;
     }
 
     /**
