@@ -70,7 +70,7 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
         this.repo = repo;
         this.nodePath = path;
         this.metaDir = metaDir;
-        log.warn("DEBUG: Date indexer searcher: " + path + ", " + metaDir);
+        //log.debug("Date indexer searcher: " + path + ", " + metaDir);
     }
 
     /**
