@@ -32,9 +32,8 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     
     public static final String CONTENT_FILE_NAME = "content";
 
-    private VirtualFileSystemRepository repo2;
-    private VirtualFileSystemNode node2;
-    //protected VirtualFileSystemNode node;
+    private VirtualFileSystemRepository repo2; // INFO: Associated repository
+    private VirtualFileSystemNode node2; // INFO: Associated node
     protected String revisionName;
     protected boolean isInitialized = false;
 
@@ -54,7 +53,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
     }
 
     /**
-     * Constructor when node (to which revision belongs to) does not exist anymore
+     * Constructor when node (to which revision belongs to) might not exist anymore
      * @param repo Repository containing revision
      * @param path Absolute repository path of node (which might have been deleted)
      * @param revisionName Name of this revision
@@ -66,6 +65,13 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
         this.revisionName = revisionName;
         initContentAndMetaFile(repo, path);
         // Defer the time consuming initialization until something is actually read from this revision (for performance reasons)
+
+        //log.debug("Check whether associated node (" + path + ", " + revisionName + ") does really not exist anymore...");
+        if (repo.existsNode(path)) {
+            node2 = (VirtualFileSystemNode) repo.getNode(path);
+        } else {
+            log.warn("Associated node '" + path + "' does really not exist anymore.");
+        }
     }
 
     /**
@@ -295,23 +301,23 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
 
         super.delete();
 
+        deleteEmptyDirectories(metaDir);
+
         if (node2 != null) {
-            deleteEmptyDirectories(metaDir, node2);
             if (node2.hasProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS)) {
                 long currentTotal = node2.getProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
                 node2.setProperty(VirtualFileSystemNode.PROPERTY_TOTAL_NUMBER_OF_REVISIONS, currentTotal - 1);
             }
         } else {
-            log.warn("No node, hence wa cannot remove empty directories.");
+            log.warn("Associated node (of this revision '" + getRevisionName() + "') does not seem to exist anymore, hence we cannot update total number of revisions!");
         }
     }
 
     /**
      * Delete empty directories recursively upwards
      * @param dir Directory which will be deleted if it is empty, e.g. '/Users/michaelwechner/src/yanel/src/realms/yanel-website/data-repo/yarep-meta/en/about.html.yarep/revisions/11/71/84/25/41/025'
-     * @param node TODO
      */
-    private void deleteEmptyDirectories(File dir, VirtualFileSystemNode node) {
+    private void deleteEmptyDirectories(File dir) {
         if (dir.getName().equals(VirtualFileSystemNode.REVISIONS_BASE_DIR)) {
             return;
         }
@@ -319,13 +325,13 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
             if (isEmpty(dir)) {
                 File parentDir = dir.getParentFile();
                 dir.delete();
-                deleteEmptyDirectories(parentDir, node);
+                deleteEmptyDirectories(parentDir);
             }
         } else {
             log.warn("No such directory: " + dir.getAbsolutePath());
             File parentDir = dir.getParentFile();
             if (parentDir != null) {
-                deleteEmptyDirectories(parentDir, node);
+                deleteEmptyDirectories(parentDir);
             } else {
                 return;
             }
