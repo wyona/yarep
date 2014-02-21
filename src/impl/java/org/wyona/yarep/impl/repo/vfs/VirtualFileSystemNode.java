@@ -783,6 +783,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
      */
     protected void deleteRec() throws RepositoryException {
 
+        // INFO: Delete children of this node recursively
         Node[] children = getNodes();
         if (children.length > 0) {
             log.debug("Try to delete '" + children.length + "' children of node: " + getPath());
@@ -793,25 +794,12 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             log.debug("Node '" + getPath() + "' does not seem to have any children.");
         } 
 
-        Property[] props = getProperties();
-        //boolean success = getRepository().getMap().delete(new Path(getPath()));
         try {
-            if (getRepository().getMap().isCollection(new Path(getPath()))) {
-                FileUtils.deleteDirectory(this.contentFile);
-            } else {
-                this.contentFile.delete();
-            }
-            FileUtils.deleteDirectory(this.metaDir);
-        } catch (IOException e) {
-            throw new RepositoryException("Could not delete node: " + getPath() + ": " + e.toString(), e);
-        }
-
-        // INFO: Delete node from fulltext search index
-        try {
-            // INFO: Remove from fulltext index
+            log.warn("DEBUG: Delete node '" + getPath() + "' from fulltext search index...");
             getRepository().getIndexer().removeFromIndex(this);
 
-            // INFO: Remove from properties index
+            log.warn("DEBUG: Delete properties of node '" + getPath() + "' from properties search index...");
+            Property[] props = getProperties();
             if (getRepository().isAutoPropertyIndexingEnabled()) {
                 for (int i = 0; i < props.length; i++) {
                     log.debug("Remove property '" + props[i].getName() + "' of node: " + getPath() + " from index.");
@@ -822,6 +810,19 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             }
         } catch(Exception e) {
             log.error(e, e);
+        }
+
+        //boolean success = getRepository().getMap().delete(new Path(getPath()));
+        try {
+            if (getRepository().getMap().isCollection(new Path(getPath()))) {
+                FileUtils.deleteDirectory(this.contentFile);
+            } else {
+                this.contentFile.delete();
+            }
+            FileUtils.deleteDirectory(this.metaDir);
+            // TODO: Delete empty directories!
+        } catch (IOException e) {
+            throw new RepositoryException("Could not delete node: " + getPath() + ": " + e.toString(), e);
         }
     }
 
