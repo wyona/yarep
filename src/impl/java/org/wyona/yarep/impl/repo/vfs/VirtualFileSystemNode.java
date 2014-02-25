@@ -959,7 +959,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
             return (int)getProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS).getLong();
         }
 
-        log.warn("Total number of revisions is determined by counting all revisions, which does not scale well and hence should be avoided!");
+        log.warn("Total number of revisions is determined by counting all revisions of '" + getPath() + "', which does not scale well and hence should be avoided!");
         // INFO: See discussion re performance/scalability: http://stackoverflow.com/questions/687444/counting-the-number-of-files-in-a-directory-using-java
 
         int total = getNumberOfRevisionsFromSplittedDirectories();
@@ -973,6 +973,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         }
 
         setProperty(PROPERTY_TOTAL_NUMBER_OF_REVISIONS, total);
+        //log.debug("Total number of revisions of '" + getPath() + "': " + total);
 
         return total;
     }
