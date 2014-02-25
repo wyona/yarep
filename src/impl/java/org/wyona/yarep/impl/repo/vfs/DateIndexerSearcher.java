@@ -15,6 +15,12 @@ public interface DateIndexerSearcher {
     public boolean indexExists();
 
     /**
+     * Get (next) revision younger than a specific date
+     * @param date Date which is used as reference
+     */
+    public Revision getRevisionYoungerThan(Date date) throws Exception;
+
+    /**
      * Get (next) revision older than a specific date
      * @param date Date which is used as reference
      */
