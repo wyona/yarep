@@ -85,6 +85,48 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
     }
 
     /**
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionYoungerThan(Date)
+     */
+    public Revision getRevisionYoungerThan(Date date) throws Exception {
+        //log.debug("Get revision younger than: " + DateIndexerSearcherImplV1.format(date));
+        Date youngerThanDate = new Date(date.getTime() + 1);
+
+
+        //log.debug("Get revision for date: " + DateIndexerSearcherImplV1.format(youngerThanDate));
+        try {
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
+            if (searcher != null) {
+                org.apache.lucene.search.Query query = org.apache.lucene.search.NumericRangeQuery.newLongRange(CREATION_DATE_FIELD_NAME, new Long(youngerThanDate.getTime()), new Long(new Date().getTime()), true, true);
+
+                org.apache.lucene.search.Hits hits = searcher.search(query, new Sort(new SortField(CREATION_DATE_FIELD_NAME, SortField.LONG)));
+                //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                String revisionName = null;
+                if (hits != null && hits.length() > 0) {
+/* DEBUG
+                    for (int i = 0; i < hits.length();i++) {
+                        revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                        log.warn("DEBUG: Found revision name '" + revisionName + "' (Creation date: " + new Date(new Long(revisionName).longValue()) + ")");
+                    }
+*/
+                    revisionName = hits.doc(0).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                }
+                searcher.close();
+                if (revisionName != null) {
+                    return node.getRevision(revisionName);
+                } else {
+                    return null;
+                }
+            } else {
+                log.error("Searcher could not be initialized for index directory '" + indexDir + "'!");
+                return null;
+            }
+        } catch(Exception e) {
+            log.error(e, e);
+            return null;
+        }
+    }
+
+    /**
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionOlderThan(Date)
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
@@ -145,20 +187,36 @@ public class DateIndexerSearcherImplV2 implements DateIndexerSearcher {
      * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getOldestRevision()
      */
     public Revision getOldestRevision() {
+        //log.debug("Get oldest revision...");
+
         try {
-            // TODO: Find oldest year, set date to one year below oldest year and then use getRevisionOlderThan(Date date)
-            log.warn("Implementation not finished yet!");
-/*
-            File dateIndexBaseDir = new File(this.metaDir, DATE_INDEX_BASE_DIR);
-            String[] years = DateIndexerSearcherImplV1.sortAlphabeticallyAscending(dateIndexBaseDir.list());
-            if (years != null && years.length > 0) {
-                //log.debug("Year: " + years[years.length - 1]); // INFO: Descend, e.g. 2012, 2011, 2010, 2009, ...
-                //return getRevisionFromIndexFile(getYoungestRevisionOfYear(new File(dateIndexBaseDir, years[years.length - 1])));
-                return null; // TODO
-            }
-            log.warn("No year and hence no revision: " + dateIndexBaseDir);
+            org.apache.lucene.search.Searcher searcher = new IndexSearcher(indexDir.getAbsolutePath());
+            if (searcher != null) {
+                org.apache.lucene.search.Query query = org.apache.lucene.search.NumericRangeQuery.newLongRange(CREATION_DATE_FIELD_NAME, new Long(0), new Long(new Date().getTime()), true, true);
+
+                org.apache.lucene.search.Hits hits = searcher.search(query, new Sort(new SortField(CREATION_DATE_FIELD_NAME, SortField.LONG)));
+                //log.debug("Query \"" + query + "\" on field '" + CREATION_DATE_FIELD_NAME + "' returned " + hits.length() + " hits");
+                String revisionName = null;
+                if (hits != null && hits.length() > 0) {
+/* DEBUG
+                    for (int i = 0; i < hits.length();i++) {
+                        revisionName = hits.doc(i).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                        log.warn("DEBUG: Found revision name '" + revisionName + "' (Creation date: " + new Date(new Long(revisionName).longValue()) + ")");
+                    }
 */
-            return null;
+                    revisionName = hits.doc(0).getField(REVISION_NAME_FIELD_NAME).stringValue();
+                    //log.debug("Found oldest revision '" + revisionName + "' (Creation date: " + new Date(new Long(revisionName).longValue()) + ")");
+                }
+                searcher.close();
+                if (revisionName != null) {
+                    return node.getRevision(revisionName);
+                } else {
+                    return null;
+                }
+            } else {
+                log.error("Searcher could not be initialized for index directory '" + indexDir + "'!");
+                return null;
+            }
         } catch(Exception e) {
             log.error(e, e);
             return null;
