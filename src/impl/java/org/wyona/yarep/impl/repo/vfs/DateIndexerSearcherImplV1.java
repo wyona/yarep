@@ -82,8 +82,27 @@ public class DateIndexerSearcherImplV1 implements DateIndexerSearcher {
     }
 
     /**
-     * Get (next) revision older than a specific date
-     * @param date Date which is used as reference
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionYoungerThan(Date)
+     */
+    public Revision getRevisionYoungerThan(Date date) throws Exception {
+        log.warn("DEBUG: Get revision younger than: " + format(date));
+        Date youngerThanDate = new Date(date.getTime() + 1);
+
+        Revision revision = getRevision(youngerThanDate);
+        if (true) {
+            log.error("TODO: Finish implementation!");
+            return null;
+        }
+        if (revision != null && date.getTime() > revision.getCreationDate().getTime()) {
+            return revision;
+        } else {
+            log.warn("There seems to be NO revision younger than: " + format(date));
+            return null;
+        }
+    }
+
+    /**
+     * @see org.wyona.yarep.impl.repo.vfs.DateIndexerSearcher#getRevisionOlderThan(Date)
      */
     public Revision getRevisionOlderThan(Date date) throws Exception {
         //log.debug("Get revision older than: " + format(date));
