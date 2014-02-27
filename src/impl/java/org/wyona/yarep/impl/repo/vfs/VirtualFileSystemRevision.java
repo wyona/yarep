@@ -349,7 +349,7 @@ public class VirtualFileSystemRevision extends VirtualFileSystemNode implements 
             log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is NOT empty.");
             return false;
         }
-        log.warn("DEBUG: Directory '" + dir.getAbsolutePath() + "' is empty.");
+        log.debug("Directory '" + dir.getAbsolutePath() + "' is empty.");
         return true;
     }
 
