@@ -18,14 +18,15 @@ import java.io.FilenameFilter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Category;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *
  */
 public class TreeFileSystemMap extends VFileSystemMapImpl {
 
-    private static Category log = Category.getInstance(TreeFileSystemMap.class);
+    private static final Logger log = LogManager.getLogger(TreeFileSystemMap.class);
 
     protected File pathsDir;
     protected Pattern[] ignorePatterns;
@@ -74,6 +75,7 @@ public class TreeFileSystemMap extends VFileSystemMapImpl {
     /**
      * Set paths directory
      */
+    @Override
     public void setPathsDir(File src,  File repoConfigFile) throws RepositoryException {
         pathsDir = src;
         if (!pathsDir.isAbsolute()) {
