@@ -6,7 +6,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 import org.apache.avalon.framework.configuration.Configuration;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -28,7 +31,8 @@ import org.wyona.yarep.impl.search.lucene.LuceneConfig;
  */
 public class LuceneIndexer implements Indexer {
     
-    static Logger log = Logger.getLogger(LuceneIndexer.class);
+    static Logger log = LogManager.getLogger(LuceneIndexer.class);
+
     private static final String LOCK = "lock";
     private static enum INDEX_TYPE {FULLTEXT, PROPERTIES};
     public static final String INDEX_PROPERTY_FULL = "_FULLTEXT";
