@@ -16,14 +16,15 @@ import java.io.FilenameFilter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Virtual file system map which is basically a one to one map
  */
 public class VFileSystemMapImpl implements Map {
 
-    private static Logger log = Logger.getLogger(VFileSystemMapImpl.class);
+    private static Logger log = LogManager.getLogger(VFileSystemMapImpl.class);
 
     protected File pathsDir;
     protected Pattern[] ignorePatterns;
@@ -58,8 +59,9 @@ public class VFileSystemMapImpl implements Map {
         log.info("Paths dir: " + pathsDir.toString());
 
         if (!pathsDir.exists()) {
-            log.error("No such file or directory: " + pathsDir);
-            throw new RepositoryException("No such file or directory: " + pathsDir);
+            log.warn("No such file or directory '" + pathsDir + "', hence we will create it...");
+            pathsDir.mkdirs();
+            //throw new RepositoryException("No such file or directory: " + pathsDir);
         }
     }
     
