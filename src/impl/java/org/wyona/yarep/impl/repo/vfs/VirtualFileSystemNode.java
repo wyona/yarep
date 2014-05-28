@@ -235,7 +235,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     }
 
     /**
-     * @depecated Use {@link saveProperties(String)} instead
+     * @deprecated Use {@link saveProperties(String)} instead
      * Save all properties within a meta file
      * @throws RepositoryException
      */
@@ -279,13 +279,17 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
     /**
      * Save all properties within a meta file
      * TODO/TBD: Changing a property should update the last modified date. This implementation does not change the last modified date if a property changes.
-     * @param name Property name which has been set or removed (see setProperty(Property) and removeProperty(String))
+     * @param pname Property name which has been set or removed (see setProperty(Property) and removeProperty(String))
      * @throws RepositoryException
      */
-    private void saveProperties(String name) throws RepositoryException {
+    private void saveProperties(String pname) throws RepositoryException {
         synchronized("save-properties") {
         try {
             log.debug("Writing meta file: " + this.metaFile);
+            if (!this.metaFile.getParentFile().isDirectory()) {
+                log.warn("Trying to save modified property '" + pname + "', but directory '" + this.metaFile.getParentFile().getAbsolutePath() + "' does not exist yet, hence we will create it ...");
+                this.metaFile.getParentFile().mkdirs();
+            }
             PrintWriter writer = new PrintWriter(new FileOutputStream(this.metaFile));
 
             writer.println("yarep_vfs-meta-file-version" + "<" + "string" + ">" + PROPERTY_SEPARATOR + "1.0");
@@ -301,7 +305,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
                     if (property.getValueAsString() == null) {
                         log.warn("Value as string of property '" + property.getName() + "' is null!");
                     } else {
-                        if (property.getName().equals(name)) {
+                        if (property.getName().equals(pname)) {
                             modifiedProperty = property;
                         }
                     }
