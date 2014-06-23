@@ -792,7 +792,7 @@ public class VirtualFileSystemRepository implements Repository, VersionableRepos
      * @see org.wyona.yarep.core.attributes.VersionableRepositoryV1#getRevision(String, Date)
      */
     public Revision getRevision(String path, Date date) throws Exception {
-        log.warn("DEBUG: Use vfs-repo specific implementation in order to get revision for path '" + path + "' and point in time '" + date + "'...");
+        if (log.isDebugEnabled()) log.debug("Use vfs-repo specific implementation in order to get revision for path '" + path + "' and point in time '" + date + "'...");
 
         if (true) {
             log.debug("New implementation"); // According to tests with 15K revisions, the new implementation is about 80 times faster than the old one (8 millis instead 640 millis)
