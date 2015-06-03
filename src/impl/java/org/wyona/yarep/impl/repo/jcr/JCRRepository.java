@@ -9,7 +9,8 @@ import org.wyona.yarep.core.UID;
 
 import org.wyona.commons.io.FileUtil;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -36,7 +37,7 @@ import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
  */
 public class JCRRepository implements Repository {
 
-    private static Logger log = Logger.getLogger(JCRRepository.class);
+    private static Logger log = LogManager.getLogger(JCRRepository.class);
 
     private String repoId;
     private String repoName;
