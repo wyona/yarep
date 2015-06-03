@@ -3,7 +3,10 @@ package org.wyona.yarep.impl.search.lucene;
 import java.io.File;
 
 import org.apache.avalon.framework.configuration.Configuration;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -19,7 +22,7 @@ import org.wyona.yarep.core.search.SearchException;
  */
 public class LuceneConfig {
     
-    private static Logger log = Logger.getLogger(LuceneConfig.class);
+    private static Logger log = LogManager.getLogger(LuceneConfig.class);
     
     private File fulltextSearchIndexFile = null;
     private File propertiesSearchIndexFile = null;
