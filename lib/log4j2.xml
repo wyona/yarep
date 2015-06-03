@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+  <appenders>
+    <RollingFile name="A1" fileName="/Users/michaelwechner/src/wyona/public/git/yarep/log4j2.log" filePattern="/Users/michaelwechner/src/wyona/public/git/yarep/log4j2.log.%i">
+<!--
+    <RollingFile name="A1" fileName="${sys:catalina.base}/logs/log4j2.log" filePattern="${sys:catalina.base}/logs/log4j2.log.%i" append="false">
+-->
+      <PatternLayout pattern="%-4r %d{yyyy-MM-dd HH:mm:ss,SSS Z} [%t] %-5p %c.%M():%L %x %X - %m%n"/>
+<!--
+      <PatternLayout pattern="%t %-5p %c{2} - %m%n"/>
+-->
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1000 KB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="5"/>
+    </RollingFile>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%-4r %d{yyyy-MM-dd HH:mm:ss,SSS Z} [%t] %-5p %c.%M():%L %x %X - %m%n"/>
+<!--
+      <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+-->
+    </Console>
+  </appenders>
+
+  <loggers>
+    <root level="debug">
+<!--
+      <appender-ref ref="A1"/>
+-->
+      <appender-ref ref="STDOUT"/>
+    </root>
+  </loggers>
+</configuration>
