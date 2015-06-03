@@ -1,9 +1,10 @@
-
 package org.wyona.yarep.tools.ant;
 
 import java.io.File;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Path;
@@ -16,7 +17,7 @@ import org.wyona.yarep.util.YarepUtil;
  * Ant task in order to (re-)index a repository
  */
 public class IndexRepositoryTask extends Task {
-    private static Logger log = Logger.getLogger(IndexRepositoryTask.class);
+    private static Logger log = LogManager.getLogger(IndexRepositoryTask.class);
     
     private Path repoConfigPath;
 
