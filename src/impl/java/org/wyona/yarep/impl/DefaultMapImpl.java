@@ -17,14 +17,15 @@ import java.io.FilenameFilter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Category;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *
  */
 public class DefaultMapImpl implements Map {
 
-    private static Category log = Category.getInstance(DefaultMapImpl.class);
+    private static Logger log = LogManager.getLogger(DefaultMapImpl.class);
 
     protected File pathsDir;
     protected Pattern[] ignorePatterns;
