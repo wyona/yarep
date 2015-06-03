@@ -9,7 +9,9 @@ import java.util.Vector;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.wyona.commons.io.FileUtil;
 
@@ -18,7 +20,7 @@ import org.wyona.commons.io.FileUtil;
  */
 public class RepositoryFactory {
 
-    private static Logger log = Logger.getLogger(RepositoryFactory.class);
+    private static Logger log = LogManager.getLogger(RepositoryFactory.class);
 
     public static final String DEFAULT_CONFIGURATION_FILE = "yarep.properties";
     public static String CONFIGURATION_FILE = DEFAULT_CONFIGURATION_FILE;
