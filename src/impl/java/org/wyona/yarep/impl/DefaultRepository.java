@@ -13,7 +13,10 @@ import java.io.Writer;
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Category;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.wyona.yarep.core.Map;
 import org.wyona.yarep.core.NoSuchNodeException;
 import org.wyona.yarep.core.Node;
@@ -30,7 +33,7 @@ import org.wyona.yarep.core.UID;
  */
 public class DefaultRepository  implements Repository {
 
-    private static Category log = Category.getInstance(DefaultRepository.class);
+    private static Logger log = LogManager.getLogger(DefaultRepository.class);
 
     protected String id;
     protected File configFile;
