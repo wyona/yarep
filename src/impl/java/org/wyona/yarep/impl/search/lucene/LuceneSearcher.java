@@ -5,7 +5,8 @@ import java.util.List;
 
 import org.apache.avalon.framework.configuration.Configuration;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.lucene.search.IndexSearcher;
 
@@ -22,7 +23,7 @@ import java.io.File;
  */
 public class LuceneSearcher implements Searcher {
     
-    static Logger log = Logger.getLogger(LuceneSearcher.class);
+    static Logger log = LogManager.getLogger(LuceneSearcher.class);
 
     private LuceneConfig config;
 
