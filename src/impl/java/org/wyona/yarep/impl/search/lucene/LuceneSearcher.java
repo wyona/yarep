@@ -51,7 +51,11 @@ public class LuceneSearcher implements Searcher {
                 try {
                     org.apache.lucene.search.Query luceneQuery = new org.apache.lucene.queryParser.QueryParser(LuceneIndexer.INDEX_PROPERTY_FULL, config.getFulltextAnalyzer()).parse(query);
                     org.apache.lucene.search.Hits hits = searcher.search(luceneQuery);
-                    log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
+                    if (hits.length() == 0) {
+                        log.info("Query \"" + query + "\" inside fulltext index '" + config.getFulltextSearchIndexFile().getAbsolutePath() + "' returned no hits.");
+                    } else {
+                        log.info("Query \"" + query + "\" returned " + hits.length() + " hits");
+                    }
 
                     java.util.List<Node> results = new java.util.ArrayList<Node>();
                     for (int i = 0; i < hits.length();i++) {
