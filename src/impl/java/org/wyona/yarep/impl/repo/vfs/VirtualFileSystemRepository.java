@@ -564,8 +564,12 @@ public class VirtualFileSystemRepository implements Repository, VersionableRepos
     public Indexer getIndexer() {
         return indexer;
     }
-    
+
+    /**
+     * @see org.wyona.yarep.core.Repository#getSearcher()
+     */
     public Searcher getSearcher() {
+        log.debug("Get searcher '" + searcher.getClass().getName() + "'.");
         return searcher;
     }
 
