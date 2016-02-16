@@ -18,7 +18,8 @@ import org.wyona.yarep.core.UID;
 import org.wyona.yarep.core.search.Indexer;
 import org.wyona.yarep.core.search.Searcher;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.avalon.framework.configuration.Configuration;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
@@ -31,7 +32,7 @@ import org.apache.commons.dbcp.BasicDataSource;
  */
 public class ORMRepositoryImpl implements Repository {
 
-    private static final Logger log = Logger.getLogger(ORMRepositoryImpl.class);
+    private static final Logger log = LogManager.getLogger(ORMRepositoryImpl.class);
 
     protected String repoId;
     protected String repoName;
@@ -51,6 +52,7 @@ public class ORMRepositoryImpl implements Repository {
         bds.setUrl(url);
         bds.setUsername(username);
         bds.setPassword(password);
+        bds.addConnectionProperty("logUnclosedConnections", "true");
         return bds;
     }
 
@@ -256,7 +258,7 @@ public class ORMRepositoryImpl implements Repository {
     }
     
     /**
-     * @see org.wyona.yarep.core.Repository#exists(String)
+     * @see org.wyona.yarep.core.Repository#existsNode(String)
      */
     public boolean existsNode(String path) throws RepositoryException {
         log.warn("TODO: Not implemented yet!");
