@@ -7,7 +7,8 @@ import java.io.StringWriter;
 
 import org.apache.avalon.framework.configuration.Configuration;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -34,7 +35,7 @@ import org.wyona.yarep.impl.repo.vfs.VirtualFileSystemRepository;
  */
 public class LuceneIndexerV2 implements Indexer {
     
-    static Logger log = Logger.getLogger(LuceneIndexerV2.class);
+    static Logger log = LogManager.getLogger(LuceneIndexerV2.class);
     protected LuceneConfig config;
 
     private static final String SYNC_LOCK_PROPERTIES = "sync-lock-properties";
