@@ -4,7 +4,8 @@ echo "INFO: Build Yarep ..."
 
 # ----- Parameters
 
-JAVA_HOME_MACOSX=/System/Library/Frameworks/JavaVM.framework/Home
+JAVA_HOME_MACOSX=/Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home
+#JAVA_HOME_MACOSX=/System/Library/Frameworks/JavaVM.framework/Home
 
 # ----- Check for JAVA_HOME
 JAVA_HOME="$JAVA_HOME"
