@@ -138,6 +138,7 @@ public class VirtualFileSystemNode extends AbstractNode implements VersionableV1
         
         if (!metaFile.exists()) {
             // TODO: Is this really necessary?
+            // TODO: Beside the question whether this is really necessary, it also seems to be very slow!!!
             log.warn("No meta file exists yet for node '" + path + "' and hence one will be created!");
             createMetaFile();
         }
