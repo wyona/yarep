@@ -10,6 +10,14 @@
      - JDK 1.6 or higher
 
 
+     Usage:
+     ------
+
+     Get a list of all commands by running
+
+     - ./build.sh -p
+
+
      Building YAREP:
      ---------------
 
