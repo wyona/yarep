@@ -57,6 +57,11 @@
      executing "ant jar" or rather "./build.sh jar". Take a look at the examples how YAREP
      can be used within another application.
 
+     As an alternative you can also run
+
+     ./build.sh install-jars
+
+     which copies the jar files into your local maven repository, such that the jar files are available via maven dependencies.
 
      How to copy a repository
      ------------------------
