@@ -23,7 +23,7 @@ public class VFSRevisionIterator implements java.util.Iterator {
     private boolean reverse;
 
     /**
-     * @param dis Yarep node specific date indexer searche whuch is supposed to have revisions
+     * @param dis Yarep node specific date indexer searcher which is supposed to have revisions
      * @param date Point in time (from where iteration shall start or stop)
      * @param reverse Reversed order, if set to true, then oldest revision first and most recent (head) last
      */
